@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { LoadingSpinner } from '@components/common/ui/LoadingSpinner';
 
 export default function AuthLayout() {
@@ -12,7 +12,7 @@ export default function AuthLayout() {
   }
 
   return (
-    <View className="flex-1 bg-white dark:bg-gray-900">
+    <View style={styles.container}>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -24,4 +24,11 @@ export default function AuthLayout() {
       />
     </View>
   );
-} 
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+}); 

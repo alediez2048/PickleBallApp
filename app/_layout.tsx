@@ -3,7 +3,7 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { View, Platform } from 'react-native';
+import { View, Platform, StyleSheet } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 
@@ -41,8 +41,7 @@ export default function RootLayout() {
     if (Platform.OS === 'web') {
       // Remove any existing background color
       document.body.style.backgroundColor = '';
-      // Add Tailwind classes to body
-      document.body.className = colorScheme === 'dark' ? 'dark bg-gray-900' : 'bg-white';
+      document.body.style.background = '#fff';
     }
     SplashScreen.hideAsync();
   }, [colorScheme]);
@@ -50,11 +49,18 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <View className="flex-1 bg-white dark:bg-gray-900">
+        <View style={styles.container}>
           <RootLayoutNav />
-          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+          <StatusBar style="dark" />
         </View>
       </ThemeProvider>
     </AuthProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+});
