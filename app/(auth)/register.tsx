@@ -29,7 +29,6 @@ export default function RegisterScreen() {
 
       setIsLoading(true);
       await signUp(email, password, name);
-      router.replace('/(tabs)');
     } catch (err) {
       if (err instanceof Error && err.message === 'Email already registered') {
         setErrors({ email: 'Email is already registered' });
