@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import { mockApi } from '@/services/mockApi';
 
 interface User {
   id: string;
@@ -55,22 +56,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // TODO: Implement actual API call
-      const response = await fetch('YOUR_API_URL/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const { token, user } = await mockApi.login({ email, password });
 
-      if (!response.ok) {
-        throw new Error('Authentication failed');
-      }
-
-      const { token, user } = await response.json();
-
-      // Store auth data securely
       await Promise.all([
         SecureStore.setItemAsync('auth_token', token),
         SecureStore.setItemAsync('user', JSON.stringify(user)),
@@ -85,22 +72,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
-      // TODO: Implement actual API call
-      const response = await fetch('YOUR_API_URL/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, name }),
-      });
+      const { token, user } = await mockApi.register({ email, password, name });
 
-      if (!response.ok) {
-        throw new Error('Registration failed');
-      }
-
-      const { token, user } = await response.json();
-
-      // Store auth data securely
       await Promise.all([
         SecureStore.setItemAsync('auth_token', token),
         SecureStore.setItemAsync('user', JSON.stringify(user)),
