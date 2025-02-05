@@ -34,24 +34,32 @@ export interface AuthResponse {
 
 class MockApi {
   async login({ email, password }: LoginCredentials): Promise<AuthResponse> {
+    console.log('MockApi: Login attempt with:', { email, password });
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     const user = MOCK_USERS.get(email);
+    console.log('MockApi: Found user:', user);
+
     if (!user || user.password !== password) {
+      console.log('MockApi: Invalid credentials');
       throw new Error('Invalid credentials');
     }
 
     const { password: _, ...userWithoutPassword } = user;
-    return {
+    const response = {
       token: generateToken(user.id),
       user: userWithoutPassword,
     };
+    console.log('MockApi: Login successful:', response);
+    return response;
   }
 
   async register({ email, password, name }: RegisterCredentials): Promise<AuthResponse> {
+    console.log('MockApi: Register attempt with:', { email, name });
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     if (MOCK_USERS.has(email)) {
+      console.log('MockApi: Email already registered');
       throw new Error('Email already registered');
     }
 
@@ -63,12 +71,15 @@ class MockApi {
     };
 
     MOCK_USERS.set(email, newUser);
+    console.log('MockApi: New user registered:', newUser);
 
     const { password: _, ...userWithoutPassword } = newUser;
-    return {
+    const response = {
       token: generateToken(newUser.id),
       user: userWithoutPassword,
     };
+    console.log('MockApi: Registration successful:', response);
+    return response;
   }
 }
 

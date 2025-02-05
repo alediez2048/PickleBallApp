@@ -3,6 +3,7 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { View, Platform } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 
@@ -37,14 +38,22 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   useEffect(() => {
+    if (Platform.OS === 'web') {
+      // Remove any existing background color
+      document.body.style.backgroundColor = '';
+      // Add Tailwind classes to body
+      document.body.className = colorScheme === 'dark' ? 'dark bg-gray-900' : 'bg-white';
+    }
     SplashScreen.hideAsync();
-  }, []);
+  }, [colorScheme]);
 
   return (
     <AuthProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <RootLayoutNav />
-        <StatusBar style="auto" />
+        <View className="flex-1 bg-white dark:bg-gray-900">
+          <RootLayoutNav />
+          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        </View>
       </ThemeProvider>
     </AuthProvider>
   );

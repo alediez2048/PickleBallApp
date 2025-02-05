@@ -1,115 +1,122 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { Link, router } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
 import { ThemedText } from '@components/ThemedText';
-import { ThemedView } from '@components/ThemedView';
 import { Button } from '@components/common/ui/Button';
-import { LoadingSpinner } from '@components/common/ui/LoadingSpinner';
-import { validateLoginForm } from '@/utils/validation';
+import { AntDesign, FontAwesome } from '@expo/vector-icons';
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useAuth();
-
-  const handleLogin = async () => {
-    try {
-      // Reset errors
-      setErrors({});
-
-      // Validate form
-      const validationResult = validateLoginForm(email, password);
-      if (validationResult.hasErrors()) {
-        const newErrors: { [key: string]: string } = {};
-        validationResult.getAllErrors().forEach(error => {
-          newErrors[error.field] = error.message;
-        });
-        setErrors(newErrors);
-        return;
-      }
-
-      setIsLoading(true);
-      await signIn(email, password);
-      router.replace('/(tabs)');
-    } catch (err) {
-      setErrors({ form: 'Invalid email or password' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (isLoading) {
-    return <LoadingSpinner message="Signing in..." />;
-  }
-
   return (
-    <ThemedView className="flex-1 p-4">
-      <View className="flex-1 justify-center">
-        <ThemedText className="text-3xl font-sans-bold text-center mb-8">
-          Welcome Back
-        </ThemedText>
-
-        <View className="space-y-4">
-          <View>
-            <TextInput
-              className="bg-white dark:bg-gray-800 p-4 rounded-lg text-black dark:text-white"
-              placeholder="Email"
-              placeholderTextColor="#666"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              editable={!isLoading}
-            />
-            {errors.email && (
-              <ThemedText className="text-red-500 text-sm mt-1 ml-1">
-                {errors.email}
-              </ThemedText>
-            )}
-          </View>
-
-          <View>
-            <TextInput
-              className="bg-white dark:bg-gray-800 p-4 rounded-lg text-black dark:text-white"
-              placeholder="Password"
-              placeholderTextColor="#666"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              editable={!isLoading}
-            />
-            {errors.password && (
-              <ThemedText className="text-red-500 text-sm mt-1 ml-1">
-                {errors.password}
-              </ThemedText>
-            )}
-          </View>
-
-          {errors.form && (
-            <ThemedText className="text-red-500 text-center">
-              {errors.form}
+    <SafeAreaView style={{ flex: 1 }} className="bg-white">
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <View className="flex-1 justify-center">
+          <View className="px-6 items-center">
+            {/* Logo */}
+            <ThemedText style={{ 
+              fontSize: 32, 
+              fontWeight: 'bold', 
+              textAlign: 'center', 
+              color: '#000',
+              letterSpacing: -1,
+              marginBottom: 32
+            }}>
+              PicklePass
             </ThemedText>
-          )}
 
-          <Button onPress={handleLogin} size="lg" disabled={isLoading}>
-            Sign In
-          </Button>
+            {/* Title */}
+            <ThemedText style={{ 
+              fontSize: 24, 
+              fontWeight: '600', 
+              textAlign: 'center', 
+              color: '#000',
+              letterSpacing: -0.5,
+              marginBottom: 32
+            }}>
+              Create an account
+            </ThemedText>
 
-          <View className="flex-row justify-center mt-4">
-            <ThemedText>Don't have an account? </ThemedText>
-            <Link href="/(auth)/register" asChild>
-              <TouchableOpacity>
-                <ThemedText className="text-primary font-sans-bold">
-                  Sign Up
+            {/* Form */}
+            <View className="w-full max-w-[400px]">
+              {/* Email Button */}
+              <Button
+                variant="primary"
+                size="lg"
+                onPress={() => router.push('/(auth)/email-login')}
+                icon={<AntDesign name="mail" size={20} color="white" />}
+              >
+                Continue with Email
+              </Button>
+
+              {/* Divider */}
+              <View className="flex-row items-center justify-center my-4">
+                <View className="flex-1 h-[1px] bg-gray-200" />
+                <ThemedText style={{ 
+                  marginHorizontal: 16, 
+                  color: '#666', 
+                  fontSize: 14
+                }}>
+                  or
                 </ThemedText>
-              </TouchableOpacity>
-            </Link>
+                <View className="flex-1 h-[1px] bg-gray-200" />
+              </View>
+
+              {/* Social Buttons */}
+              <View className="space-y-4">
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  onPress={() => {}}
+                  icon={<FontAwesome name="facebook" size={20} color="#1877F2" />}
+                >
+                  Continue with Facebook
+                </Button>
+
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  onPress={() => {}}
+                  icon={<AntDesign name="google" size={20} color="#DB4437" />}
+                >
+                  Continue with Google
+                </Button>
+
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  onPress={() => {}}
+                  icon={<AntDesign name="apple1" size={20} color="black" />}
+                >
+                  Continue with Apple
+                </Button>
+              </View>
+
+              {/* Sign In Link */}
+              <View className="flex-row justify-center items-center mt-8">
+                <ThemedText style={{ 
+                  color: '#666', 
+                  fontSize: 14
+                }}>
+                  Already have an account?{' '}
+                </ThemedText>
+                <Link href="/(auth)/login" asChild>
+                  <TouchableOpacity>
+                    <ThemedText style={{ 
+                      color: '#000', 
+                      fontWeight: '600', 
+                      fontSize: 14
+                    }}>
+                      Sign in
+                    </ThemedText>
+                  </TouchableOpacity>
+                </Link>
+              </View>
+            </View>
           </View>
         </View>
-      </View>
-    </ThemedView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 } 

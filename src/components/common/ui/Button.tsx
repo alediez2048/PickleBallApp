@@ -1,11 +1,13 @@
 import React from 'react';
-import { TouchableOpacity, Text, TouchableOpacityProps } from 'react-native';
+import { TouchableOpacity, Text, TouchableOpacityProps, ActivityIndicator, View } from 'react-native';
 import { clsx } from 'clsx';
 
 interface ButtonProps extends TouchableOpacityProps {
   variant?: 'primary' | 'secondary';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
+  loading?: boolean;
+  icon?: React.ReactNode;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -13,34 +15,52 @@ export const Button: React.FC<ButtonProps> = ({
   size = 'md',
   children,
   className,
+  disabled,
+  loading,
+  icon,
   ...props
 }) => {
   return (
     <TouchableOpacity
-      className={clsx(
-        'rounded-full items-center justify-center',
-        {
-          'bg-primary': variant === 'primary',
-          'bg-white border-2 border-primary': variant === 'secondary',
-          'px-4 py-2': size === 'sm',
-          'px-6 py-3': size === 'md',
-          'px-8 py-4': size === 'lg',
-        },
-        className
-      )}
+      style={{
+        width: '100%',
+        height: size === 'sm' ? 40 : size === 'md' ? 48 : 52,
+        backgroundColor: variant === 'primary' ? '#000' : '#fff',
+        borderRadius: 6,
+        borderWidth: variant === 'secondary' ? 1 : 0,
+        borderColor: variant === 'secondary' ? '#e5e7eb' : undefined,
+        opacity: disabled ? 0.5 : 1,
+      }}
+      disabled={disabled || loading}
       {...props}
     >
-      <Text
-        className={clsx('font-sans-medium', {
-          'text-white': variant === 'primary',
-          'text-primary': variant === 'secondary',
-          'text-sm': size === 'sm',
-          'text-base': size === 'md',
-          'text-lg': size === 'lg',
-        })}
-      >
-        {children}
-      </Text>
+      <View style={{
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+      }}>
+        {loading ? (
+          <ActivityIndicator color={variant === 'primary' ? 'white' : 'black'} />
+        ) : (
+          <>
+            {icon && (
+              <View style={{ marginRight: 8 }}>
+                {icon}
+              </View>
+            )}
+            <Text style={{
+              fontSize: 15,
+              fontWeight: '500',
+              color: variant === 'primary' ? '#fff' : '#111',
+              textAlign: 'center',
+            }}>
+              {children}
+            </Text>
+          </>
+        )}
+      </View>
     </TouchableOpacity>
   );
 }; 
