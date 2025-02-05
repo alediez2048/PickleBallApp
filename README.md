@@ -1,50 +1,81 @@
-# Welcome to your Expo app 👋
+# PicklePass
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+PicklePass makes pickleball accessible, affordable, and organized by offering a streamlined mobile solution that connects players to structured, equipment-supported pickup games at public courts.
 
-## Get started
+## Features
 
-1. Install dependencies
+- User registration and profiles
+- Game discovery and booking
+- Real-time game coordination
+- Secure payment processing
+- Location-based court finding
+- Skill level matching
 
+## Getting Started
+
+1. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
-
+2. Start the development server:
    ```bash
-    npx expo start
+   npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+3. Run on your preferred platform:
+   - Press `i` for iOS simulator
+   - Press `a` for Android emulator
+   - Scan QR code with Expo Go app for physical device
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Project Structure
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+The project follows a feature-based architecture. See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for detailed documentation.
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+PicklePass/
+├── app/                    # Expo Router (File-based Routing)
+├── src/                    # Source code
+│   ├── components/        # React Components
+│   ├── constants/        # App Constants
+│   ├── hooks/           # Custom React Hooks
+│   ├── services/       # External Services
+│   ├── store/         # State Management
+│   ├── types/        # TypeScript Types
+│   └── utils/       # Utility Functions
+└── assets/        # Static Assets
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Development
 
-## Learn more
+- **TypeScript**: The project uses TypeScript for type safety
+- **Expo Router**: File-based routing for seamless navigation
+- **Theme System**: Consistent styling with theme support
+- **State Management**: Organized by features
+- **Testing**: Component and integration tests
 
-To learn more about developing your project with Expo, look at the following resources:
+## Contributing
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+1. Create a feature branch from `develop`
+2. Follow the project structure guidelines
+3. Add necessary tests
+4. Submit a pull request
 
-## Join the community
+## Environment Setup
 
-Join our community of developers creating universal apps.
+1. Node.js 18 or higher
+2. Expo CLI: `npm install -g expo-cli`
+3. iOS Simulator or Android Emulator
+4. Expo Go app for physical device testing
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Scripts
+
+- `npm start`: Start the development server
+- `npm test`: Run tests
+- `npm run build`: Build for production
+- `npm run lint`: Run ESLint
+- `npm run format`: Format code with Prettier
+
+## License
+
+This project is private and confidential. All rights reserved.
