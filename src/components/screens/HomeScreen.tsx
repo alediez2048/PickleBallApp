@@ -1,8 +1,11 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { Button } from '../common/ui/Button';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const HomeScreen: React.FC = () => {
+  const { signOut } = useAuth();
+
   return (
     <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900 p-4">
       <Text className="text-2xl font-sans-bold text-primary mb-4">
@@ -23,6 +26,14 @@ export const HomeScreen: React.FC = () => {
           size="md"
         >
           Create Game
+        </Button>
+
+        <Button 
+          variant="secondary" 
+          onPress={signOut}
+          size="md"
+        >
+          Sign Out
         </Button>
       </View>
     </View>

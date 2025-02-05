@@ -1,122 +1,179 @@
 import React from 'react';
-import { View, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
+import { View, TouchableOpacity, SafeAreaView, Text, StyleSheet, Platform } from 'react-native';
 import { Link, router } from 'expo-router';
-import { ThemedText } from '@components/ThemedText';
 import { Button } from '@components/common/ui/Button';
-import { AntDesign, FontAwesome } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
+import { GoogleIcon } from '@components/common/icons/GoogleIcon';
 
 export default function LoginScreen() {
   return (
-    <SafeAreaView style={{ flex: 1 }} className="bg-white">
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <View className="flex-1 justify-center">
-          <View className="px-6 items-center">
-            {/* Logo */}
-            <ThemedText style={{ 
-              fontSize: 32, 
-              fontWeight: 'bold', 
-              textAlign: 'center', 
-              color: '#000',
-              letterSpacing: -1,
-              marginBottom: 32
-            }}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.innerContainer}>
+        <View style={styles.content}>
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <Text style={styles.logo}>
               PicklePass
-            </ThemedText>
+            </Text>
+          </View>
 
-            {/* Title */}
-            <ThemedText style={{ 
-              fontSize: 24, 
-              fontWeight: '600', 
-              textAlign: 'center', 
-              color: '#000',
-              letterSpacing: -0.5,
-              marginBottom: 32
-            }}>
-              Create an account
-            </ThemedText>
+          {/* Title */}
+          <Text style={styles.title}>
+            Create an account
+          </Text>
 
-            {/* Form */}
-            <View className="w-full max-w-[400px]">
-              {/* Email Button */}
-              <Button
-                variant="primary"
-                size="lg"
-                onPress={() => router.push('/(auth)/email-login')}
-                icon={<AntDesign name="mail" size={20} color="white" />}
-              >
-                Continue with Email
-              </Button>
+          {/* Buttons Container */}
+          <View style={styles.buttonContainer}>
+            {/* Email Button */}
+            <Button
+              variant="primary"
+              size="lg"
+              onPress={() => router.push('/(auth)/email-login')}
+            >
+              Continue with Email
+            </Button>
 
-              {/* Divider */}
-              <View className="flex-row items-center justify-center my-4">
-                <View className="flex-1 h-[1px] bg-gray-200" />
-                <ThemedText style={{ 
-                  marginHorizontal: 16, 
-                  color: '#666', 
-                  fontSize: 14
-                }}>
-                  or
-                </ThemedText>
-                <View className="flex-1 h-[1px] bg-gray-200" />
-              </View>
-
-              {/* Social Buttons */}
-              <View className="space-y-4">
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  onPress={() => {}}
-                  icon={<FontAwesome name="facebook" size={20} color="#1877F2" />}
-                >
-                  Continue with Facebook
-                </Button>
-
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  onPress={() => {}}
-                  icon={<AntDesign name="google" size={20} color="#DB4437" />}
-                >
-                  Continue with Google
-                </Button>
-
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  onPress={() => {}}
-                  icon={<AntDesign name="apple1" size={20} color="black" />}
-                >
-                  Continue with Apple
-                </Button>
-              </View>
-
-              {/* Sign In Link */}
-              <View className="flex-row justify-center items-center mt-8">
-                <ThemedText style={{ 
-                  color: '#666', 
-                  fontSize: 14
-                }}>
-                  Already have an account?{' '}
-                </ThemedText>
-                <Link href="/(auth)/login" asChild>
-                  <TouchableOpacity>
-                    <ThemedText style={{ 
-                      color: '#000', 
-                      fontWeight: '600', 
-                      fontSize: 14
-                    }}>
-                      Sign in
-                    </ThemedText>
-                  </TouchableOpacity>
-                </Link>
-              </View>
+            {/* Divider */}
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
             </View>
+
+            {/* Social Buttons */}
+            <Button
+              variant="secondary"
+              size="lg"
+              onPress={() => {}}
+            >
+              <View style={styles.socialButtonContent}>
+                <View style={styles.iconContainer}>
+                  <GoogleIcon size={20} />
+                </View>
+                <Text style={styles.socialButtonText}>Continue with Google</Text>
+              </View>
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="lg"
+              onPress={() => {}}
+            >
+              <View style={styles.socialButtonContent}>
+                <View style={styles.iconContainer}>
+                  <AntDesign name="facebook-square" size={20} color="#1877F2" />
+                </View>
+                <Text style={styles.socialButtonText}>Continue with Facebook</Text>
+              </View>
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="lg"
+              onPress={() => {}}
+            >
+              <View style={styles.socialButtonContent}>
+                <View style={styles.iconContainer}>
+                  <AntDesign name="apple1" size={20} color="#000" />
+                </View>
+                <Text style={styles.socialButtonText}>Continue with Apple</Text>
+              </View>
+            </Button>
+          </View>
+
+          {/* Sign In Link */}
+          <View style={styles.signInContainer}>
+            <Text style={styles.signInText}>
+              Already have an account?{' '}
+              <Text style={styles.signInLink} onPress={() => router.push('/(auth)/email-login')}>
+                Sign in
+              </Text>
+            </Text>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
-} 
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  innerContainer: {
+    flex: 1,
+    paddingTop: Platform.OS === 'web' ? 240 : 0, // Increased from 160 to 240
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'stretch',
+    paddingHorizontal: 24,
+    paddingVertical: 120, // Increased from 80 to 120
+    maxWidth: 400,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  logo: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#000',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  buttonContainer: {
+    width: '100%',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    marginHorizontal: 12,
+    color: '#6B7280',
+    fontSize: 14,
+  },
+  socialButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  iconContainer: {
+    position: 'absolute',
+    left: 16,
+  },
+  socialButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#000',
+  },
+  signInContainer: {
+    marginTop: 32,
+    alignItems: 'center',
+  },
+  signInText: {
+    color: '#6B7280',
+    fontSize: 14,
+  },
+  signInLink: {
+    color: '#000',
+    fontWeight: '600',
+  },
+}); 

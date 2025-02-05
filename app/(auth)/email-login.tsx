@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet, Text } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { ThemedText } from '@components/ThemedText';
 import { Button } from '@components/common/ui/Button';
 import { LoadingSpinner } from '@components/common/ui/LoadingSpinner';
 import { validateLoginForm } from '@/utils/validation';
@@ -29,7 +28,7 @@ export default function EmailLoginScreen() {
 
       setIsLoading(true);
       await signIn(email, password);
-      router.replace('/(tabs)');
+      // Navigation will be handled by the root layout
     } catch (err) {
       setErrors({ form: 'Invalid email or password' });
     } finally {
@@ -42,38 +41,38 @@ export default function EmailLoginScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white dark:bg-gray-900">
+    <View style={styles.container}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={styles.keyboardView}
       >
-        <View className="flex-1 px-6">
+        <View style={styles.content}>
           {/* Back Button */}
           <TouchableOpacity 
             onPress={() => router.back()}
-            className="absolute top-12 left-6 z-10"
+            style={styles.backButton}
           >
-            <ThemedText className="text-gray-600 dark:text-gray-400">← Back</ThemedText>
+            <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
 
-          <View className="flex-1 justify-center -mt-20">
+          <View style={styles.formContainer}>
             {/* Title */}
-            <View className="mb-8">
-              <ThemedText className="text-2xl font-bold text-black dark:text-white mb-2">
+            <View style={styles.titleContainer}>
+              <Text style={styles.title}>
                 Sign in with email
-              </ThemedText>
-              <ThemedText className="text-base text-gray-600 dark:text-gray-400">
+              </Text>
+              <Text style={styles.subtitle}>
                 Enter your email and password
-              </ThemedText>
+              </Text>
             </View>
 
             {/* Form */}
-            <View className="space-y-4">
-              <View>
+            <View style={styles.form}>
+              <View style={styles.inputContainer}>
                 <TextInput
-                  className="h-[52px] px-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-black dark:text-white text-base"
+                  style={styles.input}
                   placeholder="Email"
-                  placeholderTextColor={Platform.select({ ios: '#6B7280', android: '#9CA3AF' })}
+                  placeholderTextColor="#6B7280"
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
@@ -82,17 +81,17 @@ export default function EmailLoginScreen() {
                   returnKeyType="next"
                 />
                 {errors.email && (
-                  <ThemedText className="text-red-500 dark:text-red-400 text-sm mt-1 ml-1">
+                  <Text style={styles.errorText}>
                     {errors.email}
-                  </ThemedText>
+                  </Text>
                 )}
               </View>
 
-              <View>
+              <View style={styles.inputContainer}>
                 <TextInput
-                  className="h-[52px] px-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-black dark:text-white text-base"
+                  style={styles.input}
                   placeholder="Password"
-                  placeholderTextColor={Platform.select({ ios: '#6B7280', android: '#9CA3AF' })}
+                  placeholderTextColor="#6B7280"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
@@ -101,16 +100,16 @@ export default function EmailLoginScreen() {
                   onSubmitEditing={handleLogin}
                 />
                 {errors.password && (
-                  <ThemedText className="text-red-500 dark:text-red-400 text-sm mt-1 ml-1">
+                  <Text style={styles.errorText}>
                     {errors.password}
-                  </ThemedText>
+                  </Text>
                 )}
               </View>
 
               {errors.form && (
-                <ThemedText className="text-red-500 dark:text-red-400 text-sm text-center">
+                <Text style={[styles.errorText, styles.formError]}>
                   {errors.form}
-                </ThemedText>
+                </Text>
               )}
 
               <Button 
@@ -126,4 +125,72 @@ export default function EmailLoginScreen() {
       </KeyboardAvoidingView>
     </View>
   );
-} 
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 48,
+    left: 24,
+    zIndex: 10,
+  },
+  backButtonText: {
+    color: '#6B7280',
+    fontSize: 16,
+  },
+  formContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    marginTop: -80,
+  },
+  titleContainer: {
+    marginBottom: 32,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  form: {
+    gap: 16,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  input: {
+    height: 52,
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    fontSize: 16,
+    color: '#000',
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 14,
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  formError: {
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+}); 

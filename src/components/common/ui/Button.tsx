@@ -1,66 +1,83 @@
 import React from 'react';
-import { TouchableOpacity, Text, TouchableOpacityProps, ActivityIndicator, View } from 'react-native';
-import { clsx } from 'clsx';
+import { TouchableOpacity, Text, TouchableOpacityProps, ActivityIndicator, View, StyleSheet } from 'react-native';
 
 interface ButtonProps extends TouchableOpacityProps {
   variant?: 'primary' | 'secondary';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
   loading?: boolean;
-  icon?: React.ReactNode;
 }
 
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   size = 'md',
   children,
-  className,
   disabled,
   loading,
-  icon,
+  style,
   ...props
 }) => {
+  const buttonStyles = [
+    styles.button,
+    variant === 'primary' ? styles.primaryButton : styles.secondaryButton,
+    disabled && styles.disabledButton,
+    style,
+  ];
+
   return (
     <TouchableOpacity
-      style={{
-        width: '100%',
-        height: size === 'sm' ? 40 : size === 'md' ? 48 : 52,
-        backgroundColor: variant === 'primary' ? '#000' : '#fff',
-        borderRadius: 6,
-        borderWidth: variant === 'secondary' ? 1 : 0,
-        borderColor: variant === 'secondary' ? '#e5e7eb' : undefined,
-        opacity: disabled ? 0.5 : 1,
-      }}
+      style={buttonStyles}
       disabled={disabled || loading}
       {...props}
     >
-      <View style={{
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 16,
-      }}>
-        {loading ? (
-          <ActivityIndicator color={variant === 'primary' ? 'white' : 'black'} />
+      {loading ? (
+        <ActivityIndicator color={variant === 'primary' ? '#fff' : '#000'} />
+      ) : (
+        typeof children === 'string' ? (
+          <Text style={[
+            styles.text,
+            variant === 'primary' ? styles.primaryText : styles.secondaryText,
+          ]}>
+            {children}
+          </Text>
         ) : (
-          <>
-            {icon && (
-              <View style={{ marginRight: 8 }}>
-                {icon}
-              </View>
-            )}
-            <Text style={{
-              fontSize: 15,
-              fontWeight: '500',
-              color: variant === 'primary' ? '#fff' : '#111',
-              textAlign: 'center',
-            }}>
-              {children}
-            </Text>
-          </>
-        )}
-      </View>
+          children
+        )
+      )}
     </TouchableOpacity>
   );
-}; 
+};
+
+const styles = StyleSheet.create({
+  button: {
+    width: '100%',
+    height: 48,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    marginVertical: 6,
+  },
+  primaryButton: {
+    backgroundColor: '#000',
+  },
+  secondaryButton: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  text: {
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  primaryText: {
+    color: '#fff',
+  },
+  secondaryText: {
+    color: '#000',
+  },
+}); 

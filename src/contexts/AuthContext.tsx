@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
 import { mockApi } from '@/services/mockApi';
+import { storage } from '@/services/storage';
 
 interface User {
   id: string;
@@ -31,16 +32,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    // Load token and user data from secure storage on app start
+    // Load token and user data from storage on app start
     loadStoredAuth();
   }, []);
 
+  useEffect(() => {
+    if (!state.isLoading) {
+      if (state.token) {
+        router.replace('/(tabs)');
+      } else {
+        router.replace('/login');
+      }
+    }
+  }, [state.token, state.isLoading]);
+
   const loadStoredAuth = async () => {
     try {
+      console.log('Loading stored auth data...');
       const [token, userString] = await Promise.all([
-        SecureStore.getItemAsync('auth_token'),
-        SecureStore.getItemAsync('user'),
+        storage.getItem('auth_token'),
+        storage.getItem('user'),
       ]);
+
+      console.log('Stored auth data:', { token, userString });
 
       if (token && userString) {
         const user = JSON.parse(userString);
@@ -56,47 +70,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Signing in...', { email });
+      setState(prev => ({ ...prev, isLoading: true }));
+      
       const { token, user } = await mockApi.login({ email, password });
+      console.log('Sign in successful:', { token, user });
 
       await Promise.all([
-        SecureStore.setItemAsync('auth_token', token),
-        SecureStore.setItemAsync('user', JSON.stringify(user)),
+        storage.setItem('auth_token', token),
+        storage.setItem('user', JSON.stringify(user)),
       ]);
+      console.log('Auth data stored');
 
       setState({ token, user, isLoading: false });
     } catch (error) {
       console.error('Sign in error:', error);
+      setState(prev => ({ ...prev, isLoading: false }));
       throw error;
     }
   };
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
+      console.log('Signing up...', { email, name });
+      setState(prev => ({ ...prev, isLoading: true }));
+      
       const { token, user } = await mockApi.register({ email, password, name });
+      console.log('Sign up successful:', { token, user });
 
       await Promise.all([
-        SecureStore.setItemAsync('auth_token', token),
-        SecureStore.setItemAsync('user', JSON.stringify(user)),
+        storage.setItem('auth_token', token),
+        storage.setItem('user', JSON.stringify(user)),
       ]);
+      console.log('Auth data stored');
 
       setState({ token, user, isLoading: false });
     } catch (error) {
       console.error('Sign up error:', error);
+      setState(prev => ({ ...prev, isLoading: false }));
       throw error;
     }
   };
 
   const signOut = async () => {
     try {
-      // Remove stored auth data
+      console.log('Signing out...');
+      setState(prev => ({ ...prev, isLoading: true }));
+      
       await Promise.all([
-        SecureStore.deleteItemAsync('auth_token'),
-        SecureStore.deleteItemAsync('user'),
+        storage.removeItem('auth_token'),
+        storage.removeItem('user'),
       ]);
+      console.log('Auth data removed');
 
       setState({ token: null, user: null, isLoading: false });
     } catch (error) {
       console.error('Sign out error:', error);
+      setState(prev => ({ ...prev, isLoading: false }));
       throw error;
     }
   };
