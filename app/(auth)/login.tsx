@@ -19,7 +19,10 @@ export default function LoginScreen() {
 
           {/* Title */}
           <Text style={styles.title}>
-            Create an account
+            Welcome to PicklePass
+          </Text>
+          <Text style={styles.subtitle}>
+            Sign in or create an account to get started
           </Text>
 
           {/* Buttons Container */}
@@ -30,7 +33,16 @@ export default function LoginScreen() {
               size="lg"
               onPress={() => router.push('/(auth)/email-login')}
             >
-              Continue with Email
+              Sign in with Email
+            </Button>
+
+            {/* Register Button */}
+            <Button
+              variant="secondary"
+              size="lg"
+              onPress={() => router.push('/(auth)/register')}
+            >
+              Create New Account
             </Button>
 
             {/* Divider */}
@@ -103,14 +115,12 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     flex: 1,
-    paddingTop: Platform.OS === 'web' ? 240 : 0, // Increased from 160 to 240
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'stretch',
     paddingHorizontal: 24,
-    paddingVertical: 120, // Increased from 80 to 120
     maxWidth: 400,
     alignSelf: 'center',
     width: '100%',
@@ -129,10 +139,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000',
     textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
     marginBottom: 32,
   },
   buttonContainer: {
     width: '100%',
+    gap: 12,
   },
   dividerContainer: {
     flexDirection: 'row',
