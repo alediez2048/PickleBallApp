@@ -1,3 +1,6 @@
-import { HomeScreen } from '../../src/components/screens/HomeScreen';
+import React from 'react';
+import { HomeScreen } from '@components/screens/HomeScreen';
 
-export default HomeScreen;
+export default function TabHomeScreen() {
+  return <HomeScreen />;
+}

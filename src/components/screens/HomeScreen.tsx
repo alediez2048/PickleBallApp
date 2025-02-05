@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Button } from '../../common/ui/Button';
+import { Button } from '../common/ui/Button';
 
 export const HomeScreen: React.FC = () => {
   return (
