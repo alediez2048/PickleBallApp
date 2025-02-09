@@ -2,17 +2,29 @@
 const NETWORK_DELAY = 1000;
 
 // Mock user database
-const MOCK_USERS = new Map([
+interface MockUser {
+  id: string;
+  email: string;
+  name: string;
+  password: string;
+  emailVerified: boolean;
+  verificationToken: string | null;
+}
+
+const MOCK_USERS = new Map<string, MockUser>([
   ['test@example.com', {
     id: '1',
     email: 'test@example.com',
     name: 'Test User',
-    password: 'password123'
+    password: 'password123',
+    emailVerified: true,
+    verificationToken: null
   }]
 ]);
 
 // Mock token generation
 const generateToken = (userId: string) => `mock-token-${userId}-${Date.now()}`;
+const generateVerificationToken = () => Math.random().toString(36).substring(2, 15);
 
 export interface LoginCredentials {
   email: string;
@@ -29,6 +41,7 @@ export interface AuthResponse {
     id: string;
     email: string;
     name: string;
+    emailVerified: boolean;
   };
 }
 
@@ -49,7 +62,7 @@ class MockApi {
       throw new Error('Invalid credentials');
     }
 
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _, verificationToken: __, ...userWithoutPassword } = user;
     const response = {
       token: generateToken(user.id),
       user: userWithoutPassword,
@@ -67,23 +80,67 @@ class MockApi {
       throw new Error('Email already registered');
     }
 
+    const verificationToken = generateVerificationToken();
     const newUser = {
       id: (MOCK_USERS.size + 1).toString(),
       email,
       password,
       name,
+      emailVerified: false,
+      verificationToken
     };
 
     MOCK_USERS.set(email, newUser);
     console.log('MockApi: New user registered:', newUser);
+    console.log('MockApi: Verification token:', verificationToken);
 
-    const { password: _, ...userWithoutPassword } = newUser;
+    // In a real implementation, this would send an email with the verification link
+    console.log('MockApi: Verification email would be sent to:', email);
+
+    const { password: _, verificationToken: __, ...userWithoutPassword } = newUser;
     const response = {
       token: generateToken(newUser.id),
       user: userWithoutPassword,
     };
     console.log('MockApi: Registration successful:', response);
     return response;
+  }
+
+  async verifyEmail(email: string, token: string): Promise<void> {
+    console.log('MockApi: Verifying email for:', email);
+    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+
+    const user = MOCK_USERS.get(email);
+    if (!user || user.verificationToken !== token) {
+      throw new Error('Invalid verification token');
+    }
+
+    user.emailVerified = true;
+    user.verificationToken = null;
+    MOCK_USERS.set(email, user);
+    console.log('MockApi: Email verified successfully');
+  }
+
+  async resendVerificationEmail(email: string): Promise<void> {
+    console.log('MockApi: Resending verification email for:', email);
+    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+
+    const user = MOCK_USERS.get(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (user.emailVerified) {
+      throw new Error('Email already verified');
+    }
+
+    const newVerificationToken = generateVerificationToken();
+    user.verificationToken = newVerificationToken;
+    MOCK_USERS.set(email, user);
+
+    // In a real implementation, this would send a new verification email
+    console.log('MockApi: New verification token:', newVerificationToken);
+    console.log('MockApi: Verification email would be sent to:', email);
   }
 
   async requestPasswordReset({ email }: PasswordResetRequest): Promise<void> {

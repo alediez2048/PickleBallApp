@@ -12,7 +12,7 @@ SplashScreen.preventAutoHideAsync();
 
 // This component handles protected routes and authentication state
 function RootLayoutNav() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -20,15 +20,22 @@ function RootLayoutNav() {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inVerificationScreen = segments[1] === 'verify-email';
 
-    if (isAuthenticated && inAuthGroup) {
-      // Redirect authenticated users away from auth screens
-      router.replace('/(tabs)');
+    if (isAuthenticated) {
+      // If user is not verified and not on verification screen, redirect to verification
+      if (!user?.emailVerified && !inVerificationScreen) {
+        router.replace('/(auth)/verify-email');
+      } 
+      // If user is verified or authenticated and in auth group, redirect to tabs
+      else if ((user?.emailVerified || !inVerificationScreen) && inAuthGroup) {
+        router.replace('/(tabs)');
+      }
     } else if (!isAuthenticated && !inAuthGroup) {
       // Redirect unauthenticated users to sign in
       router.replace('/login');
     }
-  }, [isAuthenticated, segments, isLoading]);
+  }, [isAuthenticated, segments, isLoading, user?.emailVerified]);
 
   return <Slot />;
 }
