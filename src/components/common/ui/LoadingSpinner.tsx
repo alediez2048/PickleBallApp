@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, SafeAreaView } from 'react-native';
 import { ThemedText } from '@components/ThemedText';
 
 interface LoadingSpinnerProps {
@@ -12,13 +12,34 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   message,
 }) => {
   return (
-    <View className="flex-1 items-center justify-center">
-      <ActivityIndicator size={size} color="#2E7D32" />
-      {message && (
-        <ThemedText className="mt-2 text-center text-gray-600 dark:text-gray-300">
-          {message}
-        </ThemedText>
-      )}
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <ActivityIndicator size={size} color="#2E7D32" />
+        {message && (
+          <ThemedText style={styles.message}>
+            {message}
+          </ThemedText>
+        )}
+      </View>
+    </SafeAreaView>
   );
-}; 
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  message: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+}); 
