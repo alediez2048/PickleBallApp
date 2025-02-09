@@ -99,18 +99,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { token, user } = await mockApi.register({ email, password, name });
       console.log('Sign up successful:', { token, user });
 
-      // First store the auth data
+      // Store the auth data
       await Promise.all([
         storage.setItem('auth_token', token),
         storage.setItem('user', JSON.stringify(user)),
       ]);
       console.log('Auth data stored');
 
-      // Then update the state with the new user data
+      // Update the state with the new user data
       setState({ token, user, isLoading: false });
-      
-      // Finally, navigate to tabs
-      router.replace('/(tabs)');
+      // Navigation will be handled by the root layout based on emailVerified status
     } catch (error) {
       console.error('Sign up error:', error);
       setState(prev => ({ ...prev, isLoading: false }));

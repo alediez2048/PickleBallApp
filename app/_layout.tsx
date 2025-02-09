@@ -23,15 +23,18 @@ function RootLayoutNav() {
     const inVerificationScreen = segments[1] === 'verify-email';
 
     if (isAuthenticated) {
-      // If user is not verified and not on verification screen, redirect to verification
-      if (!user?.emailVerified && !inVerificationScreen) {
-        router.replace('/(auth)/verify-email');
-      } 
-      // If user is verified or authenticated and in auth group, redirect to tabs
-      else if ((user?.emailVerified || !inVerificationScreen) && inAuthGroup) {
-        router.replace('/(tabs)');
+      if (!user?.emailVerified) {
+        // Unverified users should only be on the verification screen
+        if (!inVerificationScreen) {
+          router.replace('/(auth)/verify-email');
+        }
+      } else {
+        // Verified users should be in the main app
+        if (inAuthGroup) {
+          router.replace('/(tabs)');
+        }
       }
-    } else if (!isAuthenticated && !inAuthGroup) {
+    } else if (!inAuthGroup) {
       // Redirect unauthenticated users to sign in
       router.replace('/login');
     }
