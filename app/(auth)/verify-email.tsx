@@ -7,7 +7,7 @@ import { mockApi } from '@/services/mockApi';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function VerifyEmailScreen() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -33,8 +33,19 @@ export default function VerifyEmailScreen() {
     }
   };
 
+  const handleBackToSignIn = async () => {
+    try {
+      setIsLoading(true);
+      await signOut();
+      // Navigation will be handled by the root layout
+    } catch (err) {
+      setError('Failed to sign out. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
   if (isLoading) {
-    return <LoadingSpinner message="Sending verification email..." />;
+    return <LoadingSpinner message="Please wait..." />;
   }
 
   return (
@@ -69,6 +80,19 @@ export default function VerifyEmailScreen() {
             disabled={isLoading}
           >
             Resend Verification Email
+          </Button>
+
+          <View style={styles.divider} />
+
+          <Text style={styles.signInText}>
+            Want to use a different account?
+          </Text>
+          <Button
+            variant="secondary"
+            onPress={handleBackToSignIn}
+            disabled={isLoading}
+          >
+            Back to Sign In
           </Button>
         </View>
       </View>
@@ -130,6 +154,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resendText: {
+    color: '#6B7280',
+    fontSize: 14,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    width: '100%',
+    marginVertical: 8,
+  },
+  signInText: {
     color: '#6B7280',
     fontSize: 14,
   },
