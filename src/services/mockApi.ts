@@ -49,6 +49,17 @@ export interface PasswordResetRequest {
   email: string;
 }
 
+export interface SocialAuthCredentials {
+  token: string;
+  provider: 'google' | 'facebook' | 'apple';
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    photoUrl?: string;
+  };
+}
+
 class MockApi {
   async login({ email, password }: LoginCredentials): Promise<AuthResponse> {
     console.log('MockApi: Login attempt with:', { email, password });
@@ -177,6 +188,49 @@ class MockApi {
     user.password = newPassword;
     MOCK_USERS.set(email, user);
     console.log('MockApi: Password updated successfully');
+  }
+
+  async socialAuth({ token, provider, user }: SocialAuthCredentials): Promise<AuthResponse> {
+    console.log(`MockApi: ${provider} auth attempt with:`, { token, user });
+    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+
+    // Check if user already exists
+    const existingUser = Array.from(MOCK_USERS.values()).find(u => u.email === user.email);
+
+    if (existingUser) {
+      // Update existing user with social info
+      const updatedUser = {
+        ...existingUser,
+        name: user.name, // Update name from social profile
+        emailVerified: true, // Social logins are considered verified
+      };
+      MOCK_USERS.set(existingUser.email, updatedUser);
+
+      const { password: _, verificationToken: __, ...userWithoutPassword } = updatedUser;
+      return {
+        token: generateToken(existingUser.id),
+        user: userWithoutPassword,
+      };
+    }
+
+    // Create new user
+    const newUser: MockUser = {
+      id: (MOCK_USERS.size + 1).toString(),
+      email: user.email,
+      name: user.name,
+      password: '', // Social auth users don't have passwords
+      emailVerified: true, // Social logins are considered verified
+      verificationToken: null,
+    };
+
+    MOCK_USERS.set(newUser.email, newUser);
+    console.log('MockApi: New social user registered:', newUser);
+
+    const { password: _, verificationToken: __, ...userWithoutPassword } = newUser;
+    return {
+      token: generateToken(newUser.id),
+      user: userWithoutPassword,
+    };
   }
 }
 

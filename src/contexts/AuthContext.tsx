@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import { mockApi } from '@/services/mockApi';
 import { storage } from '@/services/storage';
+import { socialAuth } from '@/services/socialAuth';
+import { Alert } from 'react-native';
 
 interface User {
   id: string;
@@ -20,6 +22,8 @@ interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithFacebook: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -135,11 +139,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const handleSocialAuthSuccess = async (
+    provider: 'google' | 'facebook',
+    token: string,
+    user: { id: string; email: string; name: string; photoUrl?: string }
+  ) => {
+    try {
+      const response = await mockApi.socialAuth({ token, provider, user });
+      
+      await Promise.all([
+        storage.setItem('auth_token', response.token),
+        storage.setItem('user', JSON.stringify(response.user)),
+      ]);
+
+      setState({
+        token: response.token,
+        user: response.user,
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error(`${provider} auth error:`, error);
+      Alert.alert('Error', `Failed to authenticate with ${provider}`);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      setState(prev => ({ ...prev, isLoading: true }));
+      const result = await socialAuth.signInWithGoogle();
+      
+      if (result.type === 'success' && result.token && result.user) {
+        await handleSocialAuthSuccess('google', result.token, result.user);
+      } else {
+        throw new Error(result.message || 'Google sign in failed');
+      }
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      Alert.alert('Error', 'Failed to sign in with Google');
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  const signInWithFacebook = async () => {
+    try {
+      setState(prev => ({ ...prev, isLoading: true }));
+      const result = await socialAuth.signInWithFacebook();
+      
+      if (result.type === 'success' && result.token && result.user) {
+        await handleSocialAuthSuccess('facebook', result.token, result.user);
+      } else {
+        throw new Error(result.message || 'Facebook sign in failed');
+      }
+    } catch (error) {
+      console.error('Facebook sign in error:', error);
+      Alert.alert('Error', 'Failed to sign in with Facebook');
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
   const value = {
     ...state,
     signIn,
     signUp,
     signOut,
+    signInWithGoogle,
+    signInWithFacebook,
     isAuthenticated: !!state.token,
   };
 

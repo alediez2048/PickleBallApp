@@ -5,6 +5,7 @@ import { Button } from '@components/common/ui/Button';
 import { LoadingSpinner } from '@components/common/ui/LoadingSpinner';
 import { mockApi } from '@/services/mockApi';
 import { useAuth } from '@/contexts/AuthContext';
+import { VerifyEmailIcon } from '@components/common/icons/VerifyEmailIcon';
 
 export default function VerifyEmailScreen() {
   const { user, signOut } = useAuth();
@@ -52,7 +53,7 @@ export default function VerifyEmailScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Text style={styles.icon}>📧</Text>
+          <VerifyEmailIcon size={80} />
         </View>
 
         <Text style={styles.title}>Verify your email</Text>
@@ -113,9 +114,7 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: 24,
-  },
-  icon: {
-    fontSize: 64,
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,

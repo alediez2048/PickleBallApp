@@ -1,11 +1,36 @@
-import React from 'react';
-import { View, TouchableOpacity, SafeAreaView, Text, StyleSheet, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, TouchableOpacity, SafeAreaView, Text, StyleSheet } from 'react-native';
 import { Link, router } from 'expo-router';
 import { Button } from '@components/common/ui/Button';
 import { AntDesign } from '@expo/vector-icons';
 import { GoogleIcon } from '@components/common/icons/GoogleIcon';
+import { useAuth } from '@/contexts/AuthContext';
+import { LoadingSpinner } from '@components/common/ui/LoadingSpinner';
 
 export default function LoginScreen() {
+  const { signInWithGoogle, signInWithFacebook } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSocialSignIn = async (provider: 'google' | 'facebook') => {
+    try {
+      setIsLoading(true);
+      switch (provider) {
+        case 'google':
+          await signInWithGoogle();
+          break;
+        case 'facebook':
+          await signInWithFacebook();
+          break;
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return <LoadingSpinner message="Signing in..." />;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
@@ -56,7 +81,7 @@ export default function LoginScreen() {
             <Button
               variant="secondary"
               size="lg"
-              onPress={() => {}}
+              onPress={() => handleSocialSignIn('google')}
             >
               <View style={styles.socialButtonContent}>
                 <View style={styles.iconContainer}>
@@ -69,26 +94,13 @@ export default function LoginScreen() {
             <Button
               variant="secondary"
               size="lg"
-              onPress={() => {}}
+              onPress={() => handleSocialSignIn('facebook')}
             >
               <View style={styles.socialButtonContent}>
                 <View style={styles.iconContainer}>
                   <AntDesign name="facebook-square" size={20} color="#1877F2" />
                 </View>
                 <Text style={styles.socialButtonText}>Continue with Facebook</Text>
-              </View>
-            </Button>
-
-            <Button
-              variant="secondary"
-              size="lg"
-              onPress={() => {}}
-            >
-              <View style={styles.socialButtonContent}>
-                <View style={styles.iconContainer}>
-                  <AntDesign name="apple1" size={20} color="#000" />
-                </View>
-                <Text style={styles.socialButtonText}>Continue with Apple</Text>
               </View>
             </Button>
           </View>
