@@ -1,47 +1,48 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet, Text } from 'react-native';
+import { View, TextInput, TouchableOpacity, SafeAreaView, Text, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@components/common/ui/Button';
 import { LoadingSpinner } from '@components/common/ui/LoadingSpinner';
-import { validateLoginForm } from '@/utils/validation';
+import { validateEmail } from '@/utils/validation';
+import { mockApi } from '@/services/mockApi';
 
-export default function EmailLoginScreen() {
+export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useAuth();
 
-  const handleLogin = async () => {
+  const handleResetPassword = async () => {
     try {
-      setErrors({});
-      const validationResult = validateLoginForm(email, password);
-      if (validationResult.hasErrors()) {
-        const newErrors: { [key: string]: string } = {};
-        validationResult.getAllErrors().forEach(error => {
-          newErrors[error.field] = error.message;
-        });
-        setErrors(newErrors);
+      setError(null);
+      setSuccess(null);
+
+      if (!email) {
+        setError('Email is required');
+        return;
+      }
+
+      if (!validateEmail(email)) {
+        setError('Please enter a valid email address');
         return;
       }
 
       setIsLoading(true);
-      await signIn(email, password);
-      // Navigation will be handled by the root layout
+      await mockApi.requestPasswordReset({ email });
+      setSuccess('If an account exists with this email, you will receive password reset instructions shortly');
     } catch (err) {
-      setErrors({ form: 'Invalid email or password' });
+      setError('Failed to send reset instructions. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   if (isLoading) {
-    return <LoadingSpinner message="Signing in..." />;
+    return <LoadingSpinner message="Sending reset instructions..." />;
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -58,11 +59,9 @@ export default function EmailLoginScreen() {
           <View style={styles.formContainer}>
             {/* Title */}
             <View style={styles.titleContainer}>
-              <Text style={styles.title}>
-                Sign in with email
-              </Text>
+              <Text style={styles.title}>Reset your password</Text>
               <Text style={styles.subtitle}>
-                Enter your email and password
+                Enter your email address and we'll send you instructions to reset your password
               </Text>
             </View>
 
@@ -74,62 +73,47 @@ export default function EmailLoginScreen() {
                   placeholder="Email"
                   placeholderTextColor="#6B7280"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    setError(null);
+                    setSuccess(null);
+                  }}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   editable={!isLoading}
-                  returnKeyType="next"
                 />
-                {errors.email && (
-                  <Text style={styles.errorText}>
-                    {errors.email}
-                  </Text>
+                {error && (
+                  <Text style={styles.errorText}>{error}</Text>
+                )}
+                {success && (
+                  <Text style={styles.successText}>{success}</Text>
                 )}
               </View>
-
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Password"
-                  placeholderTextColor="#6B7280"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  editable={!isLoading}
-                  returnKeyType="done"
-                  onSubmitEditing={handleLogin}
-                />
-                {errors.password && (
-                  <Text style={styles.errorText}>
-                    {errors.password}
-                  </Text>
-                )}
-                <TouchableOpacity 
-                  onPress={() => router.push('/(auth)/forgot-password')}
-                  style={styles.forgotPasswordContainer}
-                >
-                  <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-                </TouchableOpacity>
-              </View>
-
-              {errors.form && (
-                <Text style={[styles.errorText, styles.formError]}>
-                  {errors.form}
-                </Text>
-              )}
 
               <Button 
-                onPress={handleLogin}
-                size="lg"
+                onPress={handleResetPassword} 
+                size="lg" 
                 disabled={isLoading}
               >
-                Continue
+                Send Reset Instructions
               </Button>
+
+              <View style={styles.signInContainer}>
+                <Text style={styles.signInText}>
+                  Remember your password?{' '}
+                  <Text 
+                    style={styles.signInLink} 
+                    onPress={() => router.push('/(auth)/email-login')}
+                  >
+                    Sign in
+                  </Text>
+                </Text>
+              </View>
             </View>
           </View>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -172,6 +156,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: '#6B7280',
+    textAlign: 'center',
   },
   form: {
     gap: 16,
@@ -195,17 +180,22 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginLeft: 4,
   },
-  formError: {
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  forgotPasswordContainer: {
-    alignSelf: 'flex-end',
-    marginTop: 8,
-  },
-  forgotPasswordText: {
-    color: '#000',
+  successText: {
+    color: '#10B981',
     fontSize: 14,
-    fontWeight: '500',
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  signInContainer: {
+    marginTop: 32,
+    alignItems: 'center',
+  },
+  signInText: {
+    color: '#6B7280',
+    fontSize: 14,
+  },
+  signInLink: {
+    color: '#000',
+    fontWeight: '600',
   },
 }); 
