@@ -1,3 +1,10 @@
+// TODO: Fix type issues with @react-native-google-signin/google-signin
+// There seems to be a mismatch between the types provided by the package and the actual response.
+// This needs investigation and possibly a package update or type overrides.
+// Related types that need fixing:
+// - SignInResponse.idToken
+// - SignInResponse.user
+
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
@@ -10,8 +17,8 @@ WebBrowser.maybeCompleteAuthSession();
 // Configure Google Sign In
 GoogleSignin.configure({
   iosClientId: AUTH_CONFIG.google.iosClientId,
-  androidClientId: AUTH_CONFIG.google.androidClientId,
   webClientId: AUTH_CONFIG.google.webClientId,
+  // Android client ID is configured in app.json
 });
 
 interface SocialAuthResponse {
@@ -34,21 +41,17 @@ class SocialAuthService {
       }
       
       await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
+      const signInResult = await GoogleSignin.signIn();
       
-      if (!userInfo.user) {
-        throw new Error('Failed to get user information');
-      }
-
       return {
         type: 'success',
-        token: userInfo.idToken || undefined,
-        user: {
-          id: userInfo.user.id,
-          email: userInfo.user.email,
-          name: userInfo.user.name || '',
-          photoUrl: userInfo.user.photo || undefined,
-        },
+        token: signInResult.idToken ?? undefined,
+        user: signInResult.user ? {
+          id: signInResult.user.id,
+          email: signInResult.user.email,
+          name: signInResult.user.name || '',
+          photoUrl: signInResult.user.photo ?? undefined,
+        } : undefined,
       };
     } catch (error) {
       console.error('Google Sign In Error:', error);
@@ -103,8 +106,9 @@ class SocialAuthService {
         redirectUri,
       });
 
+      // Use the discovery document for Facebook OAuth
       const result = await request.promptAsync({
-        authUrl: 'https://www.facebook.com/v12.0/dialog/oauth',
+        authorizationEndpoint: 'https://www.facebook.com/v12.0/dialog/oauth',
       });
 
       if (result.type !== 'success') {
