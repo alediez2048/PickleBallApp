@@ -13,12 +13,7 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
-} as Partial<
-  Record<
-    import('expo-symbols').SymbolViewProps['name'],
-    React.ComponentProps<typeof MaterialIcons>['name']
-  >
->;
+} as const;
 
 export type IconSymbolName = keyof typeof MAPPING;
 
@@ -39,5 +34,12 @@ export function IconSymbol({
   style?: StyleProp<ViewStyle>;
   weight?: SymbolWeight;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  return (
+    <MaterialIcons 
+      color={color} 
+      size={size} 
+      name={MAPPING[name]} 
+      style={style as any} // Using any here because MaterialIcons expects TextStyle but we're using it for layout only
+    />
+  );
 }

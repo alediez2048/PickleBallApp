@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { ThemedView } from '../common/ThemedView';
-import { ThemedText } from '../common/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
 
 export const ExploreScreen: React.FC = () => {
   return (
