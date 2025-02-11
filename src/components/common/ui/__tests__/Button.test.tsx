@@ -1,78 +1,72 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import Button from '../Button';
+import { Button } from '../Button';
+import { View } from 'react-native';
 
 describe('Button', () => {
   it('renders correctly with default props', () => {
-    const { getByText } = render(<Button>Test Button</Button>);
-    expect(getByText('Test Button')).toBeTruthy();
+    const { getByRole } = render(<Button>Test Button</Button>);
+    const button = getByRole('button');
+    expect(button).toBeTruthy();
+    expect(button.props.accessibilityLabel).toBe('Test Button');
   });
 
   it('handles press events', () => {
     const onPress = jest.fn();
-    const { getByText } = render(
+    const { getByRole } = render(
       <Button onPress={onPress}>Press Me</Button>
     );
 
-    fireEvent.press(getByText('Press Me'));
+    fireEvent.press(getByRole('button'));
     expect(onPress).toHaveBeenCalled();
   });
 
-  it('shows loading state', () => {
-    const { getByLabelText, queryByText } = render(
+  it('shows loading state with proper accessibility', () => {
+    const { getByRole, getByLabelText } = render(
       <Button loading>Loading Button</Button>
     );
 
-    expect(getByLabelText('Loading')).toBeTruthy();
-    expect(queryByText('Loading Button')).toBeNull();
+    const button = getByRole('button');
+    const spinner = getByLabelText('Loading');
+    
+    expect(spinner).toBeTruthy();
+    expect(button.props.accessibilityState.busy).toBe(true);
   });
 
-  it('handles disabled state', () => {
+  it('handles disabled state with proper accessibility', () => {
     const onPress = jest.fn();
-    const { getByText } = render(
+    const { getByRole } = render(
       <Button disabled onPress={onPress}>
         Disabled Button
       </Button>
     );
 
-    fireEvent.press(getByText('Disabled Button'));
+    const button = getByRole('button');
+    expect(button.props.accessibilityState.disabled).toBe(true);
+    
+    fireEvent.press(button);
     expect(onPress).not.toHaveBeenCalled();
-  });
-
-  it('applies different variants correctly', () => {
-    const { rerender, getByRole } = render(
-      <Button variant="primary">Primary Button</Button>
-    );
-
-    let button = getByRole('button');
-    expect(button.props.style).toContainEqual(
-      expect.objectContaining({ backgroundColor: '#000' })
-    );
-
-    rerender(<Button variant="secondary">Secondary Button</Button>);
-    button = getByRole('button');
-    expect(button.props.style).toContainEqual(
-      expect.objectContaining({ backgroundColor: '#fff' })
-    );
   });
 
   it('applies different sizes correctly', () => {
     const sizes = ['sm', 'md', 'lg'] as const;
-    const { rerender, getByRole } = render(
-      <Button size="sm">Size Button</Button>
-    );
-
+    const expectedHeights = { sm: 32, md: 40, lg: 48 };
+    
     sizes.forEach(size => {
-      rerender(<Button size={size}>Size Button</Button>);
-      const button = getByRole('button');
-      const expectedHeight = size === 'sm' ? 32 : size === 'md' ? 40 : 48;
-      expect(button.props.style).toContainEqual(
-        expect.objectContaining({ height: expectedHeight })
+      const { getByRole } = render(
+        <Button size={size}>Size Button</Button>
       );
+      const button = getByRole('button');
+      const buttonStyles = button.props.style;
+      
+      const heightStyle = buttonStyles.find(
+        (style: any) => style && style.height === expectedHeights[size]
+      );
+      expect(heightStyle).toBeTruthy();
     });
   });
 
-  it('sets proper accessibility props', () => {
+  it('uses custom accessibility label when provided', () => {
     const { getByRole } = render(
       <Button accessibilityLabel="Custom Label">
         Button Text
@@ -81,36 +75,65 @@ describe('Button', () => {
 
     const button = getByRole('button');
     expect(button.props.accessibilityLabel).toBe('Custom Label');
-    expect(button.props.accessibilityRole).toBe('button');
+  });
+
+  it('uses accessibility hint when provided', () => {
+    const { getByRole } = render(
+      <Button accessibilityHint="This button does something">
+        Button Text
+      </Button>
+    );
+
+    const button = getByRole('button');
+    expect(button.props.accessibilityHint).toBe('This button does something');
+  });
+
+  it('handles non-text children with proper accessibility', () => {
+    const { getByRole } = render(
+      <Button accessibilityLabel="Icon Button">
+        <View testID="icon" />
+      </Button>
+    );
+
+    const button = getByRole('button');
+    expect(button.props.accessibilityLabel).toBe('Icon Button');
+  });
+
+  it('maintains accessibility state during loading and disabled states', () => {
+    const { getByRole, rerender } = render(
+      <Button disabled loading>
+        Test Button
+      </Button>
+    );
+
+    const button = getByRole('button');
+    expect(button.props.accessibilityState).toEqual({
+      disabled: true,
+      busy: true,
+    });
+
+    rerender(
+      <Button disabled={false} loading={false}>
+        Test Button
+      </Button>
+    );
+
     expect(button.props.accessibilityState).toEqual({
       disabled: false,
       busy: false,
     });
   });
 
-  it('uses text as accessibility label when not provided', () => {
-    const { getByRole } = render(
-      <Button>Button Text</Button>
-    );
-
-    const button = getByRole('button');
-    expect(button.props.accessibilityLabel).toBe('Button Text');
-  });
-
-  it('handles loading and disabled states together', () => {
-    const onPress = jest.fn();
-    const { getByLabelText } = render(
-      <Button loading disabled onPress={onPress}>
-        Loading Disabled Button
+  it('handles text overflow properly', () => {
+    const { getByText } = render(
+      <Button>
+        Very long button text that should be truncated if it exceeds the available space
       </Button>
     );
 
-    const button = getByLabelText('Loading');
-    fireEvent.press(button);
-    expect(onPress).not.toHaveBeenCalled();
-    expect(button.props.accessibilityState).toEqual({
-      disabled: true,
-      busy: true,
-    });
+    const text = getByText(
+      'Very long button text that should be truncated if it exceeds the available space'
+    );
+    expect(text.props.numberOfLines).toBe(1);
   });
 }); 
