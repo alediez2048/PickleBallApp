@@ -81,26 +81,28 @@ export default function LoginScreen() {
             <Button
               variant="secondary"
               size="lg"
-              onPress={() => handleSocialSignIn('google')}
+              disabled={true}
+              onPress={() => {}}
             >
               <View style={styles.socialButtonContent}>
                 <View style={styles.iconContainer}>
                   <GoogleIcon size={20} />
                 </View>
-                <Text style={styles.socialButtonText}>Continue with Google</Text>
+                <Text style={[styles.socialButtonText, styles.disabledText]}>Google Sign-In (Coming Soon)</Text>
               </View>
             </Button>
 
             <Button
               variant="secondary"
               size="lg"
-              onPress={() => handleSocialSignIn('facebook')}
+              disabled={true}
+              onPress={() => {}}
             >
               <View style={styles.socialButtonContent}>
                 <View style={styles.iconContainer}>
                   <AntDesign name="facebook-square" size={20} color="#1877F2" />
                 </View>
-                <Text style={styles.socialButtonText}>Continue with Facebook</Text>
+                <Text style={[styles.socialButtonText, styles.disabledText]}>Facebook Sign-In (Coming Soon)</Text>
               </View>
             </Button>
           </View>
@@ -192,6 +194,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#000',
+  },
+  disabledText: {
+    color: '#6B7280',
   },
   signInContainer: {
     marginTop: 32,
