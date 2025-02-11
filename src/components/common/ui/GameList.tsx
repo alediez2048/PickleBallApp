@@ -1,11 +1,14 @@
-import React, { useCallback, useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useCallback, useMemo, useEffect } from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import { Image } from 'expo-image';
 import { Game } from '@/types/game';
 import { withMemo } from '@/components/hoc/withMemo';
 import { useGames } from '@/contexts/GameContext';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ThemedText } from '@/components/ThemedText';
+
+const blurhash = '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
 
 interface GameListProps {
   data?: Game[];
@@ -17,6 +20,7 @@ interface GameListProps {
   ListEmptyComponent?: React.ComponentType<any> | React.ReactElement | null;
   ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null;
   estimatedItemSize?: number;
+  prefetchCount?: number;
 }
 
 const GameListComponent: React.FC<GameListProps> = ({
@@ -29,17 +33,25 @@ const GameListComponent: React.FC<GameListProps> = ({
   ListEmptyComponent,
   ListHeaderComponent,
   estimatedItemSize = 100,
+  prefetchCount = 5,
 }) => {
-  // Use context data if no data prop is provided
-  const { games: contextGames, loading: contextLoading, error: contextError } = useGames();
+  const { games: contextGames, loading: contextLoading, error: contextError, prefetchGame } = useGames();
   const games = data || contextGames;
   const isLoading = loading || contextLoading;
   const hasError = error || contextError;
 
-  // Memoize the keyExtractor function
+  // Prefetch next batch of games
+  useEffect(() => {
+    if (prefetchGame && games.length > 0) {
+      const startIndex = Math.max(0, games.length - prefetchCount);
+      games.slice(startIndex).forEach(game => {
+        prefetchGame(game.id);
+      });
+    }
+  }, [games, prefetchGame, prefetchCount]);
+
   const keyExtractor = useCallback((item: Game) => item.id, []);
 
-  // Memoize the renderItem function
   const renderItem: ListRenderItem<Game> = useCallback(
     ({ item }) => (
       <GameListItem
@@ -50,7 +62,6 @@ const GameListComponent: React.FC<GameListProps> = ({
     [onGamePress]
   );
 
-  // Memoize empty component based on loading and error states
   const EmptyComponent = useMemo(() => {
     if (isLoading) return <LoadingSpinner />;
     if (hasError) {
@@ -80,24 +91,38 @@ const GameListComponent: React.FC<GameListProps> = ({
       refreshing={isLoading}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
-      estimatedFirstItemOffset={0}
-      drawDistance={estimatedItemSize * 10} // Pre-render 10 items worth of content
+      drawDistance={estimatedItemSize * 10}
       overrideItemLayout={(layout, item) => {
         layout.size = estimatedItemSize;
       }}
+      removeClippedSubviews={Platform.OS !== 'web'}
     />
   );
 };
 
-// Memoized Game List Item Component
 const GameListItem = withMemo<{ game: Game; onPress?: () => void }>(
   ({ game, onPress }) => {
     return (
       <View style={styles.itemContainer}>
-        <ThemedText style={styles.title}>{game.title}</ThemedText>
-        <ThemedText style={styles.details}>
-          {`${game.currentPlayers}/${game.maxPlayers} players • ${game.skillLevel}`}
-        </ThemedText>
+        {game.location.imageUrl && (
+          <Image
+            source={game.location.imageUrl}
+            style={styles.image}
+            placeholder={blurhash}
+            contentFit="cover"
+            transition={200}
+            cachePolicy="memory-disk"
+          />
+        )}
+        <View style={styles.contentContainer}>
+          <ThemedText style={styles.title}>{game.title}</ThemedText>
+          <ThemedText style={styles.details}>
+            {`${game.currentPlayers}/${game.maxPlayers} players • ${game.skillLevel}`}
+          </ThemedText>
+          <ThemedText style={styles.location}>
+            {`${game.location.name} • ${game.location.city}, ${game.location.state}`}
+          </ThemedText>
+        </View>
       </View>
     );
   },
@@ -116,9 +141,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   itemContainer: {
+    flexDirection: 'row',
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+  },
+  image: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 16,
@@ -126,6 +162,11 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   details: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 2,
+  },
+  location: {
     fontSize: 14,
     color: '#6B7280',
   },

@@ -27,6 +27,7 @@ export interface Location {
     latitude: number;
     longitude: number;
   };
+  imageUrl?: string;
 }
 
 export interface User {

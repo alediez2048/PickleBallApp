@@ -1,9 +1,15 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { View } from 'react-native';
+import { View, ViewStyle } from 'react-native';
 import { GameList } from '../GameList';
 import { Game, GameStatus, SkillLevel } from '@/types/game';
 import { GameProvider } from '@/contexts/GameContext';
+
+interface MockImageProps {
+  source: string;
+  style?: ViewStyle;
+  testID?: string;
+}
 
 interface MockFlashListProps {
   data: Game[];
@@ -11,12 +17,19 @@ interface MockFlashListProps {
   ListEmptyComponent?: React.ReactElement;
 }
 
+// Mock expo-image
+jest.mock('expo-image', () => ({
+  Image: ({ source, style, testID }: MockImageProps) => (
+    <View testID={testID || 'mock-image'} style={style} />
+  ),
+}));
+
 // Mock FlashList since it's not compatible with JSDOM
 jest.mock('@shopify/flash-list', () => {
-  const MockFlashList: React.FC<MockFlashListProps> = ({ data, renderItem, ListEmptyComponent }) => (
+  const MockFlashList = ({ data, renderItem, ListEmptyComponent }: MockFlashListProps) => (
     <View testID="flash-list">
       {data.length === 0 && ListEmptyComponent}
-      {data.map((item, index) => (
+      {data.map((item: Game, index: number) => (
         <View key={index}>{renderItem({ item, index })}</View>
       ))}
     </View>
@@ -38,6 +51,7 @@ const mockGames: Game[] = [
       state: 'TS',
       zipCode: '12345',
       coordinates: { latitude: 0, longitude: 0 },
+      imageUrl: 'https://example.com/court1.jpg',
     },
     maxPlayers: 4,
     currentPlayers: 2,
@@ -58,14 +72,16 @@ describe('GameList', () => {
     <GameProvider>{children}</GameProvider>
   );
 
-  it('renders list of games', () => {
-    const { getByText } = render(
+  it('renders list of games with images', () => {
+    const { getByText, getByTestId } = render(
       <GameList data={mockGames} />,
       { wrapper }
     );
 
     expect(getByText('Game 1')).toBeTruthy();
     expect(getByText('2/4 players • Intermediate')).toBeTruthy();
+    expect(getByTestId('mock-image')).toBeTruthy();
+    expect(getByText('Court 1 • Test City, TS')).toBeTruthy();
   });
 
   it('shows loading state', () => {
@@ -138,6 +154,7 @@ describe('GameList', () => {
       games: mockContextGames,
       loading: false,
       error: null,
+      prefetchGame: jest.fn(),
     });
 
     const { getByText } = render(
@@ -146,6 +163,23 @@ describe('GameList', () => {
     );
 
     expect(getByText('Context Game')).toBeTruthy();
+  });
+
+  it('prefetches next batch of games', () => {
+    const prefetchGame = jest.fn();
+    jest.spyOn(require('@/contexts/GameContext'), 'useGames').mockReturnValue({
+      games: mockGames,
+      loading: false,
+      error: null,
+      prefetchGame,
+    });
+
+    render(
+      <GameList data={mockGames} prefetchCount={2} />,
+      { wrapper }
+    );
+
+    expect(prefetchGame).toHaveBeenCalledWith(mockGames[0].id);
   });
 
   it('memoizes list items correctly', () => {
