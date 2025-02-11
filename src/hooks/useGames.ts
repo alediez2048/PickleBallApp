@@ -1,50 +1,46 @@
-import { useState, useCallback } from 'react';
-import { Game, SkillLevel } from '../types/game';
+import { useCallback, useState } from 'react';
+import { GamesApi } from '@/services/api/games';
+import { useDataRefresh } from './useDataRefresh';
+import type { Game, GameFilters } from '../types/game';
 
-export const useGames = () => {
+export function useGames(filters?: GameFilters) {
   const [games, setGames] = useState<Game[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const gamesApi = new GamesApi();
 
-  const fetchGames = useCallback(async (filters?: {
-    skillLevel?: SkillLevel;
-    date?: Date;
-    location?: string;
-  }) => {
-    setLoading(true);
-    setError(null);
+  const fetchGames = useCallback(async () => {
     try {
-      // TODO: Implement API call to fetch games
-      // This is a placeholder for the actual implementation
-      const response = await Promise.resolve([]);
-      setGames(response);
+      const fetchedGames = await gamesApi.getGames(filters);
+      setGames(fetchedGames);
+      return fetchedGames;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch games');
-    } finally {
-      setLoading(false);
+      const error = err instanceof Error ? err : new Error('Failed to fetch games');
+      setError(error);
+      throw error;
     }
-  }, []);
+  }, [filters]);
 
-  const createGame = useCallback(async (gameData: Omit<Game, 'id' | 'status'>) => {
-    setLoading(true);
-    setError(null);
-    try {
-      // TODO: Implement API call to create game
-      // This is a placeholder for the actual implementation
-      await Promise.resolve();
-      await fetchGames();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create game');
-    } finally {
-      setLoading(false);
+  const { isRefreshing, refresh } = useDataRefresh(
+    `games_${JSON.stringify(filters || {})}`,
+    fetchGames,
+    {
+      retryAttempts: 3,
+      onError: (error) => {
+        console.error('Failed to refresh games:', error);
+        setError(error);
+      },
     }
-  }, [fetchGames]);
+  );
+
+  const refreshGames = useCallback(async () => {
+    setError(null);
+    return refresh();
+  }, [refresh]);
 
   return {
     games,
-    loading,
     error,
-    fetchGames,
-    createGame,
+    isRefreshing,
+    refreshGames,
   };
-}; 
+} 

@@ -49,4 +49,11 @@ export interface Game {
   price: number;
   host: User;
   status: GameStatus;
+}
+
+export interface GameFilters {
+  skillLevel?: SkillLevel;
+  date?: string;
+  location?: string;
+  status?: GameStatus;
 } 
