@@ -33,16 +33,17 @@ export default function ProfileScreen() {
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: 'images',
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.5,
       });
 
-      if (!result.canceled) {
+      if (!result.canceled && result.assets[0]) {
         setIsLoading(true);
-        await updateProfile({ profileImage: result.assets[0].uri });
-        setProfileImage(result.assets[0].uri);
+        const imageUri = result.assets[0].uri;
+        await updateProfile({ profileImage: imageUri });
+        setProfileImage(imageUri);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update profile picture. Please try again.');
