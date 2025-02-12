@@ -9,7 +9,6 @@ import {
 } from '@/schemas/api';
 import { cache } from '../cache';
 import { z } from 'zod';
-import { GameFilters } from '@/hooks/useGames';
 
 const gameSchema = z.object({
   id: z.string(),
@@ -71,119 +70,85 @@ interface ApiResponse<T> {
 
 export class GamesApi {
   private static CACHE_CONFIG = {
-    ttl: 5 * 60 * 1000, // 5 minutes
+    ttl: 1000 * 60 * 5, // 5 minutes
     backgroundRefresh: true,
   };
 
   async getGames(filters?: GameFiltersType) {
-    const validatedFilters = validateGameFilters(filters);
-    if (!validatedFilters.success) {
-      throw new Error('Invalid filters');
-    }
+    const queryParams = filters ? { ...filters } : undefined;
 
-    const cacheKey = `games_${JSON.stringify(filters || {})}`;
-    
-    return cache.get(
-      cacheKey,
+    return cache.get<Game[]>(
+      `games_${JSON.stringify(queryParams)}`,
       async () => {
-        const queryParams = filters ? Object.entries(filters).reduce((acc, [key, value]) => {
-          if (value !== undefined) {
-            acc[key] = String(value);
-          }
-          return acc;
-        }, {} as Record<string, string>) : undefined;
-
         const response = await api.get<ApiResponse<Game[]>>('/games', { params: queryParams });
-        return response.data.data;
+        return response.data;
       },
       GamesApi.CACHE_CONFIG
     ) || [];
   }
 
   async getGame(id: string) {
-    const cacheKey = `game_${id}`;
-    
-    return cache.get(
-      cacheKey,
+    return cache.get<Game>(
+      `game_${id}`,
       async () => {
         const response = await api.get<ApiResponse<Game>>(`/games/${id}`);
-        return response.data.data;
+        return response.data;
       },
       GamesApi.CACHE_CONFIG
     );
   }
 
-  async createGame(data: Omit<Game, 'id' | 'status'>) {
-    const validated = validateCreateGameRequest(data);
-    if (!validated.success) {
-      throw new Error('Invalid game data');
-    }
-
+  async createGame(data: Omit<Game, 'id' | 'createdAt' | 'updatedAt' | 'status'>) {
     const response = await api.post<ApiResponse<Game>>('/games', data);
-    
-    // Invalidate games list cache
     await cache.invalidate('games_{}');
-    
-    return response.data.data;
+    return response.data;
   }
 
   async updateGame(id: string, data: Partial<Game>) {
-    const validated = validateUpdateGameRequest(data);
-    if (!validated.success) {
-      throw new Error('Invalid update data');
-    }
-
-    const response = await api.put<ApiResponse<Game>>(`/games/${id}`, data);
-    
-    // Invalidate both specific game and games list caches
+    const response = await api.patch<ApiResponse<Game>>(`/games/${id}`, data);
     await Promise.all([
       cache.invalidate(`game_${id}`),
-      cache.invalidate('games_{}')
+      cache.invalidate('games_{}'),
     ]);
-    
-    return response.data.data;
+    return response.data;
   }
 
   async deleteGame(id: string) {
     await api.delete(`/games/${id}`);
-    
-    // Invalidate both specific game and games list caches
     await Promise.all([
       cache.invalidate(`game_${id}`),
-      cache.invalidate('games_{}')
+      cache.invalidate('games_{}'),
     ]);
   }
 
   async joinGame(id: string) {
-    return api.post<typeof gameResponseSchema._type>(`/games/${id}/join`, null, {
-      schema: gameResponseSchema,
-    });
+    const response = await api.post<ApiResponse<Game>>(`/games/${id}/join`);
+    return response.data;
   }
 
   async leaveGame(id: string) {
-    return api.post<typeof gameResponseSchema._type>(`/games/${id}/leave`, null, {
-      schema: gameResponseSchema,
-    });
+    const response = await api.post<ApiResponse<Game>>(`/games/${id}/leave`);
+    return response.data;
   }
 
   static async getGames(filters?: GameFiltersType): Promise<Game[]> {
-    const response = await api.get('/games', { params: filters });
-    return gamesResponseSchema.parse(response.data);
+    const response = await api.get<ApiResponse<Game[]>>('/games', { params: filters });
+    return response.data;
   }
 
   static async getGameById(gameId: string): Promise<Game> {
-    const response = await api.get(`/games/${gameId}`);
-    return gameSchema.parse(response.data);
+    const response = await api.get<ApiResponse<Game>>(`/games/${gameId}`);
+    return response.data;
   }
 
   static async createGame(data: Omit<Game, 'id' | 'createdAt' | 'updatedAt' | 'status'>): Promise<Game> {
-    const response = await api.post('/games', data);
-    return gameSchema.parse(response.data);
+    const response = await api.post<ApiResponse<Game>>('/games', data);
+    return response.data;
   }
 
   static async updateGame(gameId: string, data: Partial<Game>): Promise<Game> {
-    const response = await api.patch(`/games/${gameId}`, data);
-    return gameSchema.parse(response.data);
+    const response = await api.patch<ApiResponse<Game>>(`/games/${gameId}`, data);
+    return response.data;
   }
 
   static async deleteGame(gameId: string): Promise<void> {
@@ -191,13 +156,13 @@ export class GamesApi {
   }
 
   static async joinGame(gameId: string): Promise<Game> {
-    const response = await api.post(`/games/${gameId}/join`);
-    return gameSchema.parse(response.data);
+    const response = await api.post<ApiResponse<Game>>(`/games/${gameId}/join`);
+    return response.data;
   }
 
   static async leaveGame(gameId: string): Promise<Game> {
-    const response = await api.post(`/games/${gameId}/leave`);
-    return gameSchema.parse(response.data);
+    const response = await api.post<ApiResponse<Game>>(`/games/${gameId}/leave`);
+    return response.data;
   }
 }
 
