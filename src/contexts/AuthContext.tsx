@@ -45,14 +45,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!state.isLoading) {
-      if (state.token) {
-        router.replace('/(tabs)');
-      } else {
-        router.replace('/login');
-      }
+    // Only navigate when auth state changes, not on every loading state change
+    if (!state.isLoading && state.token === null) {
+      router.replace('/login');
     }
-  }, [state.token, state.isLoading]);
+  }, [state.token]);
 
   const loadStoredAuth = async () => {
     try {
