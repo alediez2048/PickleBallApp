@@ -1,26 +1,7 @@
+import { storage } from './storage';
+
 // Simulated network delay
 const NETWORK_DELAY = 1000;
-
-// Mock user database
-interface MockUser {
-  id: string;
-  email: string;
-  name: string;
-  password: string;
-  emailVerified: boolean;
-  verificationToken: string | null;
-}
-
-const MOCK_USERS = new Map<string, MockUser>([
-  ['test@example.com', {
-    id: '1',
-    email: 'test@example.com',
-    name: 'Test User',
-    password: 'password123',
-    emailVerified: true,
-    verificationToken: null
-  }]
-]);
 
 // Mock token generation
 const generateToken = (userId: string) => `mock-token-${userId}-${Date.now()}`;
@@ -42,6 +23,8 @@ export interface AuthResponse {
     email: string;
     name: string;
     emailVerified: boolean;
+    skillLevel?: string;
+    profileImage?: string;
   };
 }
 
@@ -65,12 +48,94 @@ interface UpdateProfileData {
   profileImage?: string;
 }
 
+interface MockUser {
+  id: string;
+  email: string;
+  name: string;
+  password: string;
+  emailVerified: boolean;
+  verificationToken: string | null;
+  skillLevel?: string;
+  profileImage?: string;
+  gamesPlayed?: GameHistory[];
+}
+
+interface GameHistory {
+  id: string;
+  date: string;
+  result: 'win' | 'loss';
+  score: string;
+  opponent: string;
+}
+
+const STORAGE_KEYS = {
+  MOCK_USERS: 'mock_users_data',
+  GAMES_HISTORY: 'games_history_data'
+};
+
 class MockApi {
+  private MOCK_USERS: Map<string, MockUser>;
+
+  constructor() {
+    this.MOCK_USERS = new Map();
+    this.loadMockUsers();
+  }
+
+  private async loadMockUsers() {
+    try {
+      const storedUsers = await storage.getItem(STORAGE_KEYS.MOCK_USERS);
+      if (storedUsers) {
+        this.MOCK_USERS = new Map(JSON.parse(storedUsers));
+      } else {
+        // Initialize with default test user if no stored users
+        const testUser: MockUser = {
+          id: '1',
+          email: 'test@example.com',
+          name: 'Test User',
+          password: 'password123',
+          emailVerified: true,
+          verificationToken: null,
+          skillLevel: 'Intermediate',
+          profileImage: undefined,
+          gamesPlayed: [
+            {
+              id: '1',
+              date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+              result: 'win',
+              score: '11-9',
+              opponent: 'John Doe'
+            },
+            {
+              id: '2',
+              date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+              result: 'loss',
+              score: '9-11',
+              opponent: 'Jane Smith'
+            }
+          ]
+        };
+        this.MOCK_USERS.set(testUser.email, testUser);
+        await this.saveMockUsers();
+      }
+    } catch (error) {
+      console.error('Error loading mock users:', error);
+    }
+  }
+
+  private async saveMockUsers() {
+    try {
+      const usersArray = Array.from(this.MOCK_USERS.entries());
+      await storage.setItem(STORAGE_KEYS.MOCK_USERS, JSON.stringify(usersArray));
+    } catch (error) {
+      console.error('Error saving mock users:', error);
+    }
+  }
+
   async login({ email, password }: LoginCredentials): Promise<AuthResponse> {
     console.log('MockApi: Login attempt with:', { email, password });
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
-    const user = MOCK_USERS.get(email);
+    const user = this.MOCK_USERS.get(email);
     console.log('MockApi: Found user:', user);
 
     if (!user || user.password !== password) {
@@ -91,14 +156,14 @@ class MockApi {
     console.log('MockApi: Register attempt with:', { email, name });
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
-    if (MOCK_USERS.has(email)) {
+    if (this.MOCK_USERS.has(email)) {
       console.log('MockApi: Email already registered');
       throw new Error('Email already registered');
     }
 
     const verificationToken = generateVerificationToken();
     const newUser = {
-      id: (MOCK_USERS.size + 1).toString(),
+      id: (this.MOCK_USERS.size + 1).toString(),
       email,
       password,
       name,
@@ -106,7 +171,7 @@ class MockApi {
       verificationToken
     };
 
-    MOCK_USERS.set(email, newUser);
+    this.MOCK_USERS.set(email, newUser);
     console.log('MockApi: New user registered:', newUser);
     console.log('MockApi: Verification token:', verificationToken);
 
@@ -126,14 +191,14 @@ class MockApi {
     console.log('MockApi: Verifying email for:', email);
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
-    const user = MOCK_USERS.get(email);
+    const user = this.MOCK_USERS.get(email);
     if (!user || user.verificationToken !== token) {
       throw new Error('Invalid verification token');
     }
 
     user.emailVerified = true;
     user.verificationToken = null;
-    MOCK_USERS.set(email, user);
+    this.MOCK_USERS.set(email, user);
     console.log('MockApi: Email verified successfully');
   }
 
@@ -141,7 +206,7 @@ class MockApi {
     console.log('MockApi: Resending verification email for:', email);
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
-    const user = MOCK_USERS.get(email);
+    const user = this.MOCK_USERS.get(email);
     if (!user) {
       throw new Error('User not found');
     }
@@ -152,7 +217,7 @@ class MockApi {
 
     const newVerificationToken = generateVerificationToken();
     user.verificationToken = newVerificationToken;
-    MOCK_USERS.set(email, user);
+    this.MOCK_USERS.set(email, user);
 
     // In a real implementation, this would send a new verification email
     console.log('MockApi: New verification token:', newVerificationToken);
@@ -163,7 +228,7 @@ class MockApi {
     console.log('MockApi: Password reset requested for:', email);
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
-    const user = MOCK_USERS.get(email);
+    const user = this.MOCK_USERS.get(email);
     if (!user) {
       console.log('MockApi: User not found for password reset');
       // We don't want to reveal if an email exists or not for security reasons
@@ -181,7 +246,7 @@ class MockApi {
     console.log('MockApi: Resetting password for:', email);
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
-    const user = MOCK_USERS.get(email);
+    const user = this.MOCK_USERS.get(email);
     if (!user) {
       throw new Error('Invalid reset request');
     }
@@ -191,7 +256,7 @@ class MockApi {
     // 2. Check if it's expired
     // 3. Update the password in the database
     user.password = newPassword;
-    MOCK_USERS.set(email, user);
+    this.MOCK_USERS.set(email, user);
     console.log('MockApi: Password updated successfully');
   }
 
@@ -200,7 +265,7 @@ class MockApi {
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     // Check if user already exists
-    const existingUser = Array.from(MOCK_USERS.values()).find(u => u.email === user.email);
+    const existingUser = Array.from(this.MOCK_USERS.values()).find(u => u.email === user.email);
 
     if (existingUser) {
       // Update existing user with social info
@@ -209,7 +274,7 @@ class MockApi {
         name: user.name, // Update name from social profile
         emailVerified: true, // Social logins are considered verified
       };
-      MOCK_USERS.set(existingUser.email, updatedUser);
+      this.MOCK_USERS.set(existingUser.email, updatedUser);
 
       const { password: _, verificationToken: __, ...userWithoutPassword } = updatedUser;
       return {
@@ -220,7 +285,7 @@ class MockApi {
 
     // Create new user
     const newUser: MockUser = {
-      id: (MOCK_USERS.size + 1).toString(),
+      id: (this.MOCK_USERS.size + 1).toString(),
       email: user.email,
       name: user.name,
       password: '', // Social auth users don't have passwords
@@ -228,7 +293,7 @@ class MockApi {
       verificationToken: null,
     };
 
-    MOCK_USERS.set(newUser.email, newUser);
+    this.MOCK_USERS.set(newUser.email, newUser);
     console.log('MockApi: New social user registered:', newUser);
 
     const { password: _, verificationToken: __, ...userWithoutPassword } = newUser;
@@ -242,7 +307,7 @@ class MockApi {
     console.log('MockApi: Updating profile for:', email, data);
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
-    const user = MOCK_USERS.get(email);
+    const user = this.MOCK_USERS.get(email);
     if (!user) {
       throw new Error('User not found');
     }
@@ -252,11 +317,42 @@ class MockApi {
       ...data
     };
 
-    MOCK_USERS.set(email, updatedUser);
+    this.MOCK_USERS.set(email, updatedUser);
+    await this.saveMockUsers(); // Persist the changes
+
     console.log('MockApi: Profile updated successfully:', updatedUser);
 
     const { password: _, verificationToken: __, ...userWithoutPassword } = updatedUser;
     return { user: userWithoutPassword };
+  }
+
+  async getGameHistory(email: string): Promise<GameHistory[]> {
+    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+    const user = this.MOCK_USERS.get(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user.gamesPlayed || [];
+  }
+
+  async addGameToHistory(email: string, game: Omit<GameHistory, 'id'>): Promise<GameHistory> {
+    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+    const user = this.MOCK_USERS.get(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const newGame: GameHistory = {
+      id: Date.now().toString(),
+      ...game
+    };
+
+    if (!user.gamesPlayed) {
+      user.gamesPlayed = [];
+    }
+    user.gamesPlayed.unshift(newGame);
+    await this.saveMockUsers();
+    return newGame;
   }
 }
 

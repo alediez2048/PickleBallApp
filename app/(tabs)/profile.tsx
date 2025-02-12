@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Alert, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useUserProfile } from '@/contexts/selectors/authSelectors';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useUpcomingGames } from '@/contexts/selectors/gameSelectors';
+import { useGameHistory } from '@/hooks/useGames';
 import { Button } from '@/components/common/ui/Button';
 import { SkillLevel } from '@/types/game';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,10 +19,17 @@ const SKILL_LEVELS = [
 export default function ProfileScreen() {
   const user = useUserProfile();
   const { updateProfile } = useAuth();
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<string | undefined>(user?.profileImage);
   const [isSkillModalVisible, setIsSkillModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const upcomingGames = useUpcomingGames();
+  const { games: gameHistory, isLoading: isLoadingGames } = useGameHistory();
+
+  useEffect(() => {
+    if (user?.profileImage) {
+      setProfileImage(user.profileImage);
+    }
+  }, [user?.profileImage]);
 
   const handleImagePick = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -73,7 +81,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.profileImageContainer}
@@ -105,6 +113,40 @@ export default function ProfileScreen() {
           </Button>
         </View>
         <Text style={styles.sectionContent}>{user.skillLevel || 'Not set'}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Games Played</Text>
+          <Text style={styles.statsText}>
+            Win Rate: {gameHistory.filter(g => g.result === 'win').length}/{gameHistory.length}
+          </Text>
+        </View>
+        {isLoadingGames ? (
+          <Text style={styles.sectionContent}>Loading games...</Text>
+        ) : gameHistory.length > 0 ? (
+          gameHistory.slice(0, 3).map(game => (
+            <View key={game.id} style={styles.gameHistoryItem}>
+              <View style={styles.gameHistoryHeader}>
+                <Text style={[
+                  styles.gameResult,
+                  game.result === 'win' ? styles.winText : styles.lossText
+                ]}>
+                  {game.result.toUpperCase()}
+                </Text>
+                <Text style={styles.gameDate}>
+                  {new Date(game.date).toLocaleDateString()}
+                </Text>
+              </View>
+              <View style={styles.gameDetails}>
+                <Text style={styles.gameScore}>Score: {game.score}</Text>
+                <Text style={styles.gameOpponent}>vs {game.opponent}</Text>
+              </View>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.sectionContent}>No games played yet</Text>
+        )}
       </View>
 
       <View style={styles.section}>
@@ -163,7 +205,7 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -300,5 +342,46 @@ const styles = StyleSheet.create({
   selectedSkillText: {
     color: '#4CAF50',
     fontWeight: '500',
+  },
+  statsText: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  gameHistoryItem: {
+    backgroundColor: '#ffffff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  gameHistoryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  gameResult: {
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  winText: {
+    color: '#4CAF50',
+  },
+  lossText: {
+    color: '#f44336',
+  },
+  gameDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  gameScore: {
+    fontSize: 14,
+    color: '#333333',
+  },
+  gameOpponent: {
+    fontSize: 14,
+    color: '#666666',
   },
 }); 
