@@ -60,6 +60,11 @@ export interface SocialAuthCredentials {
   };
 }
 
+interface UpdateProfileData {
+  skillLevel?: string;
+  profileImage?: string;
+}
+
 class MockApi {
   async login({ email, password }: LoginCredentials): Promise<AuthResponse> {
     console.log('MockApi: Login attempt with:', { email, password });
@@ -231,6 +236,27 @@ class MockApi {
       token: generateToken(newUser.id),
       user: userWithoutPassword,
     };
+  }
+
+  async updateProfile(email: string, data: UpdateProfileData): Promise<{ user: Omit<MockUser, 'password' | 'verificationToken'> }> {
+    console.log('MockApi: Updating profile for:', email, data);
+    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+
+    const user = MOCK_USERS.get(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const updatedUser = {
+      ...user,
+      ...data
+    };
+
+    MOCK_USERS.set(email, updatedUser);
+    console.log('MockApi: Profile updated successfully:', updatedUser);
+
+    const { password: _, verificationToken: __, ...userWithoutPassword } = updatedUser;
+    return { user: userWithoutPassword };
   }
 }
 

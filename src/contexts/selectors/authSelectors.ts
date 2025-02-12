@@ -14,6 +14,8 @@ export const useUserProfile = () => {
     name: user?.name,
     email: user?.email,
     isVerified: user?.emailVerified,
+    skillLevel: user?.skillLevel,
+    profileImage: user?.profileImage,
   }), [user]);
 };
 

@@ -10,6 +10,8 @@ interface User {
   email: string;
   name: string;
   emailVerified: boolean;
+  skillLevel?: string;
+  profileImage?: string;
 }
 
 interface AuthState {
@@ -24,6 +26,7 @@ interface AuthContextType extends AuthState {
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signInWithFacebook: () => Promise<void>;
+  updateProfile: (data: { skillLevel?: string; profileImage?: string }) => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -197,6 +200,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateProfile = async (data: { skillLevel?: string; profileImage?: string }) => {
+    try {
+      setState(prev => ({ ...prev, isLoading: true }));
+      
+      if (!state.user?.email) {
+        throw new Error('No authenticated user');
+      }
+
+      const { user: updatedUser } = await mockApi.updateProfile(state.user.email, data);
+      
+      await storage.setItem('user', JSON.stringify(updatedUser));
+      
+      setState(prev => ({
+        ...prev,
+        user: updatedUser,
+        isLoading: false
+      }));
+    } catch (error) {
+      console.error('Profile update error:', error);
+      setState(prev => ({ ...prev, isLoading: false }));
+      throw error;
+    }
+  };
+
   const value = {
     ...state,
     signIn,
@@ -204,6 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     signInWithGoogle,
     signInWithFacebook,
+    updateProfile,
     isAuthenticated: !!state.token,
   };
 
