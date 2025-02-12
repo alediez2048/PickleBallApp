@@ -1,8 +1,60 @@
-import { storage } from '@/services/storage';
+import axios from 'axios';
+import { API_BASE_URL } from '@/config/env';
 import { validateApiError } from '@/schemas/api';
 import { z } from 'zod';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.picklepass.com';
+export const client = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add request interceptor for authentication
+client.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for error handling
+client.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Handle token refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const refreshToken = localStorage.getItem('refresh_token');
+        const response = await client.post('/auth/refresh', { refreshToken });
+        const { token } = response.data;
+        
+        localStorage.setItem('auth_token', token);
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        
+        return client(originalRequest);
+      } catch (refreshError) {
+        // Handle refresh token failure (e.g., logout user)
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export class ApiError extends Error {
   constructor(
@@ -23,12 +75,12 @@ interface RequestConfig extends RequestInit {
 export class ApiClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = API_URL) {
+  constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
   }
 
   private async getAuthToken(): Promise<string | null> {
-    return storage.getItem('auth_token');
+    return localStorage.getItem('auth_token');
   }
 
   private createUrl(endpoint: string, params?: Record<string, string>): string {

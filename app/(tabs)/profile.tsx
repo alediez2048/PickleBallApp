@@ -9,10 +9,10 @@ import { SkillLevel } from '@/types/game';
 import { useAuth } from '@/contexts/AuthContext';
 
 const SKILL_LEVELS = [
-  { value: SkillLevel.Beginner, label: 'Beginner' },
-  { value: SkillLevel.Intermediate, label: 'Intermediate' },
-  { value: SkillLevel.Advanced, label: 'Advanced' },
-  { value: SkillLevel.AllLevels, label: 'All Levels' },
+  { id: 'beginner', value: SkillLevel.Beginner, label: 'Beginner' },
+  { id: 'intermediate', value: SkillLevel.Intermediate, label: 'Intermediate' },
+  { id: 'advanced', value: SkillLevel.Advanced, label: 'Advanced' },
+  { id: 'all-levels', value: SkillLevel.AllLevels, label: 'All Levels' },
 ];
 
 export default function ProfileScreen() {
@@ -141,7 +141,7 @@ export default function ProfileScreen() {
             </View>
             {SKILL_LEVELS.map((level) => (
               <TouchableOpacity
-                key={level.value}
+                key={level.id}
                 style={[
                   styles.skillOption,
                   user.skillLevel === level.value && styles.selectedSkill

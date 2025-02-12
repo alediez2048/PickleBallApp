@@ -7,6 +7,7 @@ import { View, Platform, StyleSheet } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { GameProvider } from '@/contexts/GameContext';
+import { UIProvider } from '@/contexts/UIContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -59,14 +60,16 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <GameProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <View style={styles.container}>
-            <RootLayoutNav />
-            <StatusBar style="dark" />
-          </View>
-        </ThemeProvider>
-      </GameProvider>
+      <UIProvider>
+        <GameProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <View style={styles.container}>
+              <RootLayoutNav />
+              <StatusBar style="dark" />
+            </View>
+          </ThemeProvider>
+        </GameProvider>
+      </UIProvider>
     </AuthProvider>
   );
 }

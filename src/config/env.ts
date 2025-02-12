@@ -1,0 +1,1 @@
+export const API_BASE_URL = 'https://api.pickleballapp.com'; // Replace with actual API URL when available 

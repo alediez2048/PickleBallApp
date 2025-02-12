@@ -102,7 +102,10 @@ export function ProfileTestScreen() {
         <ThemedView style={styles.results}>
           <ThemedText style={styles.resultsTitle}>Validation Results:</ThemedText>
           {validationResults.map((result, index) => (
-            <ThemedText key={index} style={styles.resultText}>
+            <ThemedText 
+              key={`${result}-${index}`} 
+              style={styles.resultText}
+            >
               {result}
             </ThemedText>
           ))}

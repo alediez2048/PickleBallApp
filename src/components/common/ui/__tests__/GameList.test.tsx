@@ -2,8 +2,9 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { View, ViewStyle } from 'react-native';
 import { GameList } from '../GameList';
-import { Game, GameStatus, SkillLevel } from '@/types/game';
+import { Game } from '@/types/game';
 import { GameProvider } from '@/contexts/GameContext';
+import { mockGame } from '@/utils/test/mockData';
 
 interface MockImageProps {
   source: string;
@@ -38,36 +39,9 @@ jest.mock('@shopify/flash-list', () => {
   return { FlashList: MockFlashList };
 });
 
-const mockGames: Game[] = [
-  {
-    id: '1',
-    title: 'Game 1',
-    date: new Date(),
-    location: {
-      id: '1',
-      name: 'Court 1',
-      address: '123 Test St',
-      city: 'Test City',
-      state: 'TS',
-      zipCode: '12345',
-      coordinates: { latitude: 0, longitude: 0 },
-      imageUrl: 'https://example.com/court1.jpg',
-    },
-    maxPlayers: 4,
-    currentPlayers: 2,
-    skillLevel: SkillLevel.Intermediate,
-    price: 10,
-    host: {
-      id: '1',
-      name: 'Host 1',
-      email: 'host1@test.com',
-      skillLevel: SkillLevel.Intermediate,
-    },
-    status: GameStatus.Upcoming,
-  },
-];
-
 describe('GameList', () => {
+  const mockGames = [mockGame];
+
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <GameProvider>{children}</GameProvider>
   );
@@ -79,7 +53,7 @@ describe('GameList', () => {
     );
 
     expect(getByText('Game 1')).toBeTruthy();
-    expect(getByText('2/4 players • Intermediate')).toBeTruthy();
+    expect(getByText('0/4 players • Intermediate')).toBeTruthy();
     expect(getByTestId('mock-image')).toBeTruthy();
     expect(getByText('Court 1 • Test City, TS')).toBeTruthy();
   });
@@ -144,7 +118,7 @@ describe('GameList', () => {
   it('uses context data when no data prop provided', () => {
     const mockContextGames = [
       {
-        ...mockGames[0],
+        ...mockGame,
         id: '2',
         title: 'Context Game',
       },
@@ -198,4 +172,30 @@ describe('GameList', () => {
     // The component instance should be the same due to memoization
     expect(initialGame).toBe(rerenderedGame);
   });
-}); 
+});
+
+export const SkillLevel = {
+  Beginner: 'Beginner',
+  Intermediate: 'Intermediate',
+  Advanced: 'Advanced',
+  AllLevels: 'All Levels'
+} as const;
+
+export const GameStatus = {
+  Scheduled: 'scheduled',
+  InProgress: 'in-progress',
+  Completed: 'completed',
+  Cancelled: 'cancelled'
+} as const;
+
+export type AppRoutes = {
+  '/(tabs)/': undefined;
+  '/(tabs)/home': undefined;
+  '/(tabs)/games': { category?: string };
+  '/games/[id]': { id: string };
+  '/games/create': undefined;
+  '/activity/[id]': { id: string };
+  '/(auth)/login': undefined;
+  '/(auth)/register': undefined;
+  '/(auth)/forgot-password': undefined;
+}; 
