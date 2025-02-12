@@ -3,15 +3,15 @@ import React from 'react';
 import { Platform, Text } from 'react-native';
 import { HapticTab } from '../../src/components/common/navigation/HapticTab';
 import { TabBarBackground } from '../../src/components/common/navigation/TabBarBackground';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarButton: props => <HapticTab {...props} />,
         tabBarBackground: () => <TabBarBackground />,
-        tabBarActiveTintColor: '#2E7D32', // primary color
+        tabBarActiveTintColor: '#4CAF50',
         tabBarInactiveTintColor: '#666666',
         tabBarStyle: Platform.select({
           ios: {
@@ -24,9 +24,8 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color, fontSize: 24 }}>🏠</Text>
-          ),
+          tabBarIcon: ({ color }) => <IconSymbol name="house.fill" color={color} size={24} />,
+          tabBarButton: (props) => <HapticTab {...props} key="index" />,
         }}
       />
       <Tabs.Screen
@@ -36,6 +35,15 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <Text style={{ color, fontSize: 24 }}>🔍</Text>
           ),
+          tabBarButton: (props) => <HapticTab {...props} key="explore" />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <IconSymbol name="person.fill" color={color} size={24} />,
+          tabBarButton: (props) => <HapticTab {...props} key="profile" />,
         }}
       />
     </Tabs>
