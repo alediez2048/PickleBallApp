@@ -22,25 +22,17 @@ function RootLayoutNav() {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
-    const inVerificationScreen = segments[1] === 'verify-email';
 
     if (isAuthenticated) {
-      if (!user?.emailVerified) {
-        // Unverified users should only be on the verification screen
-        if (!inVerificationScreen) {
-          router.replace('/(auth)/verify-email');
-        }
-      } else {
-        // Verified users should be in the main app
-        if (inAuthGroup) {
-          router.replace('/(tabs)');
-        }
+      // Remove email verification check and always redirect to main app
+      if (inAuthGroup) {
+        router.replace('/(tabs)');
       }
     } else if (!inAuthGroup) {
       // Redirect unauthenticated users to sign in
       router.replace('/login');
     }
-  }, [isAuthenticated, segments, isLoading, user?.emailVerified]);
+  }, [isAuthenticated, segments, isLoading]);
 
   return <Slot />;
 }

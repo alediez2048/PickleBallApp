@@ -167,8 +167,8 @@ class MockApi {
       email,
       password,
       name,
-      emailVerified: false,
-      verificationToken
+      emailVerified: true,
+      verificationToken: null
     };
 
     this.MOCK_USERS.set(email, newUser);
