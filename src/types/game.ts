@@ -41,14 +41,19 @@ export interface User {
 export interface Game {
   id: string;
   title: string;
-  date: Date;
+  description: string;
+  startTime: string;
+  endTime: string;
   location: Location;
+  host: User;
+  players: User[];
   maxPlayers: number;
-  currentPlayers: number;
   skillLevel: SkillLevel;
   price: number;
-  host: User;
+  imageUrl?: string;
   status: GameStatus;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface GameFilters {

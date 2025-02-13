@@ -1,16 +1,36 @@
 import React from 'react';
-import { ThemedView } from '@components/ThemedView';
-import { ThemedText } from '@components/ThemedText';
+import { View, Text, StyleSheet } from 'react-native';
 
 export default function ExploreScreen() {
   return (
-    <ThemedView className="flex-1 items-center justify-center">
-      <ThemedText className="text-xl font-bold">
+    <View style={styles.container}>
+      <Text style={styles.title}>
         Explore Games
-      </ThemedText>
-      <ThemedText className="mt-2 text-center px-4">
+      </Text>
+      <Text style={styles.subtitle}>
         Find and join pickleball games in your area
-      </ThemedText>
-    </ThemedView>
+      </Text>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    paddingHorizontal: 16,
+  },
+});

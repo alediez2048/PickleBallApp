@@ -1,53 +1,45 @@
-import React, { useEffect } from 'react';
-import { View, Text, SafeAreaView, ScrollView } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Button } from '@components/common/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/contexts/selectors/authSelectors';
+import { useRouter } from 'expo-router';
 
 export default function TabHomeScreen() {
   const { signOut } = useAuth();
   const user = useUserProfile();
-  
-  useEffect(() => {
-    console.log('Current user data:', user);
-  }, [user]);
+  const router = useRouter();
   
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <View style={{ backgroundColor: '#000000', padding: 20, paddingTop: 60 }}>
-        <Text style={{ color: '#ffffff', fontSize: 24, fontWeight: 'bold' }}>
+    <ScrollView style={styles.scrollView}>
+      <View style={styles.banner}>
+        <Text style={styles.welcomeText}>
           Hi {user?.name || 'User'}, Welcome to PicklePass
         </Text>
       </View>
 
-      <View style={{ padding: 16 }}>
-        <Text style={{ color: '#000000', fontSize: 24, fontWeight: 'bold', marginBottom: 16 }}>
+      <View style={styles.container}>
+        <Text style={styles.title}>
           Welcome to PicklePass
         </Text>
-        <Text style={{ color: '#000000', textAlign: 'center', marginBottom: 32 }}>
+        <Text style={styles.subtitle}>
           Find and join pickleball games near you
         </Text>
         
-        <View style={{ width: '100%', gap: 16 }}>
-          <Button onPress={() => console.log('Primary pressed')} size="lg">
+        <View style={styles.buttonContainer}>
+          <Button 
+            onPress={() => router.push('/explore')} 
+            size="lg"
+            style={styles.button}
+          >
             Find Games
           </Button>
-
-          <View style={{ 
-            backgroundColor: '#f5f5f5', 
-            padding: 16, 
-            borderRadius: 8,
-            marginVertical: 16 
-          }}>
-            <Text style={{ 
-              fontSize: 18, 
-              fontWeight: 'bold', 
-              color: '#000000',
-              marginBottom: 8 
-            }}>
+          
+          <View style={styles.upcomingGamesContainer}>
+            <Text style={styles.sectionTitle}>
               Upcoming Games
             </Text>
-            <Text style={{ color: '#666666' }}>
+            <Text style={styles.sectionContent}>
               No upcoming games scheduled. Find a game to join!
             </Text>
           </View>
@@ -56,6 +48,7 @@ export default function TabHomeScreen() {
             variant="secondary" 
             onPress={signOut}
             size="md"
+            style={styles.button}
           >
             Sign Out
           </Button>
@@ -64,3 +57,59 @@ export default function TabHomeScreen() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  banner: {
+    backgroundColor: '#000000',
+    padding: 20,
+    paddingTop: 60,
+  },
+  welcomeText: {
+    color: '#ffffff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 32,
+  },
+  buttonContainer: {
+    width: '100%',
+    gap: 16,
+  },
+  button: {
+    marginBottom: 12,
+  },
+  upcomingGamesContainer: {
+    backgroundColor: '#f5f5f5',
+    padding: 16,
+    borderRadius: 8,
+    marginVertical: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 8,
+  },
+  sectionContent: {
+    color: '#666666',
+  },
+});

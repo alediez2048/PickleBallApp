@@ -1,35 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Alert, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useUserProfile } from '@/contexts/selectors/authSelectors';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useUpcomingGames } from '@/contexts/selectors/gameSelectors';
-import { useGameHistory } from '@/hooks/useGames';
 import { Button } from '@/components/common/ui/Button';
 import { SkillLevel } from '@/types/game';
 import { useAuth } from '@/contexts/AuthContext';
 
 const SKILL_LEVELS = [
-  { id: 'beginner', value: SkillLevel.Beginner, label: 'Beginner' },
-  { id: 'intermediate', value: SkillLevel.Intermediate, label: 'Intermediate' },
-  { id: 'advanced', value: SkillLevel.Advanced, label: 'Advanced' },
-  { id: 'all-levels', value: SkillLevel.AllLevels, label: 'All Levels' },
+  { value: SkillLevel.Beginner, label: 'Beginner' },
+  { value: SkillLevel.Intermediate, label: 'Intermediate' },
+  { value: SkillLevel.Advanced, label: 'Advanced' },
+  { value: SkillLevel.Open, label: 'Open' },
 ];
 
 export default function ProfileScreen() {
   const user = useUserProfile();
   const { updateProfile } = useAuth();
-  const [profileImage, setProfileImage] = useState<string | undefined>(user?.profileImage);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [isSkillModalVisible, setIsSkillModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const upcomingGames = useUpcomingGames();
-  const { games: gameHistory, isLoading: isLoadingGames } = useGameHistory();
-
-  useEffect(() => {
-    if (user?.profileImage) {
-      setProfileImage(user.profileImage);
-    }
-  }, [user?.profileImage]);
 
   const handleImagePick = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -41,17 +33,17 @@ export default function ProfileScreen() {
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: 'images',
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.5,
       });
 
-      if (!result.canceled && result.assets[0]) {
+      if (!result.canceled && result.assets[0]?.uri) {
         setIsLoading(true);
         const imageUri = result.assets[0].uri;
         await updateProfile({ profileImage: imageUri });
-        setProfileImage(imageUri);
+        setRefreshKey(prev => prev + 1); // Force a re-render
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update profile picture. Please try again.');
@@ -81,15 +73,19 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.profileImageContainer}
           onPress={handleImagePick}
           accessibilityLabel="Change profile picture"
         >
-          {profileImage ? (
-            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+          {user?.profileImage ? (
+            <Image 
+              source={{ uri: `${user.profileImage}?refresh=${refreshKey}` }} 
+              style={styles.profileImage}
+              key={refreshKey}
+            />
           ) : (
             <IconSymbol name="person.fill" size={60} color="#666666" />
           )}
@@ -113,40 +109,6 @@ export default function ProfileScreen() {
           </Button>
         </View>
         <Text style={styles.sectionContent}>{user.skillLevel || 'Not set'}</Text>
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Games Played</Text>
-          <Text style={styles.statsText}>
-            Win Rate: {gameHistory.filter(g => g.result === 'win').length}/{gameHistory.length}
-          </Text>
-        </View>
-        {isLoadingGames ? (
-          <Text style={styles.sectionContent}>Loading games...</Text>
-        ) : gameHistory.length > 0 ? (
-          gameHistory.slice(0, 3).map(game => (
-            <View key={game.id} style={styles.gameHistoryItem}>
-              <View style={styles.gameHistoryHeader}>
-                <Text style={[
-                  styles.gameResult,
-                  game.result === 'win' ? styles.winText : styles.lossText
-                ]}>
-                  {game.result.toUpperCase()}
-                </Text>
-                <Text style={styles.gameDate}>
-                  {new Date(game.date).toLocaleDateString()}
-                </Text>
-              </View>
-              <View style={styles.gameDetails}>
-                <Text style={styles.gameScore}>Score: {game.score}</Text>
-                <Text style={styles.gameOpponent}>vs {game.opponent}</Text>
-              </View>
-            </View>
-          ))
-        ) : (
-          <Text style={styles.sectionContent}>No games played yet</Text>
-        )}
       </View>
 
       <View style={styles.section}>
@@ -184,7 +146,7 @@ export default function ProfileScreen() {
             </View>
             {SKILL_LEVELS.map((level) => (
               <TouchableOpacity
-                key={level.id}
+                key={level.value}
                 style={[
                   styles.skillOption,
                   user.skillLevel === level.value && styles.selectedSkill
@@ -205,7 +167,7 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -218,18 +180,29 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
-    paddingVertical: 20,
+    marginBottom: 30,
+    backgroundColor: '#f5f5f5',
+    padding: 20,
+    borderRadius: 12,
+    marginHorizontal: -20,
   },
   profileImageContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#f0f0f0',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 15,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   profileImage: {
     width: '100%',
@@ -255,30 +228,30 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   name: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 5,
   },
   email: {
     fontSize: 16,
     color: '#666666',
-    marginBottom: 20,
   },
   section: {
-    marginBottom: 30,
-    backgroundColor: '#f8f8f8',
-    padding: 15,
+    marginBottom: 25,
+    backgroundColor: '#f5f5f5',
+    padding: 16,
     borderRadius: 12,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#000',
   },
   sectionContent: {
     fontSize: 16,
@@ -287,11 +260,15 @@ const styles = StyleSheet.create({
   gameItem: {
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#e0e0e0',
+    backgroundColor: '#fff',
+    marginHorizontal: -16,
+    paddingHorizontal: 16,
   },
   gameTitle: {
     fontSize: 16,
     fontWeight: '500',
+    color: '#000',
   },
   gameDate: {
     fontSize: 14,
@@ -331,6 +308,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     marginBottom: 8,
+    backgroundColor: '#f5f5f5',
   },
   selectedSkill: {
     backgroundColor: '#E8F5E9',
@@ -342,46 +320,5 @@ const styles = StyleSheet.create({
   selectedSkillText: {
     color: '#4CAF50',
     fontWeight: '500',
-  },
-  statsText: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  gameHistoryItem: {
-    backgroundColor: '#ffffff',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  gameHistoryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  gameResult: {
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  winText: {
-    color: '#4CAF50',
-  },
-  lossText: {
-    color: '#f44336',
-  },
-  gameDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  gameScore: {
-    fontSize: 14,
-    color: '#333333',
-  },
-  gameOpponent: {
-    fontSize: 14,
-    color: '#666666',
   },
 }); 
