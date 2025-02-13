@@ -24,8 +24,22 @@ export class ValidationResult {
 }
 
 export const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  // More comprehensive email regex that checks for:
+  // - Proper email format
+  // - Common TLDs
+  // - No special characters in wrong places
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  
+  // Basic checks
+  if (!email || email.length > 254) return false;
+  if (!emailRegex.test(email)) return false;
+  
+  // Additional checks
+  const [local, domain] = email.split('@');
+  if (local.length > 64) return false;
+  if (domain.length > 255) return false;
+  
+  return true;
 };
 
 export const validatePassword = (password: string): boolean => {

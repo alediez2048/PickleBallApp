@@ -156,6 +156,13 @@ class MockApi {
     console.log('MockApi: Register attempt with:', { email, name });
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
+    // Basic domain validation
+    const domain = email.split('@')[1];
+    const blockedDomains = ['example.com', 'test.com', 'fake.com'];
+    if (blockedDomains.includes(domain.toLowerCase())) {
+      throw new Error('Please use a valid email address');
+    }
+
     if (this.MOCK_USERS.has(email)) {
       console.log('MockApi: Email already registered');
       throw new Error('Email already registered');

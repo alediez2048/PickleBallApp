@@ -8,6 +8,24 @@ import { Button } from '@/components/common/ui/Button';
 import { SkillLevel } from '@/types/game';
 import { useAuth } from '@/contexts/AuthContext';
 
+interface GameHistory {
+  id: string;
+  date: string;
+  result: 'win' | 'loss';
+  score: string;
+  opponent: string;
+}
+
+interface UserProfile {
+  id?: string;
+  email?: string;
+  name?: string;
+  isVerified?: boolean;
+  skillLevel?: string;
+  profileImage?: string;
+  gamesPlayed?: GameHistory[];
+}
+
 const SKILL_LEVELS = [
   { value: SkillLevel.Beginner, label: 'Beginner' },
   { value: SkillLevel.Intermediate, label: 'Intermediate' },
@@ -16,7 +34,7 @@ const SKILL_LEVELS = [
 ];
 
 export default function ProfileScreen() {
-  const user = useUserProfile();
+  const user = useUserProfile() as UserProfile;
   const { updateProfile } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [isSkillModalVisible, setIsSkillModalVisible] = useState(false);
@@ -109,6 +127,53 @@ export default function ProfileScreen() {
           </Button>
         </View>
         <Text style={styles.sectionContent}>{user.skillLevel || 'Not set'}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Games Played</Text>
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>
+              {user.gamesPlayed?.length || 0}
+            </Text>
+            <Text style={styles.statLabel}>Total Games</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>
+              {user.gamesPlayed?.filter(game => game.result === 'win').length || 0}
+            </Text>
+            <Text style={styles.statLabel}>Wins</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>
+              {user.gamesPlayed?.filter(game => game.result === 'loss').length || 0}
+            </Text>
+            <Text style={styles.statLabel}>Losses</Text>
+          </View>
+        </View>
+        {user.gamesPlayed && user.gamesPlayed.length > 0 ? (
+          <View style={styles.recentGames}>
+            <Text style={styles.recentGamesTitle}>Recent Games</Text>
+            {user.gamesPlayed.slice(0, 3).map((game, index) => (
+              <View key={game.id} style={styles.recentGame}>
+                <View>
+                  <Text style={[
+                    styles.gameResult,
+                    { color: game.result === 'win' ? '#4CAF50' : '#F44336' }
+                  ]}>
+                    {game.result === 'win' ? 'Won' : 'Lost'}
+                  </Text>
+                  <Text style={styles.gameScore}>{game.score}</Text>
+                </View>
+                <Text style={styles.gameDate}>
+                  {new Date(game.date).toLocaleDateString()}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.sectionContent}>No games played yet</Text>
+        )}
       </View>
 
       <View style={styles.section}>
@@ -320,5 +385,52 @@ const styles = StyleSheet.create({
   selectedSkillText: {
     color: '#4CAF50',
     fontWeight: '500',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    marginBottom: 16,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  recentGames: {
+    width: '100%',
+  },
+  recentGamesTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 8,
+  },
+  recentGame: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  gameResult: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  gameScore: {
+    fontSize: 14,
+    color: '#666666',
   },
 }); 

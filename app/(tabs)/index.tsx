@@ -11,55 +11,57 @@ export default function TabHomeScreen() {
   const router = useRouter();
   
   return (
-    <ScrollView style={styles.scrollView}>
+    <View style={styles.container}>
       <View style={styles.banner}>
         <Text style={styles.welcomeText}>
           Hi {user?.name || 'User'}, Welcome to PicklePass
         </Text>
       </View>
 
-      <View style={styles.container}>
-        <Text style={styles.title}>
-          Welcome to PicklePass
-        </Text>
-        <Text style={styles.subtitle}>
-          Find and join pickleball games near you
-        </Text>
-        
-        <View style={styles.buttonContainer}>
-          <Button 
-            onPress={() => router.push('/explore')} 
-            size="lg"
-            style={styles.button}
-          >
-            Find Games
-          </Button>
+      <View style={styles.contentContainer}>
+        <View style={styles.content}>
+          <Text style={styles.title}>
+            Welcome to PicklePass
+          </Text>
+          <Text style={styles.subtitle}>
+            Find and join pickleball games near you
+          </Text>
           
-          <View style={styles.upcomingGamesContainer}>
-            <Text style={styles.sectionTitle}>
-              Upcoming Games
-            </Text>
-            <Text style={styles.sectionContent}>
-              No upcoming games scheduled. Find a game to join!
-            </Text>
-          </View>
+          <View style={styles.buttonContainer}>
+            <Button 
+              onPress={() => router.push('/explore')} 
+              size="lg"
+              style={styles.button}
+            >
+              Find Games
+            </Button>
+            
+            <View style={styles.upcomingGamesContainer}>
+              <Text style={styles.sectionTitle}>
+                Upcoming Games
+              </Text>
+              <Text style={styles.sectionContent}>
+                No upcoming games scheduled. Find a game to join!
+              </Text>
+            </View>
 
-          <Button 
-            variant="secondary" 
-            onPress={signOut}
-            size="md"
-            style={styles.button}
-          >
-            Sign Out
-          </Button>
+            <Button 
+              variant="secondary" 
+              onPress={signOut}
+              size="md"
+              style={styles.button}
+            >
+              Sign Out
+            </Button>
+          </View>
         </View>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  container: {
     flex: 1,
     backgroundColor: '#fff',
   },
@@ -73,18 +75,26 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-  container: {
+  contentContainer: {
     flex: 1,
-    padding: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  content: {
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 400,
+    alignSelf: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#4CAF50',
     marginBottom: 16,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#666',
     textAlign: 'center',
     paddingHorizontal: 16,
@@ -93,23 +103,28 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '100%',
     gap: 16,
+    alignItems: 'center',
   },
   button: {
+    width: '100%',
     marginBottom: 12,
   },
   upcomingGamesContainer: {
     backgroundColor: '#f5f5f5',
-    padding: 16,
-    borderRadius: 8,
+    padding: 20,
+    borderRadius: 12,
+    width: '100%',
     marginVertical: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#000000',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   sectionContent: {
     color: '#666666',
+    fontSize: 16,
+    lineHeight: 24,
   },
 });
