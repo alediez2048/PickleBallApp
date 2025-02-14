@@ -48,6 +48,21 @@ interface UpdateProfileData {
   profileImage?: string;
 }
 
+interface BookedGame {
+  id: string;
+  date: string;
+  time: string;
+  courtName: string;
+  location: {
+    address: string;
+    area: string;
+    city: string;
+  };
+  skillRating: number;
+  price: number;
+  status: 'upcoming' | 'completed' | 'cancelled';
+}
+
 interface MockUser {
   id: string;
   email: string;
@@ -58,6 +73,7 @@ interface MockUser {
   skillLevel?: string;
   profileImage?: string;
   gamesPlayed?: GameHistory[];
+  bookedGames?: BookedGame[];
 }
 
 interface GameHistory {
@@ -70,7 +86,8 @@ interface GameHistory {
 
 const STORAGE_KEYS = {
   MOCK_USERS: 'mock_users_data',
-  GAMES_HISTORY: 'games_history_data'
+  GAMES_HISTORY: 'games_history_data',
+  BOOKED_GAMES: 'booked_games_data'
 };
 
 class MockApi {
@@ -83,11 +100,15 @@ class MockApi {
 
   private async loadMockUsers() {
     try {
+      console.log('MockApi: Loading users from storage');
       const storedUsers = await storage.getItem(STORAGE_KEYS.MOCK_USERS);
+      console.log('MockApi: Loaded stored users:', storedUsers);
       if (storedUsers) {
         this.MOCK_USERS = new Map(JSON.parse(storedUsers));
+        console.log('MockApi: Successfully parsed stored users');
       } else {
         // Initialize with default test user if no stored users
+        console.log('MockApi: No stored users found, initializing with test user');
         const testUser: MockUser = {
           id: '1',
           email: 'test@example.com',
@@ -112,22 +133,25 @@ class MockApi {
               score: '9-11',
               opponent: 'Jane Smith'
             }
-          ]
+          ],
+          bookedGames: [] // Initialize with empty booked games
         };
         this.MOCK_USERS.set(testUser.email, testUser);
         await this.saveMockUsers();
       }
     } catch (error) {
-      console.error('Error loading mock users:', error);
+      console.error('MockApi: Error loading mock users:', error);
     }
   }
 
   private async saveMockUsers() {
     try {
       const usersArray = Array.from(this.MOCK_USERS.entries());
+      console.log('MockApi: Saving users to storage:', usersArray);
       await storage.setItem(STORAGE_KEYS.MOCK_USERS, JSON.stringify(usersArray));
+      console.log('MockApi: Successfully saved users to storage');
     } catch (error) {
-      console.error('Error saving mock users:', error);
+      console.error('MockApi: Error saving mock users:', error);
     }
   }
 
@@ -158,7 +182,7 @@ class MockApi {
 
     // Basic domain validation
     const domain = email.split('@')[1];
-    const blockedDomains = ['example.com', 'test.com', 'fake.com'];
+    const blockedDomains = ['test.com', 'fake.com'];
     if (blockedDomains.includes(domain.toLowerCase())) {
       throw new Error('Please use a valid email address');
     }
@@ -360,6 +384,91 @@ class MockApi {
     user.gamesPlayed.unshift(newGame);
     await this.saveMockUsers();
     return newGame;
+  }
+
+  async getBookedGames(email: string): Promise<BookedGame[]> {
+    console.log('MockApi: Getting booked games for:', email);
+    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+
+    const user = this.MOCK_USERS.get(email);
+    if (!user) {
+      console.log('MockApi: User not found for booked games');
+      throw new Error('User not found');
+    }
+
+    console.log('MockApi: Found booked games:', user.bookedGames);
+    return user.bookedGames || [];
+  }
+
+  async bookGame(email: string, game: Omit<BookedGame, 'status'>): Promise<BookedGame> {
+    console.log('MockApi: Booking game for:', email, game);
+    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+
+    const user = this.MOCK_USERS.get(email);
+    if (!user) {
+      console.log('MockApi: User not found for booking');
+      throw new Error('User not found');
+    }
+
+    // Initialize bookedGames array if it doesn't exist
+    if (!user.bookedGames) {
+      user.bookedGames = [];
+    }
+
+    // Check if user has already booked this game (same court and time)
+    const existingBooking = user.bookedGames.find(
+      bookedGame => 
+        bookedGame.courtName === game.courtName && 
+        bookedGame.time === game.time &&
+        bookedGame.status === 'upcoming'
+    );
+
+    if (existingBooking) {
+      console.log('MockApi: User has already booked this game');
+      throw new Error('You have already booked this game');
+    }
+
+    const bookedGame: BookedGame = {
+      ...game,
+      status: 'upcoming'
+    };
+
+    user.bookedGames.unshift(bookedGame);
+    await this.saveMockUsers();
+    console.log('MockApi: Successfully saved booked game:', bookedGame);
+    console.log('MockApi: Updated user booked games:', user.bookedGames);
+
+    return bookedGame;
+  }
+
+  async cancelBooking(email: string, gameId: string): Promise<void> {
+    console.log('MockApi: Cancelling booking for:', email, gameId);
+    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+
+    const user = this.MOCK_USERS.get(email);
+    if (!user || !user.bookedGames) {
+      throw new Error('User or booking not found');
+    }
+
+    const gameIndex = user.bookedGames.findIndex(game => game.id === gameId);
+    if (gameIndex === -1) {
+      throw new Error('Booking not found');
+    }
+
+    user.bookedGames[gameIndex].status = 'cancelled';
+    await this.saveMockUsers();
+  }
+
+  async clearBookedGames(email: string): Promise<void> {
+    console.log('MockApi: Clearing booked games for:', email);
+    const user = this.MOCK_USERS.get(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    user.bookedGames = [];
+    await this.saveMockUsers();
+    console.log('MockApi: Successfully cleared booked games');
   }
 }
 

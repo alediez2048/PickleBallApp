@@ -1,15 +1,34 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Button } from '@components/common/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/contexts/selectors/authSelectors';
 import { useRouter } from 'expo-router';
+import { useUpcomingBookedGames, useBookedGames } from '@/contexts/BookedGamesContext';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 
 export default function TabHomeScreen() {
   const { signOut } = useAuth();
   const user = useUserProfile();
   const router = useRouter();
+  const upcomingGames = useUpcomingBookedGames();
+  const { clearAllGames } = useBookedGames();
   
+  const handleGamePress = (gameId: string) => {
+    router.push({
+      pathname: '/game/[id]',
+      params: { id: gameId }
+    });
+  };
+
+  const handleClearGames = async () => {
+    try {
+      await clearAllGames();
+    } catch (error) {
+      console.error('Error clearing games:', error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.banner}>
@@ -18,7 +37,7 @@ export default function TabHomeScreen() {
         </Text>
       </View>
 
-      <View style={styles.contentContainer}>
+      <ScrollView style={styles.contentContainer}>
         <View style={styles.content}>
           <Text style={styles.title}>
             Welcome to PicklePass
@@ -37,12 +56,42 @@ export default function TabHomeScreen() {
             </Button>
             
             <View style={styles.upcomingGamesContainer}>
-              <Text style={styles.sectionTitle}>
-                Upcoming Games
-              </Text>
-              <Text style={styles.sectionContent}>
-                No upcoming games scheduled. Find a game to join!
-              </Text>
+              <View style={styles.upcomingGamesHeader}>
+                <Text style={styles.sectionTitle}>
+                  Upcoming Games
+                </Text>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onPress={handleClearGames}
+                >
+                  Clear All Games
+                </Button>
+              </View>
+              {upcomingGames.length > 0 ? (
+                <View style={styles.gamesList}>
+                  {upcomingGames.map((game) => (
+                    <TouchableOpacity
+                      key={game.id}
+                      style={styles.gameCard}
+                      onPress={() => handleGamePress(game.id)}
+                    >
+                      <View style={styles.gameCardContent}>
+                        <View style={styles.gameInfo}>
+                          <Text style={styles.gameTime}>{game.time}</Text>
+                          <Text style={styles.gameCourt}>{game.courtName}</Text>
+                          <Text style={styles.gameAddress}>{game.location.address}</Text>
+                        </View>
+                        <IconSymbol name="location.fill" size={20} color="#666666" />
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : (
+                <Text style={styles.sectionContent}>
+                  No upcoming games scheduled. Find a game to join!
+                </Text>
+              )}
             </View>
 
             <Button 
@@ -55,7 +104,7 @@ export default function TabHomeScreen() {
             </Button>
           </View>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -77,14 +126,13 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
   },
   content: {
     alignItems: 'center',
     width: '100%',
     maxWidth: 400,
     alignSelf: 'center',
+    padding: 16,
   },
   title: {
     fontSize: 28,
@@ -126,5 +174,59 @@ const styles = StyleSheet.create({
     color: '#666666',
     fontSize: 16,
     lineHeight: 24,
+  },
+  gamesList: {
+    gap: 12,
+  },
+  gameCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    padding: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+      },
+    }),
+  },
+  gameCardContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  gameInfo: {
+    flex: 1,
+  },
+  gameTime: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  gameCourt: {
+    fontSize: 14,
+    color: '#000000',
+    marginBottom: 2,
+  },
+  gameAddress: {
+    fontSize: 12,
+    color: '#666666',
+  },
+  upcomingGamesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
 });
