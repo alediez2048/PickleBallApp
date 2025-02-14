@@ -36,6 +36,7 @@ export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
+  const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
 
   // In a real app, we would fetch the game details using the id
   const game = MOCK_GAME;
@@ -43,7 +44,18 @@ export default function GameDetailsScreen() {
   const handleBookingConfirm = () => {
     // Here we would handle the actual booking logic
     setIsBookingModalVisible(false);
-    // Navigate to success screen or show success message
+    setIsSuccessModalVisible(true);
+  };
+
+  const handleViewBooking = () => {
+    setIsSuccessModalVisible(false);
+    // In a real app, navigate to user's bookings or game details
+    router.push('/profile');
+  };
+
+  const handleExploreMore = () => {
+    setIsSuccessModalVisible(false);
+    router.push('/explore');
   };
 
   return (
@@ -189,6 +201,53 @@ export default function GameDetailsScreen() {
                 onPress={handleBookingConfirm}
               >
                 <Text style={styles.confirmButtonText}>Confirm Booking</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        visible={isSuccessModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setIsSuccessModalVisible(false)}
+      >
+        <View style={styles.successModalOverlay}>
+          <View style={styles.successModalContent}>
+            <View style={styles.successIconContainer}>
+              <IconSymbol name="checkmark" size={40} color="#4CAF50" />
+            </View>
+            
+            <Text style={styles.successTitle}>Booking Confirmed!</Text>
+            
+            <View style={styles.successGameInfo}>
+              <Text style={styles.successGameTime}>{game.time}</Text>
+              <Text style={styles.successGameLocation}>{game.courtName}</Text>
+              <Text style={styles.successGameAddress}>{game.location.address}</Text>
+            </View>
+
+            <View style={styles.successNote}>
+              <Text style={styles.successNoteText}>
+                We've sent a confirmation email with all the details.
+                See you on the court!
+              </Text>
+            </View>
+
+            <View style={styles.successActions}>
+              <TouchableOpacity
+                style={[styles.successButton, styles.viewBookingButton]}
+                onPress={handleViewBooking}
+              >
+                <Text style={styles.viewBookingText}>View Booking</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.successButton, styles.exploreButton]}
+                onPress={handleExploreMore}
+              >
+                <Text style={styles.exploreButtonText}>Find More Games</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -441,5 +500,97 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  // Success Modal Styles
+  successModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  successModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  successIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#E8F5E9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  successTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  successGameInfo: {
+    alignItems: 'center',
+    marginBottom: 24,
+    width: '100%',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+  },
+  successGameTime: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  successGameLocation: {
+    fontSize: 16,
+    color: '#000000',
+    marginBottom: 4,
+  },
+  successGameAddress: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  successNote: {
+    marginBottom: 24,
+    paddingHorizontal: 16,
+  },
+  successNoteText: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  successActions: {
+    width: '100%',
+    gap: 12,
+  },
+  successButton: {
+    width: '100%',
+    paddingVertical: 12,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  viewBookingButton: {
+    backgroundColor: '#4CAF50',
+  },
+  viewBookingText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  exploreButton: {
+    backgroundColor: '#F3F4F6',
+  },
+  exploreButtonText: {
+    color: '#000000',
+    fontWeight: '600',
+    fontSize: 16,
   },
 }); 
