@@ -3,34 +3,7 @@ import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Mod
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Button } from '@/components/common/ui/Button';
-
-// Temporary mock data - in real app, this would come from an API call
-const MOCK_GAME = {
-  id: '1',
-  date: new Date(),
-  time: '7:00 PM',
-  courtName: 'Givens Court',
-  location: {
-    address: '1100 Springdale Rd',
-    area: 'Givens Park',
-    city: 'Austin'
-  },
-  skillRating: 3.7,
-  spotsTotal: 15,
-  spotsAvailable: 3,
-  gameType: 'Standard Game',
-  price: 10,
-  captain: {
-    name: 'John Smith',
-    rating: 4.2,
-    gamesPlayed: 45
-  },
-  players: [
-    { id: '1', name: 'Sarah Johnson', rating: 3.8 },
-    { id: '2', name: 'Mike Wilson', rating: 4.0 },
-    { id: '3', name: 'Emily Brown', rating: 3.5 }
-  ]
-};
+import { MOCK_GAMES } from '@/utils/mockData';
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -38,8 +11,34 @@ export default function GameDetailsScreen() {
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
 
-  // In a real app, we would fetch the game details using the id
-  const game = MOCK_GAME;
+  // Get the correct game based on the ID
+  const game = MOCK_GAMES[id as keyof typeof MOCK_GAMES];
+
+  // If game not found, show error or redirect
+  if (!game) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <IconSymbol name="xmark" size={24} color="#000000" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Game Not Found</Text>
+        </View>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>This game could not be found.</Text>
+          <Button 
+            onPress={() => router.push('/explore')}
+            style={styles.errorButton}
+          >
+            Back to Explore
+          </Button>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const handleBookingConfirm = () => {
     // Here we would handle the actual booking logic
@@ -74,12 +73,13 @@ export default function GameDetailsScreen() {
       <ScrollView style={styles.content}>
         {/* Game Summary */}
         <View style={styles.section}>
-          <Text style={styles.timeText}>{game.time}</Text>
-          <Text style={styles.courtText}>{game.courtName}</Text>
+          <Text style={styles.timeText}>
+            {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </Text>
+          <Text style={styles.courtText}>{game.location.name}</Text>
           <View style={styles.locationInfo}>
             <Text style={styles.addressText}>{game.location.address}</Text>
-            <Text style={styles.areaText}>{game.location.area}</Text>
-            <Text style={styles.cityText}>{game.location.city}</Text>
+            <Text style={styles.cityText}>{game.location.city}, {game.location.state} {game.location.zipCode}</Text>
           </View>
         </View>
 
@@ -87,7 +87,7 @@ export default function GameDetailsScreen() {
         <View style={[styles.section, styles.statsSection]}>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Skill Level</Text>
-            <Text style={styles.statValue}>{game.skillRating}</Text>
+            <Text style={styles.statValue}>{game.skillLevel}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
@@ -97,18 +97,18 @@ export default function GameDetailsScreen() {
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Spots Left</Text>
-            <Text style={styles.statValue}>{game.spotsAvailable}</Text>
+            <Text style={styles.statValue}>{game.maxPlayers - game.players.length}</Text>
           </View>
         </View>
 
         {/* Game Captain */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Game Captain</Text>
+          <Text style={styles.sectionTitle}>Game Host</Text>
           <View style={styles.captainCard}>
             <View style={styles.captainInfo}>
-              <Text style={styles.captainName}>{game.captain.name}</Text>
+              <Text style={styles.captainName}>{game.host.name}</Text>
               <Text style={styles.captainStats}>
-                Rating: {game.captain.rating} · {game.captain.gamesPlayed} games
+                Skill Level: {game.host.skillLevel}
               </Text>
             </View>
           </View>
@@ -120,7 +120,7 @@ export default function GameDetailsScreen() {
           {game.players.map(player => (
             <View key={player.id} style={styles.playerCard}>
               <Text style={styles.playerName}>{player.name}</Text>
-              <Text style={styles.playerRating}>Rating: {player.rating}</Text>
+              <Text style={styles.playerRating}>Skill Level: {player.skillLevel}</Text>
             </View>
           ))}
         </View>
@@ -134,7 +134,7 @@ export default function GameDetailsScreen() {
           activeOpacity={0.7}
         >
           <Text style={styles.reserveText}>
-            {game.spotsAvailable > 0 ? 'Reserve Spot' : 'Join Waitlist'}
+            {game.players.length < game.maxPlayers ? 'Reserve Spot' : 'Join Waitlist'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -161,8 +161,10 @@ export default function GameDetailsScreen() {
             <View style={styles.modalBody}>
               <View style={styles.modalSection}>
                 <Text style={styles.modalSectionTitle}>Game Details</Text>
-                <Text style={styles.modalGameTime}>{game.time}</Text>
-                <Text style={styles.modalGameLocation}>{game.courtName}</Text>
+                <Text style={styles.modalGameTime}>
+                  {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+                <Text style={styles.modalGameLocation}>{game.location.name}</Text>
                 <Text style={styles.modalGameAddress}>{game.location.address}</Text>
               </View>
 
@@ -174,11 +176,13 @@ export default function GameDetailsScreen() {
                 </View>
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>Skill Level</Text>
-                  <Text style={styles.summaryValue}>{game.skillRating}</Text>
+                  <Text style={styles.summaryValue}>{game.skillLevel}</Text>
                 </View>
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>Available Spots</Text>
-                  <Text style={styles.summaryValue}>{game.spotsAvailable} of {game.spotsTotal}</Text>
+                  <Text style={styles.summaryValue}>
+                    {game.maxPlayers - game.players.length} of {game.maxPlayers}
+                  </Text>
                 </View>
               </View>
 
@@ -223,8 +227,10 @@ export default function GameDetailsScreen() {
             <Text style={styles.successTitle}>Booking Confirmed!</Text>
             
             <View style={styles.successGameInfo}>
-              <Text style={styles.successGameTime}>{game.time}</Text>
-              <Text style={styles.successGameLocation}>{game.courtName}</Text>
+              <Text style={styles.successGameTime}>
+                {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+              <Text style={styles.successGameLocation}>{game.location.name}</Text>
               <Text style={styles.successGameAddress}>{game.location.address}</Text>
             </View>
 
@@ -302,10 +308,6 @@ const styles = StyleSheet.create({
   },
   addressText: {
     color: '#000000',
-    marginBottom: 2,
-  },
-  areaText: {
-    color: '#666666',
     marginBottom: 2,
   },
   cityText: {
@@ -590,6 +592,28 @@ const styles = StyleSheet.create({
   },
   exploreButtonText: {
     color: '#000000',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#000000',
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  errorButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  errorButtonText: {
+    color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 16,
   },

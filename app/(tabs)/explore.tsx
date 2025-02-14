@@ -1,40 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-
-// Temporary mock data for testing
-const MOCK_GAMES = [
-  {
-    id: '1',
-    date: new Date(),
-    time: '7:00 PM',
-    courtName: 'Givens Court',
-    location: {
-      address: '1100 Springdale Rd',
-      area: 'Givens Park',
-      city: 'Austin'
-    },
-    skillRating: 3.7,
-    spotsTotal: 15,
-    spotsAvailable: 3,
-    gameType: 'Standard Game'
-  },
-  {
-    id: '2',
-    date: new Date(Date.now() + 86400000), // Tomorrow
-    time: '9:00 AM',
-    courtName: 'Dove Springs',
-    location: {
-      address: '5701 Ainez Drive',
-      area: 'South Austin',
-      city: 'Austin'
-    },
-    skillRating: 3.8,
-    spotsTotal: 15,
-    spotsAvailable: 0,
-    gameType: 'Standard Game'
-  }
-];
+import { MOCK_GAMES } from '@/utils/mockData';
 
 export default function ExploreScreen() {
   const router = useRouter();
@@ -57,7 +24,7 @@ export default function ExploreScreen() {
 
       {/* Games List */}
       <ScrollView style={styles.gamesContainer}>
-        {MOCK_GAMES.map((game) => (
+        {Object.values(MOCK_GAMES).map((game) => (
           <TouchableOpacity
             key={game.id}
             style={styles.gameCard}
@@ -66,31 +33,32 @@ export default function ExploreScreen() {
           >
             <View style={styles.gameHeader}>
               <View>
-                <Text style={styles.timeText}>{game.time}</Text>
-                <Text style={styles.courtText}>{game.courtName}</Text>
+                <Text style={styles.timeText}>
+                  {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+                <Text style={styles.courtText}>{game.location.name}</Text>
               </View>
               <View style={styles.reserveButton}>
                 <Text style={styles.reserveText}>
-                  {game.spotsAvailable > 0 ? 'Reserve' : 'Join Waitlist'}
+                  {game.players.length < game.maxPlayers ? 'Reserve' : 'Join Waitlist'}
                 </Text>
               </View>
             </View>
 
             <View style={styles.locationInfo}>
               <Text style={styles.addressText}>{game.location.address}</Text>
-              <Text style={styles.areaText}>{game.location.area}</Text>
-              <Text style={styles.cityText}>{game.location.city}</Text>
+              <Text style={styles.cityText}>{game.location.city}, {game.location.state}</Text>
             </View>
 
             <View style={styles.gameFooter}>
               <View>
-                <Text style={styles.labelText}>Average Skill Rating</Text>
-                <Text style={styles.valueText}>{game.skillRating}</Text>
+                <Text style={styles.labelText}>Skill Level</Text>
+                <Text style={styles.valueText}>{game.skillLevel}</Text>
               </View>
               <View>
                 <Text style={styles.labelText}>Spots Available</Text>
                 <Text style={styles.valueText}>
-                  {game.spotsAvailable} of {game.spotsTotal}
+                  {game.maxPlayers - game.players.length} of {game.maxPlayers}
                 </Text>
               </View>
             </View>
@@ -169,10 +137,6 @@ const styles = StyleSheet.create({
   },
   addressText: {
     color: '#000000',
-    marginBottom: 2,
-  },
-  areaText: {
-    color: '#666666',
     marginBottom: 2,
   },
   cityText: {
