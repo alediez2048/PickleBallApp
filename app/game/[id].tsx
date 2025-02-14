@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Button } from '@/components/common/ui/Button';
@@ -35,9 +35,16 @@ const MOCK_GAME = {
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
 
   // In a real app, we would fetch the game details using the id
   const game = MOCK_GAME;
+
+  const handleBookingConfirm = () => {
+    // Here we would handle the actual booking logic
+    setIsBookingModalVisible(false);
+    // Navigate to success screen or show success message
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -111,7 +118,7 @@ export default function GameDetailsScreen() {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.reserveButton}
-          onPress={() => {/* Handle reservation */}}
+          onPress={() => setIsBookingModalVisible(true)}
           activeOpacity={0.7}
         >
           <Text style={styles.reserveText}>
@@ -119,6 +126,74 @@ export default function GameDetailsScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Booking Confirmation Modal */}
+      <Modal
+        visible={isBookingModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsBookingModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Confirm Reservation</Text>
+              <TouchableOpacity
+                onPress={() => setIsBookingModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <IconSymbol name="xmark" size={24} color="#000000" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBody}>
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>Game Details</Text>
+                <Text style={styles.modalGameTime}>{game.time}</Text>
+                <Text style={styles.modalGameLocation}>{game.courtName}</Text>
+                <Text style={styles.modalGameAddress}>{game.location.address}</Text>
+              </View>
+
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>Booking Summary</Text>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Price</Text>
+                  <Text style={styles.summaryValue}>${game.price}</Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Skill Level</Text>
+                  <Text style={styles.summaryValue}>{game.skillRating}</Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Available Spots</Text>
+                  <Text style={styles.summaryValue}>{game.spotsAvailable} of {game.spotsTotal}</Text>
+                </View>
+              </View>
+
+              <View style={styles.modalSection}>
+                <Text style={styles.modalNote}>
+                  By confirming, you agree to participate in this game and follow court rules and etiquette.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setIsBookingModalVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.confirmButton]}
+                onPress={handleBookingConfirm}
+              >
+                <Text style={styles.confirmButtonText}>Confirm Booking</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -262,5 +337,109 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 16,
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  closeButton: {
+    padding: 8,
+  },
+  modalBody: {
+    padding: 16,
+  },
+  modalSection: {
+    marginBottom: 24,
+  },
+  modalSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 12,
+  },
+  modalGameTime: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  modalGameLocation: {
+    fontSize: 16,
+    color: '#000000',
+    marginBottom: 4,
+  },
+  modalGameAddress: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  modalNote: {
+    fontSize: 14,
+    color: '#666666',
+    fontStyle: 'italic',
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#F3F4F6',
+  },
+  confirmButton: {
+    backgroundColor: '#4CAF50',
+  },
+  cancelButtonText: {
+    color: '#000000',
+    fontWeight: '600',
+  },
+  confirmButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
 }); 
