@@ -8,7 +8,6 @@ import { useUpcomingBookedGames, useBookedGames } from '@/contexts/BookedGamesCo
 import { IconSymbol } from '@/components/ui/IconSymbol';
 
 export default function TabHomeScreen() {
-  const { signOut } = useAuth();
   const user = useUserProfile();
   const router = useRouter();
   const upcomingGames = useUpcomingBookedGames();
@@ -73,15 +72,6 @@ export default function TabHomeScreen() {
                 <Text style={styles.sectionTitle}>
                   Upcoming Games
                 </Text>
-                {upcomingGames.length > 0 && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onPress={handleClearGames}
-                  >
-                    Clear All Games
-                  </Button>
-                )}
               </View>
               {upcomingGames.length > 0 ? (
                 <View style={styles.gamesList}>
@@ -92,42 +82,42 @@ export default function TabHomeScreen() {
                       onPress={() => handleGamePress(game.id)}
                     >
                       <View style={styles.gameCardContent}>
-                        <View style={styles.gameInfo}>
-                          <Text style={styles.gameTime}>{game.time}</Text>
-                          <Text style={styles.gameCourt}>{game.courtName}</Text>
-                          <Text style={styles.gameAddress}>{game.location.address}</Text>
+                        <View style={styles.gameTimeAndLocation}>
+                          <View style={styles.timeContainer}>
+                            <IconSymbol name="calendar" size={16} color="#4CAF50" style={styles.timeIcon} />
+                            <Text style={styles.gameTime}>{game.time}</Text>
+                          </View>
+                          <View style={styles.locationContainer}>
+                            <IconSymbol name="location.fill" size={16} color="#666666" style={styles.locationIcon} />
+                            <View style={styles.locationTextContainer}>
+                              <Text style={styles.gameCourt}>{game.courtName}</Text>
+                              <Text style={styles.gameAddress} numberOfLines={1}>{game.location.address}</Text>
+                            </View>
+                          </View>
                         </View>
-                        <View style={styles.gameActions}>
-                          <TouchableOpacity
-                            style={styles.cancelButton}
-                            onPress={(e) => {
-                              e.stopPropagation();
-                              handleCancelRegistration(game.id);
-                            }}
-                          >
-                            <Text style={styles.cancelButtonText}>Cancel</Text>
-                          </TouchableOpacity>
-                          <IconSymbol name="location.fill" size={20} color="#666666" />
-                        </View>
+                        <TouchableOpacity
+                          style={styles.cancelButton}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            handleCancelRegistration(game.id);
+                          }}
+                        >
+                          <IconSymbol name="xmark" size={16} color="#FFFFFF" />
+                        </TouchableOpacity>
                       </View>
                     </TouchableOpacity>
                   ))}
                 </View>
               ) : (
-                <Text style={styles.sectionContent}>
-                  No upcoming games scheduled. Find a game to join!
-                </Text>
+                <View style={styles.emptyStateContainer}>
+                  <IconSymbol name="gamecontroller.fill" size={40} color="#666666" style={styles.emptyStateIcon} />
+                  <Text style={styles.emptyStateTitle}>No Upcoming Games</Text>
+                  <Text style={styles.emptyStateText}>
+                    Find and join games to see them here!
+                  </Text>
+                </View>
               )}
             </View>
-
-            <Button 
-              variant="secondary" 
-              onPress={signOut}
-              size="md"
-              style={styles.button}
-            >
-              Sign Out
-            </Button>
           </View>
         </View>
       </ScrollView>
@@ -184,30 +174,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   upcomingGamesContainer: {
-    backgroundColor: '#f5f5f5',
-    padding: 20,
-    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
     width: '100%',
     marginVertical: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000000',
-    marginBottom: 12,
-  },
-  sectionContent: {
-    color: '#666666',
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  gamesList: {
-    gap: 12,
-  },
-  gameCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    padding: 16,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -216,59 +186,135 @@ const styles = StyleSheet.create({
           height: 2,
         },
         shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  upcomingGamesHeader: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  gamesList: {
+    padding: 12,
+    gap: 12,
+  },
+  gameCard: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.05,
         shadowRadius: 3,
       },
       android: {
-        elevation: 3,
-      },
-      web: {
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+        elevation: 2,
       },
     }),
   },
   gameCardContent: {
+    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  gameInfo: {
+  gameTimeAndLocation: {
     flex: 1,
+    gap: 8,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  timeIcon: {
+    opacity: 0.8,
   },
   gameTime: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000000',
-    marginBottom: 4,
+    fontWeight: '600',
+    color: '#4CAF50',
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  locationIcon: {
+    marginTop: 2,
+  },
+  locationTextContainer: {
+    flex: 1,
   },
   gameCourt: {
-    fontSize: 14,
+    fontSize: 15,
+    fontWeight: '500',
     color: '#000000',
     marginBottom: 2,
   },
   gameAddress: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#666666',
-  },
-  upcomingGamesHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  gameActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
   },
   cancelButton: {
     backgroundColor: '#F44336',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    width: 32,
+    height: 32,
     borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#F44336',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
-  cancelButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
+  emptyStateContainer: {
+    padding: 32,
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    margin: 12,
+    borderRadius: 12,
+  },
+  emptyStateIcon: {
+    marginBottom: 16,
+    opacity: 0.5,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
     fontWeight: '600',
+    color: '#000000',
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
   },
 });
