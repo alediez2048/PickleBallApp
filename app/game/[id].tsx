@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Button } from '@/components/common/ui/Button';
 import { MOCK_GAMES } from '@/utils/mockData';
-import { useBookedGames } from '@/contexts/BookedGamesContext';
+import { useBookedGames, useUpcomingBookedGames, BookedGame } from '@/contexts/BookedGamesContext';
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -12,6 +12,7 @@ export default function GameDetailsScreen() {
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const { addBookedGame } = useBookedGames();
+  const upcomingGames = useUpcomingBookedGames();
 
   // Get the correct game based on the ID
   const game = MOCK_GAMES[id as keyof typeof MOCK_GAMES];
@@ -44,11 +45,23 @@ export default function GameDetailsScreen() {
 
   const handleBookingConfirm = async () => {
     try {
+      // Check if game is already booked - now using gameId for a more reliable check
+      const isAlreadyBooked = upcomingGames.some(
+        (bookedGame: BookedGame) => 
+          bookedGame.gameId === id && 
+          bookedGame.status === 'upcoming'
+      );
+
+      if (isAlreadyBooked) {
+        throw new Error('You have already booked this game');
+      }
+
       // Format the date to match the expected format
       const currentDate = new Date();
       const bookingData = {
-        id: `booking_${id}_${Date.now()}`,
-        date: currentDate.toISOString(), // Use ISO string format
+        id: `booking_${id}_${Date.now()}_${Math.random().toString(36).substring(2, 15)}_${Math.random().toString(36).substring(2, 15)}`,
+        gameId: id as string,  // Store the original game ID
+        date: currentDate.toISOString(),
         time: new Date(game.startTime).toLocaleTimeString([], { 
           hour: '2-digit', 
           minute: '2-digit',
@@ -60,9 +73,8 @@ export default function GameDetailsScreen() {
           area: game.location.name,
           city: game.location.city
         },
-        skillRating: 3.7, // Default skill rating
-        price: game.price,
-        status: 'upcoming' // Add status field
+        skillRating: 3.7,
+        price: game.price
       };
 
       console.log('Attempting to book game with data:', bookingData);

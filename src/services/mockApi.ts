@@ -58,6 +58,7 @@ interface UpdateProfileData {
 
 interface BookedGame {
   id: string;
+  gameId: string;
   date: string;
   time: string;
   courtName: string;
@@ -112,15 +113,11 @@ class MockApi {
 
   private async loadMockUsers() {
     try {
-      console.log('MockApi: Loading users from storage');
       const storedUsers = await storage.getItem(STORAGE_KEYS.MOCK_USERS);
-      console.log('MockApi: Loaded stored users:', storedUsers);
       if (storedUsers) {
         this.MOCK_USERS = new Map(JSON.parse(storedUsers));
-        console.log('MockApi: Successfully parsed stored users');
       } else {
         // Initialize with default test user if no stored users
-        console.log('MockApi: No stored users found, initializing with test user');
         const testUser: MockUser = {
           id: '1',
           email: 'test@example.com',
@@ -137,45 +134,35 @@ class MockApi {
               result: 'win',
               score: '11-9',
               opponent: 'John Doe'
-            },
-            {
-              id: '2',
-              date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-              result: 'loss',
-              score: '9-11',
-              opponent: 'Jane Smith'
             }
           ],
-          bookedGames: [] // Initialize with empty booked games
+          bookedGames: []
         };
         this.MOCK_USERS.set(testUser.email, testUser);
         await this.saveMockUsers();
       }
     } catch (error) {
-      console.error('MockApi: Error loading mock users:', error);
+      console.error('MockApi: Error loading users:', error);
+      throw error;
     }
   }
 
   private async saveMockUsers() {
     try {
       const usersArray = Array.from(this.MOCK_USERS.entries());
-      console.log('MockApi: Saving users to storage:', usersArray);
       await storage.setItem(STORAGE_KEYS.MOCK_USERS, JSON.stringify(usersArray));
-      console.log('MockApi: Successfully saved users to storage');
     } catch (error) {
-      console.error('MockApi: Error saving mock users:', error);
+      console.error('MockApi: Error saving users:', error);
+      throw error;
     }
   }
 
   async login({ email, password }: LoginCredentials): Promise<AuthResponse> {
-    console.log('MockApi: Login attempt with:', { email, password });
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
-    console.log('MockApi: Found user:', user);
 
     if (!user || user.password !== password) {
-      console.log('MockApi: Invalid credentials');
       throw new Error('Invalid credentials');
     }
 
@@ -184,12 +171,10 @@ class MockApi {
       token: generateToken(user.id),
       user: userWithoutPassword,
     };
-    console.log('MockApi: Login successful:', response);
     return response;
   }
 
   async register({ email, password, name }: RegisterCredentials): Promise<AuthResponse> {
-    console.log('MockApi: Register attempt with:', { email, name });
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     // Basic domain validation
@@ -200,7 +185,6 @@ class MockApi {
     }
 
     if (this.MOCK_USERS.has(email)) {
-      console.log('MockApi: Email already registered');
       throw new Error('Email already registered');
     }
 
@@ -215,23 +199,18 @@ class MockApi {
     };
 
     this.MOCK_USERS.set(email, newUser);
-    console.log('MockApi: New user registered:', newUser);
-    console.log('MockApi: Verification token:', verificationToken);
 
     // In a real implementation, this would send an email with the verification link
-    console.log('MockApi: Verification email would be sent to:', email);
 
     const { password: _, verificationToken: __, ...userWithoutPassword } = newUser;
     const response = {
       token: generateToken(newUser.id),
       user: userWithoutPassword,
     };
-    console.log('MockApi: Registration successful:', response);
     return response;
   }
 
   async verifyEmail(email: string, token: string): Promise<void> {
-    console.log('MockApi: Verifying email for:', email);
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
@@ -242,11 +221,9 @@ class MockApi {
     user.emailVerified = true;
     user.verificationToken = null;
     this.MOCK_USERS.set(email, user);
-    console.log('MockApi: Email verified successfully');
   }
 
   async resendVerificationEmail(email: string): Promise<void> {
-    console.log('MockApi: Resending verification email for:', email);
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
@@ -263,17 +240,13 @@ class MockApi {
     this.MOCK_USERS.set(email, user);
 
     // In a real implementation, this would send a new verification email
-    console.log('MockApi: New verification token:', newVerificationToken);
-    console.log('MockApi: Verification email would be sent to:', email);
   }
 
   async requestPasswordReset({ email }: PasswordResetRequest): Promise<void> {
-    console.log('MockApi: Password reset requested for:', email);
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
     if (!user) {
-      console.log('MockApi: User not found for password reset');
       // We don't want to reveal if an email exists or not for security reasons
       return;
     }
@@ -282,11 +255,9 @@ class MockApi {
     // 1. Generate a reset token
     // 2. Store it with an expiration
     // 3. Send an email with the reset link
-    console.log('MockApi: Reset email would be sent to:', email);
   }
 
   async resetPassword(email: string, token: string, newPassword: string): Promise<void> {
-    console.log('MockApi: Resetting password for:', email);
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
@@ -300,11 +271,9 @@ class MockApi {
     // 3. Update the password in the database
     user.password = newPassword;
     this.MOCK_USERS.set(email, user);
-    console.log('MockApi: Password updated successfully');
   }
 
   async socialAuth({ token, provider, user }: SocialAuthCredentials): Promise<AuthResponse> {
-    console.log(`MockApi: ${provider} auth attempt with:`, { token, user });
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     // Check if user already exists
@@ -337,7 +306,6 @@ class MockApi {
     };
 
     this.MOCK_USERS.set(newUser.email, newUser);
-    console.log('MockApi: New social user registered:', newUser);
 
     const { password: _, verificationToken: __, ...userWithoutPassword } = newUser;
     return {
@@ -347,7 +315,6 @@ class MockApi {
   }
 
   async updateProfile(email: string, data: UpdateProfileData): Promise<{ user: Omit<MockUser, 'password' | 'verificationToken'> }> {
-    console.log('MockApi: Updating profile for:', email, data);
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
@@ -377,8 +344,6 @@ class MockApi {
 
     this.MOCK_USERS.set(email, updatedUser);
     await this.saveMockUsers(); // Persist the changes
-
-    console.log('MockApi: Profile updated successfully:', updatedUser);
 
     const { password: _, verificationToken: __, ...userWithoutPassword } = updatedUser;
     return { user: userWithoutPassword };
@@ -414,44 +379,39 @@ class MockApi {
   }
 
   async getBookedGames(email: string): Promise<BookedGame[]> {
-    console.log('MockApi: Getting booked games for:', email);
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
     if (!user) {
-      console.log('MockApi: User not found for booked games');
       throw new Error('User not found');
     }
 
-    console.log('MockApi: Found booked games:', user.bookedGames);
     return user.bookedGames || [];
   }
 
   async bookGame(email: string, game: Omit<BookedGame, 'status'>): Promise<BookedGame> {
-    console.log('MockApi: Booking game for:', email, game);
+    // Simplified logging
+    console.log('MockApi: Attempting to book game:', game.gameId);
+    
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
     if (!user) {
-      console.log('MockApi: User not found for booking');
       throw new Error('User not found');
     }
 
-    // Initialize bookedGames array if it doesn't exist
     if (!user.bookedGames) {
       user.bookedGames = [];
     }
 
-    // Check if user has already booked this game (same court and time)
+    // Check if user has already booked this game
     const existingBooking = user.bookedGames.find(
       bookedGame => 
-        bookedGame.courtName === game.courtName && 
-        bookedGame.time === game.time &&
+        bookedGame.gameId === game.gameId &&
         bookedGame.status === 'upcoming'
     );
 
     if (existingBooking) {
-      console.log('MockApi: User has already booked this game');
       throw new Error('You have already booked this game');
     }
 
@@ -462,14 +422,14 @@ class MockApi {
 
     user.bookedGames.unshift(bookedGame);
     await this.saveMockUsers();
-    console.log('MockApi: Successfully saved booked game:', bookedGame);
-    console.log('MockApi: Updated user booked games:', user.bookedGames);
+    
+    // Simplified success log
+    console.log('MockApi: Game booked successfully:', game.gameId);
 
     return bookedGame;
   }
 
   async cancelBooking(email: string, gameId: string): Promise<void> {
-    console.log('MockApi: Cancelling booking for:', email, gameId);
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
@@ -487,7 +447,6 @@ class MockApi {
   }
 
   async clearBookedGames(email: string): Promise<void> {
-    console.log('MockApi: Clearing booked games for:', email);
     const user = this.MOCK_USERS.get(email);
     if (!user) {
       throw new Error('User not found');
@@ -495,7 +454,6 @@ class MockApi {
 
     user.bookedGames = [];
     await this.saveMockUsers();
-    console.log('MockApi: Successfully cleared booked games');
   }
 }
 

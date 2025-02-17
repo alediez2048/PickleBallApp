@@ -4,6 +4,7 @@ import { useUserProfile } from './selectors/authSelectors';
 
 export interface BookedGame {
   id: string;
+  gameId: string;
   date: string;
   time: string;
   courtName: string;
@@ -36,20 +37,14 @@ export function BookedGamesProvider({ children }: { children: React.ReactNode })
   const user = useUserProfile();
 
   const refreshBookedGames = useCallback(async () => {
-    if (!user?.email) {
-      console.log('BookedGamesContext: No user email found, skipping refresh');
-      return;
-    }
+    if (!user?.email) return;
 
-    console.log('BookedGamesContext: Refreshing booked games for user:', user.email);
     setIsLoading(true);
     setError(null);
     try {
       const games = await mockApi.getBookedGames(user.email);
-      console.log('BookedGamesContext: Fetched games:', games);
       setBookedGames(games);
     } catch (err) {
-      console.error('BookedGamesContext: Error fetching games:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch booked games'));
     } finally {
       setIsLoading(false);
@@ -58,18 +53,14 @@ export function BookedGamesProvider({ children }: { children: React.ReactNode })
 
   const addBookedGame = useCallback(async (game: Omit<BookedGame, 'status'>) => {
     if (!user?.email) {
-      console.log('BookedGamesContext: No user email found, cannot book game');
       throw new Error('User not authenticated');
     }
 
-    console.log('BookedGamesContext: Booking game:', game);
     try {
       const bookedGame = await mockApi.bookGame(user.email, game);
-      console.log('BookedGamesContext: Successfully booked game:', bookedGame);
       setBookedGames(prev => [bookedGame, ...prev]);
       return bookedGame;
     } catch (err) {
-      console.error('BookedGamesContext: Error booking game:', err);
       throw err instanceof Error ? err : new Error('Failed to book game');
     }
   }, [user?.email]);
@@ -94,19 +85,13 @@ export function BookedGamesProvider({ children }: { children: React.ReactNode })
   }, [user?.email]);
 
   const clearAllGames = useCallback(async () => {
-    if (!user?.email) {
-      console.log('BookedGamesContext: No user email found, cannot clear games');
-      return;
-    }
+    if (!user?.email) return;
 
-    console.log('BookedGamesContext: Clearing all booked games');
     setIsLoading(true);
     try {
       await mockApi.clearBookedGames(user.email);
       setBookedGames([]);
-      console.log('BookedGamesContext: Successfully cleared all games');
     } catch (err) {
-      console.error('BookedGamesContext: Error clearing games:', err);
       throw err instanceof Error ? err : new Error('Failed to clear games');
     } finally {
       setIsLoading(false);
@@ -115,7 +100,6 @@ export function BookedGamesProvider({ children }: { children: React.ReactNode })
 
   // Load booked games when the user changes
   useEffect(() => {
-    console.log('BookedGamesContext: User changed, refreshing games');
     refreshBookedGames();
   }, [refreshBookedGames]);
 
