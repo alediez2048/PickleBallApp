@@ -1,10 +1,16 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MOCK_GAMES } from '@/utils/mockData';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import { SkillLevel } from '@/types/game';
+import { useUserProfile } from '@/contexts/selectors/authSelectors';
 
 export default function ExploreScreen() {
   const router = useRouter();
+  const user = useUserProfile();
+  const [selectedSkillLevel, setSelectedSkillLevel] = useState<SkillLevel | 'all'>('all');
+  const [showSkillFilter, setShowSkillFilter] = useState(false);
 
   const handleGameSelect = (gameId: string) => {
     router.push({
@@ -13,57 +19,228 @@ export default function ExploreScreen() {
     });
   };
 
+  const filteredGames = Object.values(MOCK_GAMES).filter(game => {
+    if (selectedSkillLevel === 'all') return true;
+    return game.skillLevel === selectedSkillLevel;
+  });
+
+  const skillLevels = [
+    { value: 'all' as const, label: 'All Levels' },
+    { value: SkillLevel.Beginner, label: 'Beginner' },
+    { value: SkillLevel.Intermediate, label: 'Intermediate' },
+    { value: SkillLevel.Advanced, label: 'Advanced' },
+    { value: SkillLevel.Open, label: 'Open' },
+  ];
+
+  const getSkillLevelColor = (level: SkillLevel | 'all') => {
+    switch (level) {
+      case SkillLevel.Beginner:
+        return '#4CAF50';
+      case SkillLevel.Intermediate:
+        return '#2196F3';
+      case SkillLevel.Advanced:
+        return '#F44336';
+      case SkillLevel.Open:
+        return '#9C27B0';
+      default:
+        return '#666666';
+    }
+  };
+
+  const isSkillLevelMatch = (gameSkillLevel: SkillLevel) => {
+    if (!user?.skillLevel) return false;
+    return gameSkillLevel === user.skillLevel;
+  };
+
+  const getReservationStatus = (game: typeof MOCK_GAMES[keyof typeof MOCK_GAMES]) => {
+    if (!isSkillLevelMatch(game.skillLevel)) {
+      return {
+        canReserve: false,
+        buttonText: 'Skill Level Mismatch',
+        buttonStyle: styles.disabledButton,
+        textStyle: styles.disabledButtonText
+      };
+    }
+
+    const spotsAvailable = game.maxPlayers - game.players.length;
+    if (spotsAvailable > 0) {
+      return {
+        canReserve: true,
+        buttonText: 'Reserve',
+        buttonStyle: styles.reserveButton,
+        textStyle: styles.reserveText
+      };
+    }
+
+    return {
+      canReserve: false,
+      buttonText: 'Join Waitlist',
+      buttonStyle: styles.waitlistButton,
+      textStyle: styles.waitlistText
+    };
+  };
+
+  const handleGamePress = (gameId: string) => {
+    const game = MOCK_GAMES[gameId];
+    if (!game) return;
+
+    if (!isSkillLevelMatch(game.skillLevel)) {
+      Alert.alert(
+        'Skill Level Mismatch',
+        `This game is for ${game.skillLevel} players. Please find a game that matches your skill level (${user?.skillLevel || 'Not Set'}).`,
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    router.push({
+      pathname: '/game/[id]',
+      params: { id: gameId }
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Location Header */}
+      {/* Header with Filters */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.locationButton}>
           <Text style={styles.locationText}>Games in Austin ▼</Text>
         </TouchableOpacity>
+
+        {/* Skill Level Filter Button */}
+        <TouchableOpacity 
+          style={styles.filterButton}
+          onPress={() => setShowSkillFilter(!showSkillFilter)}
+        >
+          <IconSymbol name="trophy.fill" size={20} color="#666666" />
+          <Text style={styles.filterButtonText}>
+            {selectedSkillLevel === 'all' ? 'All Levels' : selectedSkillLevel}
+          </Text>
+          <IconSymbol 
+            name={showSkillFilter ? 'xmark' : 'chevron.down'} 
+            size={16} 
+            color="#666666" 
+          />
+        </TouchableOpacity>
+
+        {/* Skill Level Filter Dropdown */}
+        {showSkillFilter && (
+          <View style={styles.skillFilterDropdown}>
+            {skillLevels.map((level) => (
+              <TouchableOpacity
+                key={level.value}
+                style={[
+                  styles.skillFilterOption,
+                  selectedSkillLevel === level.value && styles.selectedSkillOption
+                ]}
+                onPress={() => {
+                  setSelectedSkillLevel(level.value);
+                  setShowSkillFilter(false);
+                }}
+              >
+                <View style={styles.skillLevelBadge}>
+                  <View 
+                    style={[
+                      styles.skillLevelDot, 
+                      { backgroundColor: getSkillLevelColor(level.value) }
+                    ]} 
+                  />
+                  <Text style={[
+                    styles.skillFilterText,
+                    selectedSkillLevel === level.value && styles.selectedSkillText
+                  ]}>
+                    {level.label}
+                  </Text>
+                </View>
+                {selectedSkillLevel === level.value && (
+                  <IconSymbol name="checkmark" size={20} color="#4CAF50" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
 
       {/* Games List */}
       <ScrollView style={styles.gamesContainer}>
-        {Object.values(MOCK_GAMES).map((game) => (
-          <TouchableOpacity
-            key={game.id}
-            style={styles.gameCard}
-            onPress={() => handleGameSelect(game.id)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.gameHeader}>
-              <View>
-                <Text style={styles.timeText}>
-                  {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-                <Text style={styles.courtText}>{game.location.name}</Text>
-              </View>
-              <View style={styles.reserveButton}>
-                <Text style={styles.reserveText}>
-                  {game.players.length < game.maxPlayers ? 'Reserve' : 'Join Waitlist'}
-                </Text>
-              </View>
-            </View>
+        {filteredGames.length > 0 ? (
+          filteredGames.map((game) => {
+            const reservationStatus = getReservationStatus(game);
+            return (
+              <TouchableOpacity
+                key={game.id}
+                style={[
+                  styles.gameCard,
+                  !isSkillLevelMatch(game.skillLevel) && styles.mismatchedGameCard
+                ]}
+                onPress={() => handleGamePress(game.id)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.gameHeader}>
+                  <View>
+                    <Text style={styles.timeText}>
+                      {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                    <Text style={styles.courtText}>{game.location.name}</Text>
+                  </View>
+                  <View style={[
+                    styles.skillLevelTag,
+                    { backgroundColor: getSkillLevelColor(game.skillLevel) + '15' }
+                  ]}>
+                    <View 
+                      style={[
+                        styles.skillLevelDot,
+                        { backgroundColor: getSkillLevelColor(game.skillLevel) }
+                      ]} 
+                    />
+                    <Text style={[
+                      styles.skillLevelText,
+                      { color: getSkillLevelColor(game.skillLevel) }
+                    ]}>
+                      {game.skillLevel}
+                    </Text>
+                  </View>
+                </View>
 
-            <View style={styles.locationInfo}>
-              <Text style={styles.addressText}>{game.location.address}</Text>
-              <Text style={styles.cityText}>{game.location.city}, {game.location.state}</Text>
-            </View>
+                <View style={styles.locationInfo}>
+                  <Text style={styles.addressText}>{game.location.address}</Text>
+                  <Text style={styles.cityText}>{game.location.city}, {game.location.state}</Text>
+                </View>
 
-            <View style={styles.gameFooter}>
-              <View>
-                <Text style={styles.labelText}>Skill Level</Text>
-                <Text style={styles.valueText}>{game.skillLevel}</Text>
-              </View>
-              <View>
-                <Text style={styles.labelText}>Spots Available</Text>
-                <Text style={styles.valueText}>
-                  {game.maxPlayers - game.players.length} of {game.maxPlayers}
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+                <View style={styles.gameFooter}>
+                  <View style={styles.spotsContainer}>
+                    <Text style={styles.labelText}>Spots Available</Text>
+                    <Text style={styles.valueText}>
+                      {game.maxPlayers - game.players.length} of {game.maxPlayers}
+                    </Text>
+                  </View>
+                  <View style={reservationStatus.buttonStyle}>
+                    <Text style={reservationStatus.textStyle}>
+                      {reservationStatus.buttonText}
+                    </Text>
+                  </View>
+                </View>
+
+                {!isSkillLevelMatch(game.skillLevel) && (
+                  <View style={styles.mismatchBanner}>
+                    <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#F44336" />
+                    <Text style={styles.mismatchText}>
+                      Your skill level ({user?.skillLevel || 'Not Set'}) doesn't match this game's level
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })
+        ) : (
+          <View style={styles.emptyState}>
+            <IconSymbol name="gamecontroller.fill" size={40} color="#666666" style={styles.emptyStateIcon} />
+            <Text style={styles.emptyStateTitle}>No Games Found</Text>
+            <Text style={styles.emptyStateText}>
+              No games available for the selected skill level. Try adjusting your filters or check back later.
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -78,14 +255,81 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+    zIndex: 1,
   },
   locationButton: {
     alignItems: 'center',
+    marginBottom: 12,
   },
   locationText: {
     fontSize: 18,
     fontWeight: '600',
     color: '#000000',
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    padding: 12,
+    borderRadius: 12,
+    gap: 8,
+  },
+  filterButtonText: {
+    fontSize: 15,
+    color: '#666666',
+    flex: 1,
+  },
+  skillFilterDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 16,
+    right: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 8,
+    marginTop: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.15,
+        shadowRadius: 3.84,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
+  },
+  skillFilterOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderRadius: 8,
+  },
+  selectedSkillOption: {
+    backgroundColor: '#F1F8E9',
+  },
+  skillLevelBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  skillLevelDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  skillFilterText: {
+    fontSize: 15,
+    color: '#666666',
+  },
+  selectedSkillText: {
+    color: '#000000',
+    fontWeight: '500',
   },
   gamesContainer: {
     padding: 16,
@@ -99,13 +343,16 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     ...Platform.select({
       ios: {
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
       },
       android: {
         elevation: 2,
-      },
-      web: {
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
       },
     }),
   },
@@ -125,14 +372,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000000',
   },
-  reserveButton: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
+  skillLevelTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
   },
-  reserveText: {
-    color: '#FFFFFF',
+  skillLevelText: {
+    fontSize: 13,
     fontWeight: '600',
   },
   locationInfo: {
@@ -148,9 +397,13 @@ const styles = StyleSheet.create({
   gameFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     paddingTop: 12,
+  },
+  spotsContainer: {
+    flex: 1,
   },
   labelText: {
     color: '#666666',
@@ -160,6 +413,77 @@ const styles = StyleSheet.create({
   valueText: {
     color: '#000000',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  reserveButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  reserveText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  emptyState: {
+    alignItems: 'center',
+    padding: 32,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  emptyStateIcon: {
+    marginBottom: 16,
+    opacity: 0.5,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  mismatchedGameCard: {
+    opacity: 0.8,
+    borderColor: '#ffcdd2',
+  },
+  mismatchBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffebee',
+    padding: 8,
+    borderRadius: 8,
+    marginTop: 12,
+    gap: 8,
+  },
+  mismatchText: {
+    color: '#F44336',
+    fontSize: 13,
+    flex: 1,
+  },
+  disabledButton: {
+    backgroundColor: '#E0E0E0',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  disabledButtonText: {
+    color: '#666666',
+    fontWeight: '600',
+  },
+  waitlistButton: {
+    backgroundColor: '#FFA000',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  waitlistText: {
+    color: '#FFFFFF',
     fontWeight: '600',
   },
 });
