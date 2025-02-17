@@ -22,7 +22,11 @@ interface UserProfile {
   name?: string;
   isVerified?: boolean;
   skillLevel?: string;
-  profileImage?: string;
+  profileImage?: string | {
+    uri: string;
+    base64: string;
+    timestamp: number;
+  };
   gamesPlayed?: GameHistory[];
 }
 
@@ -55,15 +59,29 @@ export default function ProfileScreen() {
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.5,
+        base64: true,
       });
 
-      if (!result.canceled && result.assets[0]?.uri) {
+      if (!result.canceled && result.assets[0]) {
         setIsLoading(true);
         const imageUri = result.assets[0].uri;
-        await updateProfile({ profileImage: imageUri });
-        setRefreshKey(prev => prev + 1); // Force a re-render
+        const base64Data = result.assets[0].base64;
+        
+        if (!base64Data) {
+          throw new Error('Failed to get image data');
+        }
+
+        const imageData = {
+          uri: imageUri,
+          base64: `data:image/jpeg;base64,${base64Data}`,
+          timestamp: Date.now()
+        };
+
+        await updateProfile({ profileImage: imageData });
+        setRefreshKey(Date.now());
       }
     } catch (error) {
+      console.error('Image pick error:', error);
       Alert.alert('Error', 'Failed to update profile picture. Please try again.');
     } finally {
       setIsLoading(false);
@@ -80,6 +98,16 @@ export default function ProfileScreen() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getImageSource = (profileImage: UserProfile['profileImage']) => {
+    if (!profileImage) return undefined;
+    
+    if (typeof profileImage === 'string') {
+      return { uri: profileImage };
+    }
+    
+    return { uri: profileImage.base64 };
   };
 
   if (!user || isLoading) {
@@ -100,7 +128,7 @@ export default function ProfileScreen() {
         >
           {user?.profileImage ? (
             <Image 
-              source={{ uri: `${user.profileImage}?refresh=${refreshKey}` }} 
+              source={getImageSource(user.profileImage)}
               style={styles.profileImage}
               key={refreshKey}
             />

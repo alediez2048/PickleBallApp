@@ -11,7 +11,11 @@ interface User {
   name: string;
   emailVerified: boolean;
   skillLevel?: string;
-  profileImage?: string;
+  profileImage?: string | {
+    uri: string;
+    base64: string;
+    timestamp: number;
+  };
 }
 
 interface AuthState {
@@ -20,13 +24,22 @@ interface AuthState {
   isLoading: boolean;
 }
 
+interface UpdateProfileData {
+  skillLevel?: string;
+  profileImage?: string | {
+    uri: string;
+    base64: string;
+    timestamp: number;
+  };
+}
+
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signInWithFacebook: () => Promise<void>;
-  updateProfile: (data: { skillLevel?: string; profileImage?: string }) => Promise<void>;
+  updateProfile: (data: UpdateProfileData) => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -197,7 +210,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateProfile = async (data: { skillLevel?: string; profileImage?: string }) => {
+  const updateProfile = async (data: UpdateProfileData) => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
       
@@ -207,6 +220,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const { user: updatedUser } = await mockApi.updateProfile(state.user.email, data);
       
+      // Store the updated user data
       await storage.setItem('user', JSON.stringify(updatedUser));
       
       setState(prev => ({
@@ -214,6 +228,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user: updatedUser,
         isLoading: false
       }));
+
+      console.log('Profile updated successfully:', updatedUser);
     } catch (error) {
       console.error('Profile update error:', error);
       setState(prev => ({ ...prev, isLoading: false }));

@@ -24,7 +24,11 @@ export interface AuthResponse {
     name: string;
     emailVerified: boolean;
     skillLevel?: string;
-    profileImage?: string;
+    profileImage?: string | {
+      uri: string;
+      base64: string;
+      timestamp: number;
+    };
   };
 }
 
@@ -45,7 +49,11 @@ export interface SocialAuthCredentials {
 
 interface UpdateProfileData {
   skillLevel?: string;
-  profileImage?: string;
+  profileImage?: string | {
+    uri: string;
+    base64: string;
+    timestamp: number;
+  };
 }
 
 interface BookedGame {
@@ -71,7 +79,11 @@ interface MockUser {
   emailVerified: boolean;
   verificationToken: string | null;
   skillLevel?: string;
-  profileImage?: string;
+  profileImage?: string | {
+    uri: string;
+    base64: string;
+    timestamp: number;
+  };
   gamesPlayed?: GameHistory[];
   bookedGames?: BookedGame[];
 }
@@ -343,9 +355,24 @@ class MockApi {
       throw new Error('User not found');
     }
 
+    // Handle profile image update
+    if (data.profileImage) {
+      if (typeof data.profileImage === 'string') {
+        user.profileImage = data.profileImage;
+      } else {
+        // Store the full image data object
+        user.profileImage = {
+          uri: data.profileImage.uri,
+          base64: data.profileImage.base64,
+          timestamp: data.profileImage.timestamp
+        };
+      }
+    }
+
     const updatedUser = {
       ...user,
-      ...data
+      skillLevel: data.skillLevel !== undefined ? data.skillLevel : user.skillLevel,
+      updatedAt: new Date().toISOString()
     };
 
     this.MOCK_USERS.set(email, updatedUser);
