@@ -14,7 +14,7 @@ export default function GameDetailsScreen() {
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { addBookedGame } = useBookedGames();
+  const { addBookedGame, cancelBooking } = useBookedGames();
   const upcomingGames = useUpcomingBookedGames();
 
   // Get the correct game based on the ID
@@ -53,20 +53,27 @@ export default function GameDetailsScreen() {
     );
   }
 
+  // Find the booked game to get its ID
+  const bookedGame = upcomingGames.find(
+    (game: BookedGame) => game.gameId === id && game.status === 'upcoming'
+  );
+
   const handleBookingConfirm = async () => {
     // Prevent double submission
     if (isLoading) return;
 
     try {
       setIsLoading(true);
+      setIsBookingModalVisible(false); // Close modal immediately to prevent double clicks
 
       // Double check registration status before proceeding
       if (isRegistered) {
         throw new Error('You have already signed up for this game');
       }
 
-      // Create a more consistent booking ID
-      const bookingId = `booking_${id}_${Date.now()}`;
+      // Create a more unique booking ID using timestamp and random string
+      const randomString = Math.random().toString(36).substring(2, 8);
+      const bookingId = `booking_${id}_${Date.now()}_${randomString}`;
       
       // Format the date to match the expected format
       const currentDate = new Date();
@@ -90,13 +97,12 @@ export default function GameDetailsScreen() {
       };
 
       await addBookedGame(bookingData);
-      setIsBookingModalVisible(false);
       setIsSuccessModalVisible(true);
     } catch (error) {
       Alert.alert(
         'Sign Up Failed',
         error instanceof Error ? error.message : 'Failed to sign up for the game. Please try again.',
-        [{ text: 'OK', onPress: () => setIsBookingModalVisible(false) }]
+        [{ text: 'OK' }]
       );
     } finally {
       setIsLoading(false);
@@ -115,10 +121,16 @@ export default function GameDetailsScreen() {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
-      router.replace('/login');
+      // Make sure we have the booking
+      if (!bookedGame) {
+        throw new Error('Could not find your registration for this game');
+      }
+      
+      // Cancel the booking using the booking ID, not the game ID
+      await cancelBooking(bookedGame.id);
+      router.back(); // Go back to previous screen after canceling
     } catch (error) {
-      Alert.alert('Error', 'Failed to sign out. Please try again.');
+      Alert.alert('Error', 'Failed to remove you from the game. Please try again.');
     }
   };
 

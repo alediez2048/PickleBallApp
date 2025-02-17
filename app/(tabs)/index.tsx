@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert } from 'react-native';
 import { Button } from '@components/common/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/contexts/selectors/authSelectors';
@@ -12,13 +12,26 @@ export default function TabHomeScreen() {
   const user = useUserProfile();
   const router = useRouter();
   const upcomingGames = useUpcomingBookedGames();
-  const { clearAllGames } = useBookedGames();
+  const { clearAllGames, cancelBooking } = useBookedGames();
   
   const handleGamePress = (gameId: string) => {
-    router.push({
-      pathname: '/game/[id]',
-      params: { id: gameId }
-    });
+    // Find the booked game to get its original game ID
+    const bookedGame = upcomingGames.find(game => game.id === gameId);
+    if (bookedGame) {
+      router.push({
+        pathname: '/game/[id]',
+        params: { id: bookedGame.gameId }
+      });
+    }
+  };
+
+  const handleCancelRegistration = async (gameId: string) => {
+    try {
+      await cancelBooking(gameId);
+    } catch (error) {
+      console.error('Error canceling registration:', error);
+      Alert.alert('Error', 'Failed to cancel registration. Please try again.');
+    }
   };
 
   const handleClearGames = async () => {
@@ -76,7 +89,7 @@ export default function TabHomeScreen() {
                     <TouchableOpacity
                       key={game.id}
                       style={styles.gameCard}
-                      onPress={() => handleGamePress(game.gameId)}
+                      onPress={() => handleGamePress(game.id)}
                     >
                       <View style={styles.gameCardContent}>
                         <View style={styles.gameInfo}>
@@ -84,7 +97,18 @@ export default function TabHomeScreen() {
                           <Text style={styles.gameCourt}>{game.courtName}</Text>
                           <Text style={styles.gameAddress}>{game.location.address}</Text>
                         </View>
-                        <IconSymbol name="location.fill" size={20} color="#666666" />
+                        <View style={styles.gameActions}>
+                          <TouchableOpacity
+                            style={styles.cancelButton}
+                            onPress={(e) => {
+                              e.stopPropagation();
+                              handleCancelRegistration(game.id);
+                            }}
+                          >
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                          </TouchableOpacity>
+                          <IconSymbol name="location.fill" size={20} color="#666666" />
+                        </View>
                       </View>
                     </TouchableOpacity>
                   ))}
@@ -230,5 +254,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  gameActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  cancelButton: {
+    backgroundColor: '#F44336',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  cancelButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
