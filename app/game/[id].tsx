@@ -5,17 +5,27 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Button } from '@/components/common/ui/Button';
 import { MOCK_GAMES } from '@/utils/mockData';
 import { useBookedGames, useUpcomingBookedGames, BookedGame } from '@/contexts/BookedGamesContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { signOut } = useAuth();
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { addBookedGame } = useBookedGames();
   const upcomingGames = useUpcomingBookedGames();
 
   // Get the correct game based on the ID
   const game = MOCK_GAMES[id as keyof typeof MOCK_GAMES];
+  
+  // Check if user has already registered for this game
+  const isRegistered = upcomingGames.some(
+    (bookedGame: BookedGame) => 
+      bookedGame.gameId === id && 
+      bookedGame.status === 'upcoming'
+  );
 
   // If game not found, show error or redirect
   if (!game) {
@@ -44,23 +54,25 @@ export default function GameDetailsScreen() {
   }
 
   const handleBookingConfirm = async () => {
-    try {
-      // Check if game is already booked - now using gameId for a more reliable check
-      const isAlreadyBooked = upcomingGames.some(
-        (bookedGame: BookedGame) => 
-          bookedGame.gameId === id && 
-          bookedGame.status === 'upcoming'
-      );
+    // Prevent double submission
+    if (isLoading) return;
 
-      if (isAlreadyBooked) {
-        throw new Error('You have already booked this game');
+    try {
+      setIsLoading(true);
+
+      // Double check registration status before proceeding
+      if (isRegistered) {
+        throw new Error('You have already signed up for this game');
       }
 
+      // Create a more consistent booking ID
+      const bookingId = `booking_${id}_${Date.now()}`;
+      
       // Format the date to match the expected format
       const currentDate = new Date();
       const bookingData = {
-        id: `booking_${id}_${Date.now()}_${Math.random().toString(36).substring(2, 15)}_${Math.random().toString(36).substring(2, 15)}`,
-        gameId: id as string,  // Store the original game ID
+        id: bookingId,
+        gameId: id as string,
         date: currentDate.toISOString(),
         time: new Date(game.startTime).toLocaleTimeString([], { 
           hour: '2-digit', 
@@ -77,30 +89,37 @@ export default function GameDetailsScreen() {
         price: game.price
       };
 
-      console.log('Attempting to book game with data:', bookingData);
       await addBookedGame(bookingData);
-      console.log('Game booked successfully');
       setIsBookingModalVisible(false);
       setIsSuccessModalVisible(true);
     } catch (error) {
-      console.error('Booking error:', error);
       Alert.alert(
-        'Booking Failed',
-        error instanceof Error ? error.message : 'Failed to book the game. Please try again.',
+        'Sign Up Failed',
+        error instanceof Error ? error.message : 'Failed to sign up for the game. Please try again.',
         [{ text: 'OK', onPress: () => setIsBookingModalVisible(false) }]
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleViewBooking = () => {
     setIsSuccessModalVisible(false);
-    // Navigate to home screen to see booked games
-    router.push('/(tabs)');
+    // Stay on the current screen instead of navigating away
   };
 
   const handleExploreMore = () => {
     setIsSuccessModalVisible(false);
     router.push('/explore');
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.replace('/login');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to sign out. Please try again.');
+    }
   };
 
   return (
@@ -172,17 +191,27 @@ export default function GameDetailsScreen() {
         </View>
       </ScrollView>
 
-      {/* Reserve Button */}
+      {/* Footer with conditional buttons */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.reserveButton}
-          onPress={() => setIsBookingModalVisible(true)}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.reserveText}>
-            {game.players.length < game.maxPlayers ? 'Reserve Spot' : 'Join Waitlist'}
-          </Text>
-        </TouchableOpacity>
+        {isRegistered ? (
+          <TouchableOpacity
+            style={styles.signOutButton}
+            onPress={handleSignOut}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.signOutText}>Sign Out</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.reserveButton}
+            onPress={() => setIsBookingModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.reserveText}>
+              {game.players.length < game.maxPlayers ? 'Sign Up' : 'Join Waitlist'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Booking Confirmation Modal */}
@@ -190,14 +219,14 @@ export default function GameDetailsScreen() {
         visible={isBookingModalVisible}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setIsBookingModalVisible(false)}
+        onRequestClose={() => !isLoading && setIsBookingModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Confirm Reservation</Text>
+              <Text style={styles.modalTitle}>Confirm Sign Up</Text>
               <TouchableOpacity
-                onPress={() => setIsBookingModalVisible(false)}
+                onPress={() => !isLoading && setIsBookingModalVisible(false)}
                 style={styles.closeButton}
               >
                 <IconSymbol name="xmark" size={24} color="#000000" />
@@ -215,7 +244,7 @@ export default function GameDetailsScreen() {
               </View>
 
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Booking Summary</Text>
+                <Text style={styles.modalSectionTitle}>Summary</Text>
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>Price</Text>
                   <Text style={styles.summaryValue}>${game.price}</Text>
@@ -234,7 +263,7 @@ export default function GameDetailsScreen() {
 
               <View style={styles.modalSection}>
                 <Text style={styles.modalNote}>
-                  By confirming, you agree to participate in this game and follow court rules and etiquette.
+                  By signing up, you agree to participate in this game and follow court rules and etiquette.
                 </Text>
               </View>
             </View>
@@ -242,15 +271,23 @@ export default function GameDetailsScreen() {
             <View style={styles.modalFooter}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setIsBookingModalVisible(false)}
+                onPress={() => !isLoading && setIsBookingModalVisible(false)}
+                disabled={isLoading}
               >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, styles.confirmButton]}
+                style={[
+                  styles.modalButton, 
+                  styles.confirmButton,
+                  isLoading && styles.disabledButton
+                ]}
                 onPress={handleBookingConfirm}
+                disabled={isLoading}
               >
-                <Text style={styles.confirmButtonText}>Confirm Booking</Text>
+                <Text style={styles.confirmButtonText}>
+                  {isLoading ? 'Signing Up...' : 'Confirm Sign Up'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -270,7 +307,7 @@ export default function GameDetailsScreen() {
               <IconSymbol name="checkmark" size={40} color="#4CAF50" />
             </View>
             
-            <Text style={styles.successTitle}>Booking Confirmed!</Text>
+            <Text style={styles.successTitle}>Sign Up Confirmed!</Text>
             
             <View style={styles.successGameInfo}>
               <Text style={styles.successGameTime}>
@@ -292,7 +329,7 @@ export default function GameDetailsScreen() {
                 style={[styles.successButton, styles.viewBookingButton]}
                 onPress={handleViewBooking}
               >
-                <Text style={styles.viewBookingText}>View Booking</Text>
+                <Text style={styles.viewBookingText}>Continue to Game Details</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -431,6 +468,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     backgroundColor: '#FFFFFF',
+    gap: 12,
   },
   reserveButton: {
     backgroundColor: '#4CAF50',
@@ -445,71 +483,78 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-  // Modal Styles
+  signOutButton: {
+    backgroundColor: '#F44336',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 20,
+    alignItems: 'center',
+    width: '100%',
+  },
+  signOutText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 16,
+  },
   modalOverlay: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    padding: 20,
+    borderRadius: 20,
+    width: '80%',
     maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
     color: '#000000',
   },
   closeButton: {
     padding: 8,
   },
   modalBody: {
-    padding: 16,
+    flex: 1,
   },
   modalSection: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   modalSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#000000',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   modalGameTime: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 14,
     color: '#000000',
-    marginBottom: 4,
   },
   modalGameLocation: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#000000',
-    marginBottom: 4,
   },
   modalGameAddress: {
     fontSize: 14,
-    color: '#666666',
+    color: '#000000',
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    marginBottom: 8,
   },
   summaryLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666666',
   },
   summaryValue: {
@@ -520,108 +565,84 @@ const styles = StyleSheet.create({
   modalNote: {
     fontSize: 14,
     color: '#666666',
-    fontStyle: 'italic',
   },
   modalFooter: {
     flexDirection: 'row',
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    gap: 12,
+    justifyContent: 'space-between',
+    marginTop: 16,
   },
   modalButton: {
-    flex: 1,
-    paddingVertical: 12,
+    padding: 12,
     borderRadius: 20,
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#F44336',
+  },
+  cancelButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 16,
   },
   confirmButton: {
     backgroundColor: '#4CAF50',
   },
-  cancelButtonText: {
-    color: '#000000',
-    fontWeight: '600',
-  },
   confirmButtonText: {
     color: '#FFFFFF',
     fontWeight: '600',
+    fontSize: 16,
   },
-  // Success Modal Styles
   successModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   successModalContent: {
     backgroundColor: '#FFFFFF',
+    padding: 20,
     borderRadius: 20,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
-    alignItems: 'center',
+    width: '80%',
+    maxHeight: '80%',
   },
   successIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#E8F5E9',
-    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   successTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
     color: '#000000',
-    marginBottom: 24,
-    textAlign: 'center',
+    marginBottom: 16,
   },
   successGameInfo: {
-    alignItems: 'center',
-    marginBottom: 24,
-    width: '100%',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
+    marginBottom: 16,
   },
   successGameTime: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 14,
     color: '#000000',
-    marginBottom: 4,
   },
   successGameLocation: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#000000',
-    marginBottom: 4,
   },
   successGameAddress: {
     fontSize: 14,
-    color: '#666666',
+    color: '#000000',
   },
   successNote: {
-    marginBottom: 24,
-    paddingHorizontal: 16,
+    marginBottom: 16,
   },
   successNoteText: {
     fontSize: 14,
     color: '#666666',
-    textAlign: 'center',
-    lineHeight: 20,
   },
   successActions: {
-    width: '100%',
-    gap: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   successButton: {
-    width: '100%',
-    paddingVertical: 12,
+    padding: 12,
     borderRadius: 20,
     alignItems: 'center',
   },
@@ -634,10 +655,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   exploreButton: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#4CAF50',
   },
   exploreButtonText: {
-    color: '#000000',
+    color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 16,
   },
@@ -662,5 +683,8 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 16,
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
 }); 
