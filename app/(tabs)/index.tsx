@@ -76,7 +76,7 @@ export default function TabHomeScreen() {
                     <TouchableOpacity
                       key={game.id}
                       style={styles.gameCard}
-                      onPress={() => handleGamePress(game.id)}
+                      onPress={() => handleGamePress(game.gameId)}
                     >
                       <View style={styles.gameCardContent}>
                         <View style={styles.gameInfo}>
