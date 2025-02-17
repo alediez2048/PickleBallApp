@@ -8,6 +8,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { GameProvider } from '@/contexts/GameContext';
 import { UIProvider } from '@/contexts/UIContext';
+import { BookedGamesProvider } from '@/contexts/BookedGamesContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -51,18 +52,20 @@ export default function RootLayout() {
   }, [colorScheme]);
 
   return (
-    <AuthProvider>
-      <UIProvider>
-        <GameProvider>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <View style={styles.container}>
-              <RootLayoutNav />
-              <StatusBar style="dark" />
-            </View>
-          </ThemeProvider>
-        </GameProvider>
-      </UIProvider>
-    </AuthProvider>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <AuthProvider>
+        <UIProvider>
+          <GameProvider>
+            <BookedGamesProvider>
+              <View style={styles.container}>
+                <RootLayoutNav />
+                <StatusBar style="dark" />
+              </View>
+            </BookedGamesProvider>
+          </GameProvider>
+        </UIProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

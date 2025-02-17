@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Alert, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useUserProfile } from '@/contexts/selectors/authSelectors';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -260,14 +260,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 15,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+      },
+    }),
   },
   profileImage: {
     width: '100%',
@@ -283,14 +292,23 @@ const styles = StyleSheet.create({
     height: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+      },
+      android: {
+        elevation: 5,
+      },
+      web: {
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)',
+      },
+    }),
   },
   name: {
     fontSize: 24,

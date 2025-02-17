@@ -60,13 +60,15 @@ export default function TabHomeScreen() {
                 <Text style={styles.sectionTitle}>
                   Upcoming Games
                 </Text>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onPress={handleClearGames}
-                >
-                  Clear All Games
-                </Button>
+                {upcomingGames.length > 0 && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onPress={handleClearGames}
+                  >
+                    Clear All Games
+                  </Button>
+                )}
               </View>
               {upcomingGames.length > 0 ? (
                 <View style={styles.gamesList}>

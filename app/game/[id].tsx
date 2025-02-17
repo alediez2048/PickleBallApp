@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Modal, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Button } from '@/components/common/ui/Button';
 import { MOCK_GAMES } from '@/utils/mockData';
+import { useBookedGames } from '@/contexts/BookedGamesContext';
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
+  const { addBookedGame } = useBookedGames();
 
   // Get the correct game based on the ID
   const game = MOCK_GAMES[id as keyof typeof MOCK_GAMES];
@@ -40,16 +42,48 @@ export default function GameDetailsScreen() {
     );
   }
 
-  const handleBookingConfirm = () => {
-    // Here we would handle the actual booking logic
-    setIsBookingModalVisible(false);
-    setIsSuccessModalVisible(true);
+  const handleBookingConfirm = async () => {
+    try {
+      // Format the date to match the expected format
+      const currentDate = new Date();
+      const bookingData = {
+        id: `booking_${id}_${Date.now()}`,
+        date: currentDate.toISOString(), // Use ISO string format
+        time: new Date(game.startTime).toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: true 
+        }),
+        courtName: game.location.name,
+        location: {
+          address: game.location.address,
+          area: game.location.name,
+          city: game.location.city
+        },
+        skillRating: 3.7, // Default skill rating
+        price: game.price,
+        status: 'upcoming' // Add status field
+      };
+
+      console.log('Attempting to book game with data:', bookingData);
+      await addBookedGame(bookingData);
+      console.log('Game booked successfully');
+      setIsBookingModalVisible(false);
+      setIsSuccessModalVisible(true);
+    } catch (error) {
+      console.error('Booking error:', error);
+      Alert.alert(
+        'Booking Failed',
+        error instanceof Error ? error.message : 'Failed to book the game. Please try again.',
+        [{ text: 'OK', onPress: () => setIsBookingModalVisible(false) }]
+      );
+    }
   };
 
   const handleViewBooking = () => {
     setIsSuccessModalVisible(false);
-    // In a real app, navigate to user's bookings or game details
-    router.push('/profile');
+    // Navigate to home screen to see booked games
+    router.push('/(tabs)');
   };
 
   const handleExploreMore = () => {
