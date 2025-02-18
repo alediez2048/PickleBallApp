@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Modal, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Modal, Alert, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Button } from '@/components/common/ui/Button';
 import { MOCK_GAMES } from '@/utils/mockData';
 import { useBookedGames, useUpcomingBookedGames, BookedGame } from '@/contexts/BookedGamesContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { mockApi } from '@/services/mockApi';
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -14,11 +15,25 @@ export default function GameDetailsScreen() {
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [totalBookedPlayers, setTotalBookedPlayers] = useState(0);
   const { addBookedGame, cancelBooking } = useBookedGames();
   const upcomingGames = useUpcomingBookedGames();
 
   // Get the correct game based on the ID
   const game = MOCK_GAMES[id as keyof typeof MOCK_GAMES];
+  
+  // Load total booked players using the global tracking system
+  useEffect(() => {
+    const loadTotalBookedPlayers = async () => {
+      if (game) {
+        const count = await mockApi.getGameBookings(game.id);
+        setTotalBookedPlayers(count);
+      }
+    };
+    loadTotalBookedPlayers();
+  }, [game, upcomingGames]);
+  
+  const totalPlayers = game?.players.length + totalBookedPlayers;
   
   // Check if user has already registered for this game
   const isRegistered = upcomingGames.some(
@@ -64,21 +79,17 @@ export default function GameDetailsScreen() {
 
     try {
       setIsLoading(true);
-      setIsBookingModalVisible(false); // Close modal immediately to prevent double clicks
 
       // Double check registration status before proceeding
       if (isRegistered) {
         throw new Error('You have already signed up for this game');
       }
 
-      // Create a more unique booking ID using timestamp and random string
-      const randomString = Math.random().toString(36).substring(2, 8);
-      const bookingId = `booking_${id}_${Date.now()}_${randomString}`;
-      
       // Format the date to match the expected format
       const currentDate = new Date();
+      const uniqueId = `${id}_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
       const bookingData = {
-        id: bookingId,
+        id: uniqueId, // Use the generated unique ID
         gameId: id as string,
         date: currentDate.toISOString(),
         time: new Date(game.startTime).toLocaleTimeString([], { 
@@ -97,6 +108,7 @@ export default function GameDetailsScreen() {
       };
 
       await addBookedGame(bookingData);
+      setIsBookingModalVisible(false); // Close modal after successful booking
       setIsSuccessModalVisible(true);
     } catch (error) {
       Alert.alert(
@@ -116,10 +128,10 @@ export default function GameDetailsScreen() {
 
   const handleExploreMore = () => {
     setIsSuccessModalVisible(false);
-    router.push('/explore');
+    router.push('/(tabs)/explore');
   };
 
-  const handleSignOut = async () => {
+  const handleCancelRegistration = async () => {
     try {
       // Make sure we have the booking
       if (!bookedGame) {
@@ -174,7 +186,7 @@ export default function GameDetailsScreen() {
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Spots Left</Text>
-            <Text style={styles.statValue}>{game.maxPlayers - game.players.length}</Text>
+            <Text style={styles.statValue}>{game.maxPlayers - totalPlayers}</Text>
           </View>
         </View>
 
@@ -193,13 +205,27 @@ export default function GameDetailsScreen() {
 
         {/* Players */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Players ({game.players.length})</Text>
+          <Text style={styles.sectionTitle}>Players ({totalPlayers})</Text>
+          {/* Show mock players */}
           {game.players.map(player => (
-            <View key={player.id} style={styles.playerCard}>
+            <View key={`player-${player.id}`} style={styles.playerCard}>
               <Text style={styles.playerName}>{player.name}</Text>
               <Text style={styles.playerRating}>Skill Level: {player.skillLevel}</Text>
             </View>
           ))}
+          {/* Show booked players with unique keys */}
+          {upcomingGames
+            .filter(bookedGame => bookedGame.gameId === id && bookedGame.status === 'upcoming')
+            .map((bookedGame, index) => (
+              <View 
+                key={`booked-player-${bookedGame.id}-${index}`} 
+                style={styles.playerCard}
+              >
+                <Text style={styles.playerName}>Registered Player</Text>
+                <Text style={styles.playerRating}>Booking ID: {bookedGame.id.split('_')[0]}</Text>
+              </View>
+            ))
+          }
         </View>
       </ScrollView>
 
@@ -208,10 +234,10 @@ export default function GameDetailsScreen() {
         {isRegistered ? (
           <TouchableOpacity
             style={styles.signOutButton}
-            onPress={handleSignOut}
+            onPress={handleCancelRegistration}
             activeOpacity={0.7}
           >
-            <Text style={styles.signOutText}>Sign Out</Text>
+            <Text style={styles.signOutText}>Cancel</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -220,7 +246,7 @@ export default function GameDetailsScreen() {
             activeOpacity={0.7}
           >
             <Text style={styles.reserveText}>
-              {game.players.length < game.maxPlayers ? 'Sign Up' : 'Join Waitlist'}
+              {totalPlayers < game.maxPlayers ? 'Book' : 'Join Waitlist'}
             </Text>
           </TouchableOpacity>
         )}
@@ -229,76 +255,70 @@ export default function GameDetailsScreen() {
       {/* Booking Confirmation Modal */}
       <Modal
         visible={isBookingModalVisible}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         onRequestClose={() => !isLoading && setIsBookingModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Confirm Sign Up</Text>
-              <TouchableOpacity
-                onPress={() => !isLoading && setIsBookingModalVisible(false)}
-                style={styles.closeButton}
-              >
-                <IconSymbol name="xmark" size={24} color="#000000" />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              onPress={() => !isLoading && setIsBookingModalVisible(false)}
+              style={styles.modalCloseButton}
+            >
+              <IconSymbol name="xmark" size={24} color="#666666" />
+            </TouchableOpacity>
 
-            <View style={styles.modalBody}>
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Game Details</Text>
-                <Text style={styles.modalGameTime}>
+            <Text style={styles.modalTitle}>Confirm Booking</Text>
+
+            <View style={styles.bookingGameCard}>
+              <View style={styles.bookingTimeContainer}>
+                <Text style={styles.bookingTime}>
                   {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </Text>
-                <Text style={styles.modalGameLocation}>{game.location.name}</Text>
-                <Text style={styles.modalGameAddress}>{game.location.address}</Text>
               </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Summary</Text>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Price</Text>
-                  <Text style={styles.summaryValue}>${game.price}</Text>
-                </View>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Skill Level</Text>
-                  <Text style={styles.summaryValue}>{game.skillLevel}</Text>
-                </View>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Available Spots</Text>
-                  <Text style={styles.summaryValue}>
-                    {game.maxPlayers - game.players.length} of {game.maxPlayers}
-                  </Text>
-                </View>
+              <View style={styles.bookingLocationContainer}>
+                <Text style={styles.bookingLocationName}>{game.location.name}</Text>
+                <Text style={styles.bookingLocationAddress}>{game.location.address}</Text>
               </View>
+            </View>
 
-              <View style={styles.modalSection}>
-                <Text style={styles.modalNote}>
-                  By signing up, you agree to participate in this game and follow court rules and etiquette.
+            <View style={styles.bookingSummaryCard}>
+              <Text style={styles.summaryTitle}>Summary</Text>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Price</Text>
+                <Text style={styles.summaryValue}>${game.price}</Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Skill Level</Text>
+                <Text style={styles.summaryValue}>{game.skillLevel}</Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Available Spots</Text>
+                <Text style={styles.summaryValue}>
+                  {game.maxPlayers - totalPlayers} of {game.maxPlayers}
                 </Text>
               </View>
             </View>
 
-            <View style={styles.modalFooter}>
+            <Text style={styles.bookingNote}>
+              By booking, you agree to participate in this game and follow court rules and etiquette.
+            </Text>
+
+            <View style={styles.bookingActions}>
               <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
+                style={styles.cancelBookingButton}
                 onPress={() => !isLoading && setIsBookingModalVisible(false)}
                 disabled={isLoading}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelBookingText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[
-                  styles.modalButton, 
-                  styles.confirmButton,
-                  isLoading && styles.disabledButton
-                ]}
+                style={[styles.confirmBookingButton, isLoading && styles.disabledButton]}
                 onPress={handleBookingConfirm}
                 disabled={isLoading}
               >
-                <Text style={styles.confirmButtonText}>
-                  {isLoading ? 'Signing Up...' : 'Confirm Sign Up'}
+                <Text style={styles.confirmBookingText}>
+                  {isLoading ? 'Booking...' : 'Confirm Booking'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -315,42 +335,62 @@ export default function GameDetailsScreen() {
       >
         <View style={styles.successModalOverlay}>
           <View style={styles.successModalContent}>
+            <TouchableOpacity
+              onPress={() => setIsSuccessModalVisible(false)}
+              style={styles.successCloseButton}
+            >
+              <IconSymbol name="xmark" size={24} color="#666666" />
+            </TouchableOpacity>
+
             <View style={styles.successIconContainer}>
-              <IconSymbol name="checkmark" size={40} color="#4CAF50" />
+              <View style={styles.successIconCircle}>
+                <IconSymbol name="checkmark" size={40} color="#FFFFFF" />
+              </View>
             </View>
             
-            <Text style={styles.successTitle}>Sign Up Confirmed!</Text>
+            <Text style={styles.successTitle}>You're all set!</Text>
+            <Text style={styles.successSubtitle}>Get ready to play!</Text>
             
-            <View style={styles.successGameInfo}>
-              <Text style={styles.successGameTime}>
-                {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </Text>
-              <Text style={styles.successGameLocation}>{game.location.name}</Text>
-              <Text style={styles.successGameAddress}>{game.location.address}</Text>
+            <View style={styles.successGameCard}>
+              <View style={styles.successTimeContainer}>
+                <IconSymbol name="calendar" size={20} color="#FFFFFF" style={styles.successTimeIcon} />
+                <Text style={styles.successTime}>
+                  {new Date(game.startTime).toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                  })}
+                </Text>
+              </View>
+              <View style={styles.successLocationContainer}>
+                <Text style={styles.successLocationName}>{game.location.name}</Text>
+                <View style={styles.successAddressContainer}>
+                  <IconSymbol name="location.fill" size={16} color="#666666" style={styles.successLocationIcon} />
+                  <Text style={styles.successLocationAddress}>{game.location.address}</Text>
+                </View>
+              </View>
             </View>
 
-            <View style={styles.successNote}>
-              <Text style={styles.successNoteText}>
-                We've sent a confirmation email with all the details.
-                See you on the court!
-              </Text>
+            <View style={styles.successDetailsContainer}>
+              <View style={styles.successDetailItem}>
+                <IconSymbol name="trophy.fill" size={20} color="#4CAF50" />
+                <Text style={styles.successDetailText}>{game.skillLevel}</Text>
+              </View>
+              <View style={styles.successDetailDivider} />
+              <View style={styles.successDetailItem}>
+                <IconSymbol name="person.2.fill" size={20} color="#4CAF50" />
+                <Text style={styles.successDetailText}>
+                  {game.maxPlayers - (game.players.length + totalBookedPlayers)} spots left
+                </Text>
+              </View>
             </View>
 
-            <View style={styles.successActions}>
-              <TouchableOpacity
-                style={[styles.successButton, styles.viewBookingButton]}
-                onPress={handleViewBooking}
-              >
-                <Text style={styles.viewBookingText}>Continue to Game Details</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.successButton, styles.exploreButton]}
-                onPress={handleExploreMore}
-              >
-                <Text style={styles.exploreButtonText}>Find More Games</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={styles.findMoreButton}
+              onPress={handleExploreMore}
+            >
+              <Text style={styles.findMoreButtonText}>Find More Games</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -512,167 +552,382 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderRadius: 20,
-    width: '80%',
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
+    borderRadius: 24,
+    width: '85%',
+    padding: 24,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    right: 16,
+    top: 16,
+    padding: 8,
+    zIndex: 1,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: '700',
     color: '#000000',
+    marginTop: 12,
+    marginBottom: 24,
+    textAlign: 'center',
   },
-  closeButton: {
-    padding: 8,
+  bookingGameCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    padding: 16,
+    width: '100%',
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
-  modalBody: {
+  bookingTimeContainer: {
+    backgroundColor: '#4CAF50',
+    padding: 12,
+    borderRadius: 12,
+    marginRight: 12,
+  },
+  bookingTime: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  bookingLocationContainer: {
     flex: 1,
   },
-  modalSection: {
-    marginBottom: 16,
-  },
-  modalSectionTitle: {
+  bookingLocationName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#000000',
-    marginBottom: 8,
+    marginBottom: 4,
   },
-  modalGameTime: {
+  bookingLocationAddress: {
     fontSize: 14,
-    color: '#000000',
+    color: '#666666',
   },
-  modalGameLocation: {
-    fontSize: 14,
-    color: '#000000',
+  bookingSummaryCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    padding: 16,
+    width: '100%',
+    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
-  modalGameAddress: {
-    fontSize: 14,
+  summaryTitle: {
+    fontSize: 18,
+    fontWeight: '600',
     color: '#000000',
+    marginBottom: 16,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   summaryLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#666666',
   },
   summaryValue: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#000000',
   },
-  modalNote: {
+  bookingNote: {
     fontSize: 14,
     color: '#666666',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+    paddingHorizontal: 8,
   },
-  modalFooter: {
+  bookingActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
+    width: '100%',
+    gap: 12,
   },
-  modalButton: {
-    padding: 12,
-    borderRadius: 20,
-    alignItems: 'center',
-  },
-  cancelButton: {
+  cancelBookingButton: {
+    flex: 1,
     backgroundColor: '#F44336',
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#F44336',
+        shadowOffset: {
+          width: 0,
+          height: 4,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 4.65,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
   },
-  cancelButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  confirmButton: {
+  confirmBookingButton: {
+    flex: 1,
     backgroundColor: '#4CAF50',
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#4CAF50',
+        shadowOffset: {
+          width: 0,
+          height: 4,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 4.65,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
   },
-  confirmButtonText: {
+  cancelBookingText: {
     color: '#FFFFFF',
-    fontWeight: '600',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  confirmBookingText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   successModalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
   successModalContent: {
     backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderRadius: 20,
-    width: '80%',
-    maxHeight: '80%',
+    borderRadius: 24,
+    width: '85%',
+    maxWidth: 400,
+    padding: 24,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 4,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  successCloseButton: {
+    position: 'absolute',
+    right: 16,
+    top: 16,
+    padding: 8,
+    zIndex: 1,
   },
   successIconContainer: {
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  successIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#4CAF50',
+        shadowOffset: {
+          width: 0,
+          height: 4,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   successTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  successSubtitle: {
+    fontSize: 18,
+    color: '#666666',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  successGameCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    padding: 16,
+    width: '100%',
+    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  successTimeContainer: {
+    backgroundColor: '#4CAF50',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+  },
+  successTimeIcon: {
+    marginRight: 8,
+  },
+  successTime: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  successLocationContainer: {
+    flex: 1,
+  },
+  successLocationName: {
     fontSize: 18,
     fontWeight: '600',
     color: '#000000',
-    marginBottom: 16,
+    marginBottom: 8,
   },
-  successGameInfo: {
-    marginBottom: 16,
-  },
-  successGameTime: {
-    fontSize: 14,
-    color: '#000000',
-  },
-  successGameLocation: {
-    fontSize: 14,
-    color: '#000000',
-  },
-  successGameAddress: {
-    fontSize: 14,
-    color: '#000000',
-  },
-  successNote: {
-    marginBottom: 16,
-  },
-  successNoteText: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  successActions: {
+  successAddressContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  successButton: {
-    padding: 12,
-    borderRadius: 20,
     alignItems: 'center',
   },
-  viewBookingButton: {
-    backgroundColor: '#4CAF50',
+  successLocationIcon: {
+    marginRight: 4,
   },
-  viewBookingText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+  successLocationAddress: {
+    fontSize: 14,
+    color: '#666666',
+    flex: 1,
+  },
+  successDetailsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: 24,
+    paddingHorizontal: 16,
+  },
+  successDetailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  successDetailText: {
     fontSize: 16,
+    color: '#000000',
+    fontWeight: '500',
   },
-  exploreButton: {
+  successDetailDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#E5E7EB',
+    marginHorizontal: 16,
+  },
+  findMoreButton: {
     backgroundColor: '#4CAF50',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 30,
+    width: '100%',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#4CAF50',
+        shadowOffset: {
+          width: 0,
+          height: 4,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
   },
-  exploreButtonText: {
+  findMoreButtonText: {
     color: '#FFFFFF',
-    fontWeight: '600',
     fontSize: 16,
+    fontWeight: '600',
   },
   errorContainer: {
     flex: 1,

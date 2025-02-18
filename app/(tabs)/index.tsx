@@ -11,7 +11,7 @@ export default function TabHomeScreen() {
   const user = useUserProfile();
   const router = useRouter();
   const upcomingGames = useUpcomingBookedGames();
-  const { clearAllGames, cancelBooking } = useBookedGames();
+  const { clearAllGames } = useBookedGames();
   
   const handleGamePress = (gameId: string) => {
     // Find the booked game to get its original game ID
@@ -21,23 +21,6 @@ export default function TabHomeScreen() {
         pathname: '/game/[id]',
         params: { id: bookedGame.gameId }
       });
-    }
-  };
-
-  const handleCancelRegistration = async (gameId: string) => {
-    try {
-      await cancelBooking(gameId);
-    } catch (error) {
-      console.error('Error canceling registration:', error);
-      Alert.alert('Error', 'Failed to cancel registration. Please try again.');
-    }
-  };
-
-  const handleClearGames = async () => {
-    try {
-      await clearAllGames();
-    } catch (error) {
-      console.error('Error clearing games:', error);
     }
   };
 
@@ -60,7 +43,7 @@ export default function TabHomeScreen() {
           
           <View style={styles.buttonContainer}>
             <Button 
-              onPress={() => router.push('/explore')} 
+              onPress={() => router.push('/(tabs)/explore')} 
               size="lg"
               style={styles.button}
             >
@@ -77,7 +60,7 @@ export default function TabHomeScreen() {
                 <View style={styles.gamesList}>
                   {upcomingGames.map((game) => (
                     <TouchableOpacity
-                      key={game.id}
+                      key={`upcoming-game-${game.id}-${Date.now()}`}
                       style={styles.gameCard}
                       onPress={() => handleGamePress(game.id)}
                     >
@@ -95,15 +78,6 @@ export default function TabHomeScreen() {
                             </View>
                           </View>
                         </View>
-                        <TouchableOpacity
-                          style={styles.cancelButton}
-                          onPress={(e) => {
-                            e.stopPropagation();
-                            handleCancelRegistration(game.id);
-                          }}
-                        >
-                          <IconSymbol name="xmark" size={16} color="#FFFFFF" />
-                        </TouchableOpacity>
                       </View>
                     </TouchableOpacity>
                   ))}
@@ -271,29 +245,6 @@ const styles = StyleSheet.create({
   gameAddress: {
     fontSize: 13,
     color: '#666666',
-  },
-  cancelButton: {
-    backgroundColor: '#F44336',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#F44336',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
   },
   emptyStateContainer: {
     padding: 32,
