@@ -7,6 +7,8 @@ import { SkillLevel } from '@/types/game';
 import { useUserProfile } from '@/contexts/selectors/authSelectors';
 import { useBookedGames, useUpcomingBookedGames } from '@/contexts/BookedGamesContext';
 import { mockApi } from '@/services/mockApi';
+import { SpotsAvailability } from '@/components/common/SpotsAvailability';
+import { GAME_CONSTANTS } from '@/types/game';
 
 export default function ExploreScreen() {
   const router = useRouter();
@@ -379,12 +381,11 @@ export default function ExploreScreen() {
 
                 <View style={styles.gameFooter}>
                   <View style={styles.spotsContainer}>
-                    <Text style={styles.labelText}>Spots Available</Text>
-                    <Text style={styles.valueText}>
-                      {game.maxPlayers - (game.players.length + (upcomingGames.filter(
-                        bookedGame => bookedGame.gameId === game.id && bookedGame.status === 'upcoming'
-                      ).length))} of {game.maxPlayers}
-                    </Text>
+                    <SpotsAvailability 
+                      gameId={game.id} 
+                      variant="card"
+                      showLoadingState={false}
+                    />
                   </View>
                   {isBooked ? (
                     <TouchableOpacity
@@ -395,11 +396,21 @@ export default function ExploreScreen() {
                     </TouchableOpacity>
                   ) : (
                     <TouchableOpacity
-                      style={reservationStatus.buttonStyle}
+                      style={[
+                        reservationStatus.buttonStyle,
+                        game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.disabledButton
+                      ]}
                       onPress={() => handleGamePress(game.id)}
+                      disabled={game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS}
                     >
-                      <Text style={reservationStatus.textStyle}>
-                        {reservationStatus.buttonText}
+                      <Text style={[
+                        reservationStatus.textStyle,
+                        game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.disabledButtonText
+                      ]}>
+                        {game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS 
+                          ? 'Game Full' 
+                          : reservationStatus.buttonText
+                        }
                       </Text>
                     </TouchableOpacity>
                   )}

@@ -38,6 +38,12 @@ export interface User {
   rating?: number;
 }
 
+export const GAME_CONSTANTS = {
+  MAX_PLAYERS: 8,
+  MIN_PLAYERS: 2,
+  DEFAULT_POLLING_INTERVAL: 5000, // 5 seconds
+} as const;
+
 export interface Game {
   id: string;
   title: string;
@@ -47,6 +53,7 @@ export interface Game {
   location: Location;
   host: User;
   players: User[];
+  registeredCount: number;
   maxPlayers: number;
   skillLevel: SkillLevel;
   price: number;

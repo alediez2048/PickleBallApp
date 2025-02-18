@@ -1,4 +1,4 @@
-import { Game, SkillLevel, GameStatus } from '@/types/game';
+import { Game, SkillLevel, GameStatus, GAME_CONSTANTS } from '@/types/game';
 
 export const MOCK_GAMES: Record<string, Game> = {
   '1': {
@@ -20,7 +20,8 @@ export const MOCK_GAMES: Record<string, Game> = {
       }
     },
     skillLevel: SkillLevel.Intermediate,
-    maxPlayers: 15,
+    maxPlayers: GAME_CONSTANTS.MAX_PLAYERS,
+    registeredCount: 0,
     price: 10,
     status: GameStatus.Upcoming,
     host: {
@@ -29,26 +30,7 @@ export const MOCK_GAMES: Record<string, Game> = {
       email: 'john@example.com',
       skillLevel: SkillLevel.Advanced
     },
-    players: [
-      {
-        id: 'player-1',
-        name: 'Sarah Johnson',
-        email: 'sarah@example.com',
-        skillLevel: SkillLevel.Intermediate
-      },
-      {
-        id: 'player-2',
-        name: 'Mike Wilson',
-        email: 'mike@example.com',
-        skillLevel: SkillLevel.Intermediate
-      },
-      {
-        id: 'player-3',
-        name: 'Emily Brown',
-        email: 'emily@example.com',
-        skillLevel: SkillLevel.Advanced
-      }
-    ],
+    players: [],
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     updatedAt: new Date(Date.now() - 86400000).toISOString()
   },
@@ -71,7 +53,8 @@ export const MOCK_GAMES: Record<string, Game> = {
       }
     },
     skillLevel: SkillLevel.Advanced,
-    maxPlayers: 15,
+    maxPlayers: GAME_CONSTANTS.MAX_PLAYERS,
+    registeredCount: 0,
     price: 12,
     status: GameStatus.Upcoming,
     host: {
@@ -80,26 +63,7 @@ export const MOCK_GAMES: Record<string, Game> = {
       email: 'jane@example.com',
       skillLevel: SkillLevel.Advanced
     },
-    players: [
-      {
-        id: 'player-4',
-        name: 'Tom Brown',
-        email: 'tom@example.com',
-        skillLevel: SkillLevel.Advanced
-      },
-      {
-        id: 'player-5',
-        name: 'Lisa Chen',
-        email: 'lisa@example.com',
-        skillLevel: SkillLevel.Advanced
-      },
-      {
-        id: 'player-6',
-        name: 'David Park',
-        email: 'david@example.com',
-        skillLevel: SkillLevel.Advanced
-      }
-    ],
+    players: [],
     createdAt: new Date(Date.now() - 172800000).toISOString(),
     updatedAt: new Date(Date.now() - 172800000).toISOString()
   },
@@ -107,8 +71,8 @@ export const MOCK_GAMES: Record<string, Game> = {
     id: '3',
     title: 'Afternoon Game at Hancock',
     description: 'Join us for a competitive afternoon game at Hancock Recreation Center',
-    startTime: new Date(new Date().setHours(17, 0, 0, 0)).toISOString(), // 5 PM today
-    endTime: new Date(new Date().setHours(19, 0, 0, 0)).toISOString(), // 7 PM today
+    startTime: new Date(new Date().setHours(17, 0, 0, 0)).toISOString(),
+    endTime: new Date(new Date().setHours(19, 0, 0, 0)).toISOString(),
     location: {
       id: 'hancock-1',
       name: 'Hancock Park',
@@ -122,7 +86,8 @@ export const MOCK_GAMES: Record<string, Game> = {
       }
     },
     skillLevel: SkillLevel.Advanced,
-    maxPlayers: 15,
+    maxPlayers: GAME_CONSTANTS.MAX_PLAYERS,
+    registeredCount: 0,
     price: 10,
     status: GameStatus.Upcoming,
     host: {
@@ -131,21 +96,8 @@ export const MOCK_GAMES: Record<string, Game> = {
       email: 'alex@example.com',
       skillLevel: SkillLevel.Advanced
     },
-    players: [
-      {
-        id: 'player-7',
-        name: 'Chris Martinez',
-        email: 'chris@example.com',
-        skillLevel: SkillLevel.Advanced
-      },
-      {
-        id: 'player-8',
-        name: 'Pat Lee',
-        email: 'pat@example.com',
-        skillLevel: SkillLevel.Advanced
-      }
-    ],
-    createdAt: new Date(Date.now() - 43200000).toISOString(), // 12 hours ago
+    players: [],
+    createdAt: new Date(Date.now() - 43200000).toISOString(),
     updatedAt: new Date(Date.now() - 43200000).toISOString()
   }
 }; 

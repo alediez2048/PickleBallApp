@@ -1,7 +1,10 @@
 import { storage } from './storage';
+import { MOCK_GAMES } from '@/utils/mockData';
+import { Game } from '@/types/game';
 
 // Simulated network delay
 const NETWORK_DELAY = 1000;
+const PROFILE_UPDATE_DELAY = 300; // Faster delay for profile updates
 
 // Mock token generation
 const generateToken = (userId: string) => `mock-token-${userId}-${Date.now()}`;
@@ -100,47 +103,53 @@ interface GameHistory {
 const STORAGE_KEYS = {
   MOCK_USERS: 'mock_users_data',
   GAMES_HISTORY: 'games_history_data',
-  BOOKED_GAMES: 'booked_games_data'
+  BOOKED_GAMES: 'booked_games_data',
+  GLOBAL_GAME_BOOKINGS: 'global_game_bookings_data'
 };
 
 class MockApi {
   private MOCK_USERS: Map<string, MockUser>;
+  private GLOBAL_GAME_BOOKINGS: Map<string, string[]>;
 
   constructor() {
     this.MOCK_USERS = new Map();
+    this.GLOBAL_GAME_BOOKINGS = new Map();
     this.loadMockUsers();
+    this.loadGlobalBookings();
   }
 
   private async loadMockUsers() {
     try {
-      const storedUsers = await storage.getItem(STORAGE_KEYS.MOCK_USERS);
-      if (storedUsers) {
-        this.MOCK_USERS = new Map(JSON.parse(storedUsers));
-      } else {
-        // Initialize with default test user if no stored users
-        const testUser: MockUser = {
-          id: '1',
-          email: 'test@example.com',
-          name: 'Test User',
-          password: 'password123',
-          emailVerified: true,
-          verificationToken: null,
-          skillLevel: 'Intermediate',
-          profileImage: undefined,
-          gamesPlayed: [
-            {
-              id: '1',
-              date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-              result: 'win',
-              score: '11-9',
-              opponent: 'John Doe'
-            }
-          ],
-          bookedGames: []
-        };
-        this.MOCK_USERS.set(testUser.email, testUser);
-        await this.saveMockUsers();
-      }
+      // Initialize with default test user, ignoring any stored users
+      const testUser: MockUser = {
+        id: '1',
+        email: 'test@example.com',
+        name: 'Test User',
+        password: 'password123',
+        emailVerified: true,
+        verificationToken: null,
+        skillLevel: 'Intermediate',
+        profileImage: undefined,
+        gamesPlayed: [
+          {
+            id: '1',
+            date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+            result: 'win',
+            score: '11-9',
+            opponent: 'John Doe'
+          }
+        ],
+        bookedGames: []
+      };
+      
+      // Clear existing users and set only the test user
+      this.MOCK_USERS = new Map();
+      this.MOCK_USERS.set(testUser.email, testUser);
+      await this.saveMockUsers();
+      
+      // Clear global bookings
+      this.GLOBAL_GAME_BOOKINGS = new Map();
+      await this.saveGlobalBookings();
     } catch (error) {
       console.error('MockApi: Error loading users:', error);
       throw error;
@@ -154,6 +163,26 @@ class MockApi {
     } catch (error) {
       console.error('MockApi: Error saving users:', error);
       throw error;
+    }
+  }
+
+  private async loadGlobalBookings() {
+    try {
+      const storedBookings = await storage.getItem(STORAGE_KEYS.GLOBAL_GAME_BOOKINGS);
+      if (storedBookings) {
+        this.GLOBAL_GAME_BOOKINGS = new Map(JSON.parse(storedBookings));
+      }
+    } catch (error) {
+      console.error('MockApi: Error loading global bookings:', error);
+    }
+  }
+
+  private async saveGlobalBookings() {
+    try {
+      const bookingsArray = Array.from(this.GLOBAL_GAME_BOOKINGS.entries());
+      await storage.setItem(STORAGE_KEYS.GLOBAL_GAME_BOOKINGS, JSON.stringify(bookingsArray));
+    } catch (error) {
+      console.error('MockApi: Error saving global bookings:', error);
     }
   }
 
@@ -195,7 +224,9 @@ class MockApi {
       password,
       name,
       emailVerified: true,
-      verificationToken: null
+      verificationToken: null,
+      bookedGames: [],
+      gamesPlayed: []
     };
 
     this.MOCK_USERS.set(email, newUser);
@@ -315,38 +346,64 @@ class MockApi {
   }
 
   async updateProfile(email: string, data: UpdateProfileData): Promise<{ user: Omit<MockUser, 'password' | 'verificationToken'> }> {
-    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+    console.log('MockApi: Starting profile update for:', email, 'with data:', data);
+    
+    try {
+      // Use shorter delay for profile updates
+      await new Promise(resolve => setTimeout(resolve, PROFILE_UPDATE_DELAY));
 
-    const user = this.MOCK_USERS.get(email);
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    // Handle profile image update
-    if (data.profileImage) {
-      if (typeof data.profileImage === 'string') {
-        user.profileImage = data.profileImage;
-      } else {
-        // Store the full image data object
-        user.profileImage = {
-          uri: data.profileImage.uri,
-          base64: data.profileImage.base64,
-          timestamp: data.profileImage.timestamp
-        };
+      const user = this.MOCK_USERS.get(email);
+      if (!user) {
+        console.error('MockApi: User not found for email:', email);
+        throw new Error('User not found');
       }
+
+      let updatedUser = { ...user };
+
+      // Check for skill level change
+      if (data.skillLevel !== undefined && data.skillLevel !== user.skillLevel) {
+        console.log('MockApi: Attempting to update skill level to:', data.skillLevel);
+        
+        // Check for active bookings
+        const activeBookings = user.bookedGames?.filter(
+          booking => booking.status === 'upcoming'
+        ) || [];
+
+        if (activeBookings.length > 0) {
+          console.error('MockApi: Cannot change skill level with active bookings');
+          throw new Error('Cannot change skill level while you have upcoming games. Please complete or cancel your existing games first.');
+        }
+
+        updatedUser.skillLevel = data.skillLevel;
+      }
+
+      // Handle profile image update
+      if (data.profileImage) {
+        console.log('MockApi: Updating profile image');
+        if (typeof data.profileImage === 'string') {
+          updatedUser.profileImage = data.profileImage;
+        } else {
+          updatedUser.profileImage = {
+            uri: data.profileImage.uri,
+            base64: data.profileImage.base64,
+            timestamp: data.profileImage.timestamp
+          };
+        }
+      }
+
+      // Update user in the map
+      this.MOCK_USERS.set(email, updatedUser);
+      
+      // Save changes immediately
+      await this.saveMockUsers();
+      console.log('MockApi: Profile updated successfully');
+
+      const { password: _, verificationToken: __, ...userWithoutPassword } = updatedUser;
+      return { user: userWithoutPassword };
+    } catch (error) {
+      console.error('MockApi: Error updating profile:', error);
+      throw error;
     }
-
-    const updatedUser = {
-      ...user,
-      skillLevel: data.skillLevel !== undefined ? data.skillLevel : user.skillLevel,
-      updatedAt: new Date().toISOString()
-    };
-
-    this.MOCK_USERS.set(email, updatedUser);
-    await this.saveMockUsers(); // Persist the changes
-
-    const { password: _, verificationToken: __, ...userWithoutPassword } = updatedUser;
-    return { user: userWithoutPassword };
   }
 
   async getGameHistory(email: string): Promise<GameHistory[]> {
@@ -389,9 +446,54 @@ class MockApi {
     return user.bookedGames || [];
   }
 
+  async getGameBookings(gameId: string): Promise<number> {
+    try {
+      console.log('Getting bookings for game:', gameId);
+      
+      if (!gameId) {
+        console.error('Invalid gameId provided to getGameBookings');
+        return 0;
+      }
+
+      // Get base game details
+      const gameDetails = MOCK_GAMES[gameId];
+      if (!gameDetails) {
+        console.error('Game not found:', gameId);
+        return 0;
+      }
+
+      // Get active bookings
+      const bookings = this.GLOBAL_GAME_BOOKINGS.get(gameId) || [];
+      console.log('Found global bookings:', bookings);
+      
+      let activeBookingsCount = 0;
+
+      // Count active bookings across all users
+      for (const [email, user] of this.MOCK_USERS) {
+        const userBookings = user.bookedGames || [];
+        const activeUserBookings = userBookings.filter(booking => 
+          booking.gameId === gameId && 
+          booking.status === 'upcoming'
+        );
+        
+        activeBookingsCount += activeUserBookings.length;
+        
+        if (activeUserBookings.length > 0) {
+          console.log(`Found ${activeUserBookings.length} active bookings for user ${email}`);
+        }
+      }
+
+      console.log('Total active bookings:', activeBookingsCount);
+      return activeBookingsCount;
+    } catch (error) {
+      console.error('Error in getGameBookings:', error);
+      return 0;
+    }
+  }
+
   async bookGame(email: string, game: Omit<BookedGame, 'status'>): Promise<BookedGame> {
-    // Simplified logging
     console.log('MockApi: Attempting to book game:', game.gameId);
+    console.log('User email:', email);
     
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
@@ -400,32 +502,64 @@ class MockApi {
       throw new Error('User not found');
     }
 
+    // Get the full game details from MOCK_GAMES
+    const gameDetails = Object.values(MOCK_GAMES).find((g: Game) => g.id === game.gameId);
+    if (!gameDetails) {
+      throw new Error('Game not found');
+    }
+
+    console.log('Game details:', {
+      gameSkillLevel: gameDetails.skillLevel,
+      userSkillLevel: user.skillLevel
+    });
+
+    // Check if game is full
+    const currentBookings = await this.getGameBookings(game.gameId);
+    if (currentBookings + gameDetails.players.length >= gameDetails.maxPlayers) {
+      throw new Error('This game is already full');
+    }
+
+    // Check skill level compatibility
+    if (user.skillLevel && gameDetails.skillLevel && 
+        user.skillLevel.toLowerCase() !== gameDetails.skillLevel.toLowerCase()) {
+      throw new Error(`This game requires ${gameDetails.skillLevel} skill level`);
+    }
+
     if (!user.bookedGames) {
       user.bookedGames = [];
     }
 
-    // Check if user has already booked this game
+    // Check if user has any active booking for this game
     const existingBooking = user.bookedGames.find(
-      bookedGame => 
-        bookedGame.gameId === game.gameId &&
-        bookedGame.status === 'upcoming'
+      bookedGame => bookedGame.gameId === game.gameId && bookedGame.status === 'upcoming'
     );
 
     if (existingBooking) {
       throw new Error('You have already booked this game');
     }
 
+    // Get current global bookings for this game
+    const gameBookings = this.GLOBAL_GAME_BOOKINGS.get(game.gameId) || [];
+    
+    // Generate a new booking ID that includes both game ID and timestamp
+    const bookingId = `${game.gameId}_${Date.now()}`;
+
+    // Create the new booking
     const bookedGame: BookedGame = {
       ...game,
+      id: bookingId,
       status: 'upcoming'
     };
 
-    user.bookedGames.unshift(bookedGame);
+    // First update global bookings
+    this.GLOBAL_GAME_BOOKINGS.set(game.gameId, [...gameBookings, bookingId]);
+    await this.saveGlobalBookings();
+
+    // Then update user's bookings
+    user.bookedGames = [bookedGame, ...user.bookedGames];
     await this.saveMockUsers();
     
-    // Simplified success log
     console.log('MockApi: Game booked successfully:', game.gameId);
-
     return bookedGame;
   }
 
@@ -437,13 +571,24 @@ class MockApi {
       throw new Error('User or booking not found');
     }
 
-    const gameIndex = user.bookedGames.findIndex(game => game.id === gameId);
-    if (gameIndex === -1) {
+    const booking = user.bookedGames.find(game => game.id === gameId);
+    if (!booking) {
       throw new Error('Booking not found');
     }
 
-    user.bookedGames[gameIndex].status = 'cancelled';
-    await this.saveMockUsers();
+    // Update user's booking status
+    booking.status = 'cancelled';
+
+    // Update global bookings
+    const gameBookings = this.GLOBAL_GAME_BOOKINGS.get(booking.gameId) || [];
+    const updatedBookings = gameBookings.filter(id => id !== gameId);
+    this.GLOBAL_GAME_BOOKINGS.set(booking.gameId, updatedBookings);
+
+    // Save both user and global booking data
+    await Promise.all([
+      this.saveMockUsers(),
+      this.saveGlobalBookings()
+    ]);
   }
 
   async clearBookedGames(email: string): Promise<void> {
@@ -452,8 +597,23 @@ class MockApi {
       throw new Error('User not found');
     }
 
+    // Get all game IDs from user's bookings
+    const gameIds = new Set(user.bookedGames?.map(booking => booking.gameId) || []);
+
+    // Update global bookings for each affected game
+    for (const gameId of gameIds) {
+      const gameBookings = this.GLOBAL_GAME_BOOKINGS.get(gameId) || [];
+      const updatedBookings = gameBookings.filter(bookingId => 
+        !user.bookedGames?.some(booking => booking.id === bookingId)
+      );
+      this.GLOBAL_GAME_BOOKINGS.set(gameId, updatedBookings);
+    }
+
     user.bookedGames = [];
-    await this.saveMockUsers();
+    await Promise.all([
+      this.saveMockUsers(),
+      this.saveGlobalBookings()
+    ]);
   }
 }
 

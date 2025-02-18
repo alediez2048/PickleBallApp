@@ -7,6 +7,8 @@ import { MOCK_GAMES } from '@/utils/mockData';
 import { useBookedGames, useUpcomingBookedGames, BookedGame } from '@/contexts/BookedGamesContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockApi } from '@/services/mockApi';
+import { SpotsAvailability } from '@/components/common/SpotsAvailability';
+import { GAME_CONSTANTS } from '@/types/game';
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -18,6 +20,8 @@ export default function GameDetailsScreen() {
   const [totalBookedPlayers, setTotalBookedPlayers] = useState(0);
   const { addBookedGame, cancelBooking } = useBookedGames();
   const upcomingGames = useUpcomingBookedGames();
+  const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<typeof MOCK_GAMES[keyof typeof MOCK_GAMES] | null>(null);
 
   // Get the correct game based on the ID
   const game = MOCK_GAMES[id as keyof typeof MOCK_GAMES];
@@ -138,11 +142,27 @@ export default function GameDetailsScreen() {
         throw new Error('Could not find your registration for this game');
       }
       
-      // Cancel the booking using the booking ID, not the game ID
-      await cancelBooking(bookedGame.id);
-      router.back(); // Go back to previous screen after canceling
+      setIsCancelModalVisible(true);
     } catch (error) {
-      Alert.alert('Error', 'Failed to remove you from the game. Please try again.');
+      Alert.alert('Error', 'Failed to cancel registration. Please try again.');
+    }
+  };
+
+  const handleConfirmCancel = async () => {
+    try {
+      if (!bookedGame) {
+        throw new Error('Could not find your registration for this game');
+      }
+      
+      setIsLoading(true);
+      await cancelBooking(bookedGame.id);
+      setIsCancelModalVisible(false);
+      Alert.alert('Success', 'Your registration has been cancelled.');
+      router.back();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to cancel registration. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -185,8 +205,10 @@ export default function GameDetailsScreen() {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Spots Left</Text>
-            <Text style={styles.statValue}>{game.maxPlayers - totalPlayers}</Text>
+            <SpotsAvailability 
+              gameId={game.id} 
+              variant="detail"
+            />
           </View>
         </View>
 
@@ -241,12 +263,22 @@ export default function GameDetailsScreen() {
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={styles.reserveButton}
+            style={[
+              styles.reserveButton,
+              game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.disabledButton
+            ]}
             onPress={() => setIsBookingModalVisible(true)}
             activeOpacity={0.7}
+            disabled={game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS}
           >
-            <Text style={styles.reserveText}>
-              {totalPlayers < game.maxPlayers ? 'Book' : 'Join Waitlist'}
+            <Text style={[
+              styles.reserveText,
+              game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.disabledButtonText
+            ]}>
+              {game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS 
+                ? 'Game Full' 
+                : 'Book'
+              }
             </Text>
           </TouchableOpacity>
         )}
@@ -391,6 +423,78 @@ export default function GameDetailsScreen() {
             >
               <Text style={styles.findMoreButtonText}>Find More Games</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Cancel Registration Modal */}
+      <Modal
+        visible={isCancelModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => !isLoading && setIsCancelModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              onPress={() => !isLoading && setIsCancelModalVisible(false)}
+              style={styles.modalCloseButton}
+            >
+              <IconSymbol name="xmark" size={24} color="#666666" />
+            </TouchableOpacity>
+
+            <Text style={styles.modalTitle}>Cancel Registration</Text>
+
+            <View style={styles.bookingGameCard}>
+              <View style={styles.bookingTimeContainer}>
+                <Text style={styles.bookingTime}>
+                  {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </View>
+              <View style={styles.bookingLocationContainer}>
+                <Text style={styles.bookingLocationName}>{game.location.name}</Text>
+                <Text style={styles.bookingLocationAddress}>{game.location.address}</Text>
+              </View>
+            </View>
+
+            <View style={styles.bookingSummaryCard}>
+              <Text style={styles.summaryTitle}>Game Details</Text>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Skill Level</Text>
+                <Text style={styles.summaryValue}>{game.skillLevel}</Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Price</Text>
+                <Text style={styles.summaryValue}>${game.price}</Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Booking ID</Text>
+                <Text style={styles.summaryValue}>{bookedGame?.id ? bookedGame.id.split('_')[0] : 'N/A'}</Text>
+              </View>
+            </View>
+
+            <Text style={[styles.bookingNote, { color: '#F44336' }]}>
+              By canceling, you will lose your spot in this game. This action cannot be undone.
+            </Text>
+
+            <View style={styles.bookingActions}>
+              <TouchableOpacity
+                style={styles.keepBookingButton}
+                onPress={() => !isLoading && setIsCancelModalVisible(false)}
+                disabled={isLoading}
+              >
+                <Text style={styles.keepBookingText}>Keep My Spot</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmCancelButton, isLoading && styles.disabledButton]}
+                onPress={handleConfirmCancel}
+                disabled={isLoading}
+              >
+                <Text style={styles.confirmCancelText}>
+                  {isLoading ? 'Canceling...' : 'Yes, Cancel Game'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -953,5 +1057,62 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.7,
+  },
+  keepBookingButton: {
+    flex: 1,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#4CAF50',
+        shadowOffset: {
+          width: 0,
+          height: 4,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+  keepBookingText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  confirmCancelButton: {
+    flex: 1,
+    backgroundColor: '#F44336',
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#F44336',
+        shadowOffset: {
+          width: 0,
+          height: 4,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 4.65,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+  confirmCancelText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  disabledButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 16,
   },
 }); 
