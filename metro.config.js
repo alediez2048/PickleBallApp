@@ -29,4 +29,15 @@ config.resolver.sourceExts = [...config.resolver.sourceExts, 'mjs'];
 // 4. Enable symlinks for monorepo support
 config.resolver.enableSymlinks = true;
 
+// Reduce console noise during development
+config.reporter = {
+  update: () => {}, // Suppress update messages
+  log: (message) => {
+    // Only log errors and important messages
+    if (message.includes('error') || message.includes('Error')) {
+      console.error(message);
+    }
+  }
+};
+
 module.exports = config; 

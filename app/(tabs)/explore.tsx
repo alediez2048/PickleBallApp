@@ -1,16 +1,166 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MOCK_GAMES } from '@/utils/mockData';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { SkillLevel } from '@/types/game';
 import { useUserProfile } from '@/contexts/selectors/authSelectors';
+import { useBookedGames, useUpcomingBookedGames } from '@/contexts/BookedGamesContext';
+import { mockApi } from '@/services/mockApi';
 
 export default function ExploreScreen() {
   const router = useRouter();
   const user = useUserProfile();
+  const upcomingGames = useUpcomingBookedGames();
+  const { cancelBooking } = useBookedGames();
   const [selectedSkillLevel, setSelectedSkillLevel] = useState<SkillLevel | 'all'>('all');
   const [showSkillFilter, setShowSkillFilter] = useState(false);
+  const [gameStatuses, setGameStatuses] = useState<Record<string, {
+    canReserve: boolean;
+    buttonText: string;
+    buttonStyle: any;
+    textStyle: any;
+    isBooked: boolean;
+  }>>({});
+  const [isLoadingStatuses, setIsLoadingStatuses] = useState(false);
+  const statusCache = React.useRef<Map<string, number>>(new Map());
+
+  const isGameBooked = React.useCallback((gameId: string) => {
+    return upcomingGames.some(
+      bookedGame => bookedGame.gameId === gameId && bookedGame.status === 'upcoming'
+    );
+  }, [upcomingGames]);
+
+  const getReservationStatus = React.useCallback(async (game: typeof MOCK_GAMES[keyof typeof MOCK_GAMES]) => {
+    try {
+      if (isGameBooked(game.id)) {
+        return {
+          canReserve: false,
+          buttonText: 'Cancel',
+          buttonStyle: styles.cancelButton,
+          textStyle: styles.cancelText,
+          isBooked: true
+        };
+      }
+
+      // Default to 0 if getGameBookings is not available
+      let bookedPlayersCount = 0;
+      try {
+        bookedPlayersCount = await mockApi.getGameBookings(game.id);
+      } catch (error) {
+        console.warn(`Could not get bookings count for game ${game.id}, using default value`);
+      }
+
+      const totalPlayers = game.players.length + bookedPlayersCount;
+      const spotsAvailable = game.maxPlayers - totalPlayers;
+
+      if (spotsAvailable > 0) {
+        return {
+          canReserve: true,
+          buttonText: 'Reserve',
+          buttonStyle: styles.reserveButton,
+          textStyle: styles.reserveText,
+          isBooked: false
+        };
+      }
+
+      return {
+        canReserve: false,
+        buttonText: 'Join Waitlist',
+        buttonStyle: styles.waitlistButton,
+        textStyle: styles.waitlistText,
+        isBooked: false
+      };
+    } catch (error) {
+      console.warn(`Error getting reservation status for game ${game.id}:`, error);
+      return {
+        canReserve: false,
+        buttonText: 'Unavailable',
+        buttonStyle: styles.disabledButton,
+        textStyle: styles.disabledButtonText,
+        isBooked: false
+      };
+    }
+  }, [isGameBooked]);
+
+  // Initialize game statuses
+  useEffect(() => {
+    // Set initial states for all games
+    const initialStatuses = Object.values(MOCK_GAMES).reduce((acc, game) => {
+      acc[game.id] = {
+        canReserve: true,
+        buttonText: 'Reserve',
+        buttonStyle: styles.reserveButton,
+        textStyle: styles.reserveText,
+        isBooked: false
+      };
+      return acc;
+    }, {} as Record<string, any>);
+    
+    setGameStatuses(initialStatuses);
+  }, []);
+
+  // Load game statuses with improved throttling and caching
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const loadGameStatuses = async () => {
+      if (isLoadingStatuses) return;
+      
+      try {
+        setIsLoadingStatuses(true);
+        const games = Object.values(MOCK_GAMES);
+        const currentTime = Date.now();
+        const updatedStatuses: Record<string, any> = {};
+        
+        // Process games in chunks to prevent overwhelming
+        for (let i = 0; i < games.length; i++) {
+          if (!isMounted) break;
+          
+          const game = games[i];
+          const lastUpdate = statusCache.current.get(game.id) || 0;
+          
+          // Only update if cache is expired (5 seconds)
+          if (currentTime - lastUpdate > 5000) {
+            try {
+              const status = await getReservationStatus(game);
+              updatedStatuses[game.id] = status;
+              statusCache.current.set(game.id, currentTime);
+              
+              // Update state in batches
+              if (isMounted && Object.keys(updatedStatuses).length > 0) {
+                setGameStatuses(prev => ({
+                  ...prev,
+                  ...updatedStatuses
+                }));
+              }
+              
+              // Add delay between requests
+              await new Promise(resolve => setTimeout(resolve, 200));
+            } catch (error) {
+              console.warn(`Error loading status for game ${game.id}:`, error);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading game statuses:', error);
+      } finally {
+        if (isMounted) {
+          setIsLoadingStatuses(false);
+        }
+      }
+    };
+
+    // Load statuses immediately on mount or when dependencies change
+    loadGameStatuses();
+
+    // Clean up
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [upcomingGames, user?.skillLevel, getReservationStatus]);
 
   const handleGameSelect = (gameId: string) => {
     router.push({
@@ -52,32 +202,23 @@ export default function ExploreScreen() {
     return gameSkillLevel === user.skillLevel;
   };
 
-  const getReservationStatus = (game: typeof MOCK_GAMES[keyof typeof MOCK_GAMES]) => {
-    if (!isSkillLevelMatch(game.skillLevel)) {
-      return {
-        canReserve: false,
-        buttonText: 'Skill Level Mismatch',
-        buttonStyle: styles.disabledButton,
-        textStyle: styles.disabledButtonText
-      };
-    }
+  const getBookedGameId = (gameId: string) => {
+    const bookedGame = upcomingGames.find(
+      game => game.gameId === gameId && game.status === 'upcoming'
+    );
+    return bookedGame?.id;
+  };
 
-    const spotsAvailable = game.maxPlayers - game.players.length;
-    if (spotsAvailable > 0) {
-      return {
-        canReserve: true,
-        buttonText: 'Reserve',
-        buttonStyle: styles.reserveButton,
-        textStyle: styles.reserveText
-      };
-    }
+  const handleCancelRegistration = async (gameId: string) => {
+    const bookedGameId = getBookedGameId(gameId);
+    if (!bookedGameId) return;
 
-    return {
-      canReserve: false,
-      buttonText: 'Join Waitlist',
-      buttonStyle: styles.waitlistButton,
-      textStyle: styles.waitlistText
-    };
+    try {
+      await cancelBooking(bookedGameId);
+      Alert.alert('Success', 'Your registration has been cancelled.');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to cancel registration. Please try again.');
+    }
   };
 
   const handleGamePress = (gameId: string) => {
@@ -165,71 +306,84 @@ export default function ExploreScreen() {
       <ScrollView style={styles.gamesContainer}>
         {filteredGames.length > 0 ? (
           filteredGames.map((game) => {
-            const reservationStatus = getReservationStatus(game);
+            const reservationStatus = gameStatuses[game.id] || {
+              canReserve: false,
+              buttonText: 'Loading...',
+              buttonStyle: styles.disabledButton,
+              textStyle: styles.disabledButtonText,
+              isBooked: false
+            };
+            
             return (
-              <TouchableOpacity
-                key={game.id}
+              <View
+                key={`explore-${game.id}`}
                 style={[
                   styles.gameCard,
                   !isSkillLevelMatch(game.skillLevel) && styles.mismatchedGameCard
                 ]}
-                onPress={() => handleGamePress(game.id)}
-                activeOpacity={0.7}
               >
-                <View style={styles.gameHeader}>
-                  <View>
-                    <Text style={styles.timeText}>
-                      {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                    <Text style={styles.courtText}>{game.location.name}</Text>
-                  </View>
-                  <View style={[
-                    styles.skillLevelTag,
-                    { backgroundColor: getSkillLevelColor(game.skillLevel) + '15' }
-                  ]}>
-                    <View 
-                      style={[
-                        styles.skillLevelDot,
-                        { backgroundColor: getSkillLevelColor(game.skillLevel) }
-                      ]} 
-                    />
-                    <Text style={[
-                      styles.skillLevelText,
-                      { color: getSkillLevelColor(game.skillLevel) }
+                <TouchableOpacity
+                  style={styles.gameCardContent}
+                  onPress={() => handleGamePress(game.id)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.gameHeader}>
+                    <View>
+                      <Text style={styles.timeText}>
+                        {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </Text>
+                      <Text style={styles.courtText}>{game.location.name}</Text>
+                    </View>
+                    <View style={[
+                      styles.skillLevelTag,
+                      { backgroundColor: getSkillLevelColor(game.skillLevel) + '15' }
                     ]}>
-                      {game.skillLevel}
-                    </Text>
+                      <View 
+                        style={[
+                          styles.skillLevelDot,
+                          { backgroundColor: getSkillLevelColor(game.skillLevel) }
+                        ]} 
+                      />
+                      <Text style={[
+                        styles.skillLevelText,
+                        { color: getSkillLevelColor(game.skillLevel) }
+                      ]}>
+                        {game.skillLevel}
+                      </Text>
+                    </View>
                   </View>
-                </View>
 
-                <View style={styles.locationInfo}>
-                  <Text style={styles.addressText}>{game.location.address}</Text>
-                  <Text style={styles.cityText}>{game.location.city}, {game.location.state}</Text>
-                </View>
+                  <View style={styles.locationInfo}>
+                    <Text style={styles.addressText}>{game.location.address}</Text>
+                    <Text style={styles.cityText}>{game.location.city}, {game.location.state}</Text>
+                  </View>
+                </TouchableOpacity>
 
                 <View style={styles.gameFooter}>
                   <View style={styles.spotsContainer}>
                     <Text style={styles.labelText}>Spots Available</Text>
                     <Text style={styles.valueText}>
-                      {game.maxPlayers - game.players.length} of {game.maxPlayers}
+                      {game.maxPlayers - (game.players.length + (upcomingGames.filter(
+                        bookedGame => bookedGame.gameId === game.id && bookedGame.status === 'upcoming'
+                      ).length))} of {game.maxPlayers}
                     </Text>
                   </View>
-                  <View style={reservationStatus.buttonStyle}>
+                  <TouchableOpacity
+                    style={reservationStatus.buttonStyle}
+                    onPress={() => {
+                      if (reservationStatus.isBooked) {
+                        handleCancelRegistration(game.id);
+                      } else {
+                        handleGamePress(game.id);
+                      }
+                    }}
+                  >
                     <Text style={reservationStatus.textStyle}>
                       {reservationStatus.buttonText}
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
-
-                {!isSkillLevelMatch(game.skillLevel) && (
-                  <View style={styles.mismatchBanner}>
-                    <IconSymbol name="exclamationmark.triangle.fill" size={16} color="#F44336" />
-                    <Text style={styles.mismatchText}>
-                      Your skill level ({user?.skillLevel || 'Not Set'}) doesn't match this game's level
-                    </Text>
-                  </View>
-                )}
-              </TouchableOpacity>
+              </View>
             );
           })
         ) : (
@@ -333,6 +487,11 @@ const styles = StyleSheet.create({
   },
   gamesContainer: {
     padding: 16,
+    paddingBottom: Platform.select({
+      ios: 100,
+      android: 80,
+      default: 80,
+    }),
   },
   gameCard: {
     backgroundColor: '#FFFFFF',
@@ -355,6 +514,9 @@ const styles = StyleSheet.create({
         elevation: 2,
       },
     }),
+  },
+  gameCardContent: {
+    flex: 1,
   },
   gameHeader: {
     flexDirection: 'row',
@@ -452,20 +614,6 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     borderColor: '#ffcdd2',
   },
-  mismatchBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffebee',
-    padding: 8,
-    borderRadius: 8,
-    marginTop: 12,
-    gap: 8,
-  },
-  mismatchText: {
-    color: '#F44336',
-    fontSize: 13,
-    flex: 1,
-  },
   disabledButton: {
     backgroundColor: '#E0E0E0',
     paddingHorizontal: 20,
@@ -483,6 +631,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   waitlistText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  cancelButton: {
+    backgroundColor: '#F44336',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  cancelText: {
     color: '#FFFFFF',
     fontWeight: '600',
   },
