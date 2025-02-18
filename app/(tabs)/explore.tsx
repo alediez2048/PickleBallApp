@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Platform, Alert, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MOCK_GAMES } from '@/utils/mockData';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -23,6 +23,9 @@ export default function ExploreScreen() {
     isBooked: boolean;
   }>>({});
   const [isLoadingStatuses, setIsLoadingStatuses] = useState(false);
+  const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<typeof MOCK_GAMES[keyof typeof MOCK_GAMES] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const statusCache = React.useRef<Map<string, number>>(new Map());
 
   const isGameBooked = React.useCallback((gameId: string) => {
@@ -211,6 +214,11 @@ export default function ExploreScreen() {
 
   const handleCancelRegistration = async (gameId: string) => {
     try {
+      const game = MOCK_GAMES[gameId];
+      if (!game) {
+        throw new Error('Game not found');
+      }
+
       const bookedGame = upcomingGames.find(
         game => game.gameId === gameId && game.status === 'upcoming'
       );
@@ -219,28 +227,8 @@ export default function ExploreScreen() {
         throw new Error('Could not find your registration for this game');
       }
 
-      Alert.alert(
-        'Cancel Registration',
-        'Are you sure you want to cancel your registration for this game?',
-        [
-          {
-            text: 'No',
-            style: 'cancel'
-          },
-          {
-            text: 'Yes, Cancel',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                await cancelBooking(bookedGame.id);
-                Alert.alert('Success', 'Your registration has been cancelled.');
-              } catch (error) {
-                Alert.alert('Error', 'Failed to cancel registration. Please try again.');
-              }
-            }
-          }
-        ]
-      );
+      setSelectedGame(game);
+      setIsCancelModalVisible(true);
     } catch (error) {
       Alert.alert('Error', 'Failed to cancel registration. Please try again.');
     }
@@ -429,6 +417,104 @@ export default function ExploreScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Cancel Registration Modal */}
+      <Modal
+        visible={isCancelModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => !isLoading && setIsCancelModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              onPress={() => !isLoading && setIsCancelModalVisible(false)}
+              style={styles.modalCloseButton}
+            >
+              <IconSymbol name="xmark" size={24} color="#666666" />
+            </TouchableOpacity>
+
+            <Text style={styles.modalTitle}>Cancel Registration</Text>
+
+            {selectedGame && (
+              <>
+                <View style={styles.bookingGameCard}>
+                  <View style={styles.bookingTimeContainer}>
+                    <Text style={styles.bookingTime}>
+                      {new Date(selectedGame.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                  </View>
+                  <View style={styles.bookingLocationContainer}>
+                    <Text style={styles.bookingLocationName}>{selectedGame.location.name}</Text>
+                    <Text style={styles.bookingLocationAddress}>{selectedGame.location.address}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.bookingSummaryCard}>
+                  <Text style={styles.summaryTitle}>Game Details</Text>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Skill Level</Text>
+                    <Text style={styles.summaryValue}>{selectedGame.skillLevel}</Text>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Price</Text>
+                    <Text style={styles.summaryValue}>${selectedGame.price}</Text>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Booking ID</Text>
+                    <Text style={styles.summaryValue}>
+                      {upcomingGames.find(g => g.gameId === selectedGame.id)?.id.split('_')[0] || 'N/A'}
+                    </Text>
+                  </View>
+                </View>
+
+                <Text style={[styles.bookingNote, { color: '#F44336' }]}>
+                  By canceling, you will lose your spot in this game. This action cannot be undone.
+                </Text>
+
+                <View style={styles.bookingActions}>
+                  <TouchableOpacity
+                    style={styles.keepBookingButton}
+                    onPress={() => !isLoading && setIsCancelModalVisible(false)}
+                    disabled={isLoading}
+                  >
+                    <Text style={styles.keepBookingText}>Keep My Spot</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.confirmCancelButton, isLoading && styles.disabledButton]}
+                    onPress={async () => {
+                      try {
+                        const bookedGame = upcomingGames.find(
+                          game => game.gameId === selectedGame.id && game.status === 'upcoming'
+                        );
+                        
+                        if (!bookedGame) {
+                          throw new Error('Could not find your registration for this game');
+                        }
+
+                        setIsLoading(true);
+                        await cancelBooking(bookedGame.id);
+                        setIsCancelModalVisible(false);
+                        Alert.alert('Success', 'Your registration has been cancelled.');
+                      } catch (error) {
+                        Alert.alert('Error', 'Failed to cancel registration. Please try again.');
+                      } finally {
+                        setIsLoading(false);
+                        setSelectedGame(null);
+                      }
+                    }}
+                    disabled={isLoading}
+                  >
+                    <Text style={styles.confirmCancelText}>
+                      {isLoading ? 'Canceling...' : 'Yes, Cancel Game'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -675,6 +761,203 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    width: '85%',
+    padding: 24,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    right: 16,
+    top: 16,
+    padding: 8,
+    zIndex: 1,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000000',
+    marginTop: 12,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  bookingGameCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    padding: 16,
+    width: '100%',
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  bookingTimeContainer: {
+    backgroundColor: '#4CAF50',
+    padding: 12,
+    borderRadius: 12,
+    marginRight: 12,
+  },
+  bookingTime: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  bookingLocationContainer: {
+    flex: 1,
+  },
+  bookingLocationName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  bookingLocationAddress: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  bookingSummaryCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    padding: 16,
+    width: '100%',
+    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 16,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  summaryValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  bookingNote: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+    paddingHorizontal: 8,
+  },
+  bookingActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    gap: 12,
+  },
+  keepBookingButton: {
+    flex: 1,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#4CAF50',
+        shadowOffset: {
+          width: 0,
+          height: 4,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+  keepBookingText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  confirmCancelButton: {
+    flex: 1,
+    backgroundColor: '#F44336',
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#F44336',
+        shadowOffset: {
+          width: 0,
+          height: 4,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 4.65,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+  confirmCancelText: {
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: '600',
   },
 });
