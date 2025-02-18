@@ -33,12 +33,28 @@ export default function TabLayout() {
         tabBarBackground: () => <TabBarBackground />,
         tabBarActiveTintColor: '#4CAF50',
         tabBarInactiveTintColor: '#666666',
-        tabBarStyle: Platform.select({
-          ios: {
-            position: 'absolute',
-          },
-          default: {},
-        }),
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: '#E5E7EB',
+          ...Platform.select({
+            ios: {
+              shadowColor: '#000',
+              shadowOffset: {
+                width: 0,
+                height: -2,
+              },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+            },
+            android: {
+              elevation: 8,
+            },
+          }),
+        },
+        tabBarItemStyle: {
+          backgroundColor: '#FFFFFF',
+        },
       }}>
       {TAB_ITEMS.map((tab) => (
         <Tabs.Screen

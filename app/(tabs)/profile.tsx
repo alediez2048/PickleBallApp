@@ -39,11 +39,121 @@ const SKILL_LEVELS = [
 
 export default function ProfileScreen() {
   const user = useUserProfile() as UserProfile;
-  const { updateProfile } = useAuth();
+  const { updateProfile, signOut } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [isSkillModalVisible, setIsSkillModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [updatingSkill, setUpdatingSkill] = useState(false);
+  const [selectedSkill, setSelectedSkill] = useState<string | undefined>(user?.skillLevel);
   const upcomingGames = useUpcomingGames();
+
+  // Update selected skill when user profile changes
+  React.useEffect(() => {
+    if (!updatingSkill) {
+      setSelectedSkill(user?.skillLevel);
+    }
+  }, [user?.skillLevel, updatingSkill]);
+
+  // Reset states when modal is closed
+  const handleCloseModal = React.useCallback(() => {
+    setIsSkillModalVisible(false);
+    setUpdatingSkill(false);
+    setSelectedSkill(user?.skillLevel);
+  }, [user?.skillLevel]);
+
+  const showErrorAlert = React.useCallback((errorMessage: string, hasUpcomingGames: boolean) => {
+    if (hasUpcomingGames) {
+      Alert.alert(
+        'Cannot Update Skill Level',
+        'You have upcoming games booked. You must complete or cancel your existing games before changing your skill level.',
+        [
+          {
+            text: 'View My Games',
+            onPress: handleCloseModal,
+            style: 'default'
+          },
+          {
+            text: 'Cancel',
+            onPress: handleCloseModal,
+            style: 'cancel'
+          }
+        ],
+        { 
+          cancelable: false,
+          onDismiss: handleCloseModal 
+        }
+      );
+    } else {
+      Alert.alert(
+        'Error',
+        errorMessage,
+        [
+          {
+            text: 'OK',
+            onPress: handleCloseModal
+          }
+        ],
+        { 
+          cancelable: false,
+          onDismiss: handleCloseModal 
+        }
+      );
+    }
+  }, [handleCloseModal]);
+
+  const handleSkillLevelSelect = React.useCallback(async (skillLevel: string) => {
+    if (skillLevel === user?.skillLevel) {
+      handleCloseModal();
+      return;
+    }
+
+    try {
+      setUpdatingSkill(true);
+      await updateProfile({ skillLevel });
+      handleCloseModal();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update skill level. Please try again.';
+      Alert.alert(
+        'Error',
+        errorMessage,
+        [
+          {
+            text: 'OK',
+            onPress: handleCloseModal
+          }
+        ]
+      );
+    } finally {
+      setUpdatingSkill(false);
+      setSelectedSkill(user?.skillLevel);
+    }
+  }, [user?.skillLevel, updateProfile, handleCloseModal]);
+
+  const openSkillModal = React.useCallback(() => {
+    if (upcomingGames.length > 0) {
+      Alert.alert(
+        'Cannot Update Skill Level',
+        'You have upcoming games booked. You must complete or cancel your existing games before changing your skill level.',
+        [
+          {
+            text: 'View My Games',
+            style: 'default'
+          },
+          {
+            text: 'OK',
+            style: 'cancel'
+          }
+        ]
+      );
+      return;
+    }
+    
+    if (updatingSkill) {
+      return;
+    }
+    
+    setIsSkillModalVisible(true);
+  }, [updatingSkill, upcomingGames.length]);
 
   const handleImagePick = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -88,18 +198,6 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleSkillLevelSelect = async (skillLevel: string) => {
-    try {
-      setIsLoading(true);
-      await updateProfile({ skillLevel });
-      setIsSkillModalVisible(false);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to update skill level. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const getImageSource = (profileImage: UserProfile['profileImage']) => {
     if (!profileImage) return undefined;
     
@@ -110,7 +208,7 @@ export default function ProfileScreen() {
     return { uri: profileImage.base64 };
   };
 
-  if (!user || isLoading) {
+  if (!user) {
     return (
       <View style={styles.container}>
         <Text>Loading...</Text>
@@ -149,12 +247,26 @@ export default function ProfileScreen() {
           <Button 
             variant="secondary" 
             size="sm"
-            onPress={() => setIsSkillModalVisible(true)}
+            onPress={openSkillModal}
+            disabled={updatingSkill || upcomingGames.length > 0}
+            style={[
+              upcomingGames.length > 0 && styles.disabledEditButton
+            ]}
           >
-            Edit
+            {upcomingGames.length > 0 ? 'Locked' : updatingSkill ? 'Updating...' : 'Edit'}
           </Button>
         </View>
-        <Text style={styles.sectionContent}>{user.skillLevel || 'Not set'}</Text>
+        <View style={styles.skillLevelInfo}>
+          <Text style={styles.sectionContent}>
+            {user?.skillLevel || 'Not set'}
+            {updatingSkill && ' (Updating...)'}
+          </Text>
+          {upcomingGames.length > 0 && (
+            <Text style={styles.skillLevelLockMessage}>
+              Cannot change skill level while you have upcoming games
+            </Text>
+          )}
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -220,21 +332,33 @@ export default function ProfileScreen() {
         )}
       </View>
 
+      <View style={[styles.section, styles.signOutSection]}>
+        <Button 
+          variant="secondary" 
+          onPress={signOut}
+          size="md"
+          style={styles.signOutButton}
+        >
+          Sign Out
+        </Button>
+      </View>
+
       <Modal
         visible={isSkillModalVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setIsSkillModalVisible(false)}
+        onRequestClose={handleCloseModal}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select Skill Level</Text>
               <TouchableOpacity 
-                onPress={() => setIsSkillModalVisible(false)}
-                style={styles.closeButton}
+                onPress={handleCloseModal}
+                style={[styles.closeButton, updatingSkill && styles.disabledButton]}
+                disabled={updatingSkill}
               >
-                <IconSymbol name="xmark" size={24} color="#666666" />
+                <IconSymbol name="xmark" size={24} color={updatingSkill ? '#999999' : '#666666'} />
               </TouchableOpacity>
             </View>
             {SKILL_LEVELS.map((level) => (
@@ -242,18 +366,25 @@ export default function ProfileScreen() {
                 key={level.value}
                 style={[
                   styles.skillOption,
-                  user.skillLevel === level.value && styles.selectedSkill
+                  user?.skillLevel === level.value && styles.selectedSkill,
+                  updatingSkill && styles.disabledSkillOption
                 ]}
-                onPress={() => handleSkillLevelSelect(level.value)}
+                onPress={() => !updatingSkill && handleSkillLevelSelect(level.value)}
+                disabled={updatingSkill}
               >
                 <Text style={[
                   styles.skillOptionText,
-                  user.skillLevel === level.value && styles.selectedSkillText
+                  user?.skillLevel === level.value && styles.selectedSkillText,
+                  updatingSkill && styles.disabledSkillText
                 ]}>
                   {level.label}
                 </Text>
-                {user.skillLevel === level.value && (
-                  <IconSymbol name="checkmark" size={20} color="#4CAF50" />
+                {user?.skillLevel === level.value && (
+                  <IconSymbol 
+                    name="checkmark" 
+                    size={20} 
+                    color={updatingSkill ? '#999999' : '#4CAF50'} 
+                  />
                 )}
               </TouchableOpacity>
             ))}
@@ -478,5 +609,39 @@ const styles = StyleSheet.create({
   gameScore: {
     fontSize: 14,
     color: '#666666',
+  },
+  signOutSection: {
+    marginTop: 0,
+    paddingHorizontal: 0,
+    width: '100%',
+  },
+  signOutButton: {
+    width: '100%',
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  disabledSkillOption: {
+    opacity: 0.5,
+  },
+  disabledSkillText: {
+    color: '#999999',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  skillLevelInfo: {
+    flexDirection: 'column',
+  },
+  skillLevelLockMessage: {
+    fontSize: 12,
+    marginTop: 4,
+    color: '#666666',
+    fontStyle: 'italic',
+  },
+  disabledEditButton: {
+    backgroundColor: '#E0E0E0',
+    opacity: 0.5,
+    borderColor: '#CCCCCC',
   },
 }); 
