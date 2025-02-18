@@ -210,12 +210,37 @@ export default function ExploreScreen() {
   };
 
   const handleCancelRegistration = async (gameId: string) => {
-    const bookedGameId = getBookedGameId(gameId);
-    if (!bookedGameId) return;
-
     try {
-      await cancelBooking(bookedGameId);
-      Alert.alert('Success', 'Your registration has been cancelled.');
+      const bookedGame = upcomingGames.find(
+        game => game.gameId === gameId && game.status === 'upcoming'
+      );
+
+      if (!bookedGame) {
+        throw new Error('Could not find your registration for this game');
+      }
+
+      Alert.alert(
+        'Cancel Registration',
+        'Are you sure you want to cancel your registration for this game?',
+        [
+          {
+            text: 'No',
+            style: 'cancel'
+          },
+          {
+            text: 'Yes, Cancel',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await cancelBooking(bookedGame.id);
+                Alert.alert('Success', 'Your registration has been cancelled.');
+              } catch (error) {
+                Alert.alert('Error', 'Failed to cancel registration. Please try again.');
+              }
+            }
+          }
+        ]
+      );
     } catch (error) {
       Alert.alert('Error', 'Failed to cancel registration. Please try again.');
     }
@@ -314,6 +339,11 @@ export default function ExploreScreen() {
               isBooked: false
             };
             
+            // Check if the game is booked by the current user
+            const isBooked = upcomingGames.some(
+              bookedGame => bookedGame.gameId === game.id && bookedGame.status === 'upcoming'
+            );
+            
             return (
               <View
                 key={`explore-${game.id}`}
@@ -368,20 +398,23 @@ export default function ExploreScreen() {
                       ).length))} of {game.maxPlayers}
                     </Text>
                   </View>
-                  <TouchableOpacity
-                    style={reservationStatus.buttonStyle}
-                    onPress={() => {
-                      if (reservationStatus.isBooked) {
-                        handleCancelRegistration(game.id);
-                      } else {
-                        handleGamePress(game.id);
-                      }
-                    }}
-                  >
-                    <Text style={reservationStatus.textStyle}>
-                      {reservationStatus.buttonText}
-                    </Text>
-                  </TouchableOpacity>
+                  {isBooked ? (
+                    <TouchableOpacity
+                      style={styles.cancelButton}
+                      onPress={() => handleCancelRegistration(game.id)}
+                    >
+                      <Text style={styles.cancelText}>Cancel</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={reservationStatus.buttonStyle}
+                      onPress={() => handleGamePress(game.id)}
+                    >
+                      <Text style={reservationStatus.textStyle}>
+                        {reservationStatus.buttonText}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             );
