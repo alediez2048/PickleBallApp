@@ -23,17 +23,24 @@ function RootLayoutNav() {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inSkillGroup = segments[0] === '(skill-select)';
 
     if (isAuthenticated) {
-      // Remove email verification check and always redirect to main app
-      if (inAuthGroup) {
+      // Check if user needs to set skill level
+      if (!user?.skillLevel && segments[0] !== '(skill-select)') {
+        router.push('/(skill-select)');
+        return;
+      }
+
+      // If user has skill level and is in auth or skill select group, redirect to main app
+      if ((inAuthGroup || inSkillGroup) && user?.skillLevel) {
         router.replace('/(tabs)');
       }
     } else if (!inAuthGroup) {
       // Redirect unauthenticated users to sign in
       router.replace('/login');
     }
-  }, [isAuthenticated, segments, isLoading]);
+  }, [isAuthenticated, segments, isLoading, user?.skillLevel]);
 
   return <Slot />;
 }
@@ -52,20 +59,20 @@ export default function RootLayout() {
   }, [colorScheme]);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AuthProvider>
-        <UIProvider>
-          <GameProvider>
-            <BookedGamesProvider>
+    <AuthProvider>
+      <UIProvider>
+        <GameProvider>
+          <BookedGamesProvider>
+            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
               <View style={styles.container}>
                 <RootLayoutNav />
                 <StatusBar style="dark" />
               </View>
-            </BookedGamesProvider>
-          </GameProvider>
-        </UIProvider>
-      </AuthProvider>
-    </ThemeProvider>
+            </ThemeProvider>
+          </BookedGamesProvider>
+        </GameProvider>
+      </UIProvider>
+    </AuthProvider>
   );
 }
 
