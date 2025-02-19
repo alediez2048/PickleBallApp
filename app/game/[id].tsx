@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { mockApi } from '@/services/mockApi';
 import { SpotsAvailability } from '@/components/common/SpotsAvailability';
 import { GAME_CONSTANTS } from '@/types/game';
+import { RSVPList } from '@/components/common/RSVPList';
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -227,27 +228,15 @@ export default function GameDetailsScreen() {
 
         {/* Players */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Players ({totalPlayers})</Text>
-          {/* Show mock players */}
-          {game.players.map(player => (
-            <View key={`player-${player.id}`} style={styles.playerCard}>
-              <Text style={styles.playerName}>{player.name}</Text>
-              <Text style={styles.playerRating}>Skill Level: {player.skillLevel}</Text>
-            </View>
-          ))}
-          {/* Show booked players with unique keys */}
-          {upcomingGames
-            .filter(bookedGame => bookedGame.gameId === id && bookedGame.status === 'upcoming')
-            .map((bookedGame, index) => (
-              <View 
-                key={`booked-player-${bookedGame.id}-${index}`} 
-                style={styles.playerCard}
-              >
-                <Text style={styles.playerName}>Registered Player</Text>
-                <Text style={styles.playerRating}>Booking ID: {bookedGame.id.split('_')[0]}</Text>
-              </View>
-            ))
-          }
+          <RSVPList
+            gameId={game.id}
+            players={game.players}
+            maxPlayers={game.maxPlayers}
+            onPlayerPress={(player) => {
+              // TODO: Implement player profile view
+              console.log('Player pressed:', player);
+            }}
+          />
         </View>
       </ScrollView>
 

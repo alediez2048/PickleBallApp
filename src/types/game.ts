@@ -36,6 +36,11 @@ export interface User {
   email: string;
   skillLevel: SkillLevel;
   rating?: number;
+  profileImage?: string | {
+    uri: string;
+    base64: string;
+    timestamp: number;
+  };
 }
 
 export const GAME_CONSTANTS = {

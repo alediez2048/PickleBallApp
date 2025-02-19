@@ -120,36 +120,38 @@ class MockApi {
 
   private async loadMockUsers() {
     try {
-      // Initialize with default test user, ignoring any stored users
-      const testUser: MockUser = {
-        id: '1',
-        email: 'test@example.com',
-        name: 'Test User',
-        password: 'password123',
-        emailVerified: true,
-        verificationToken: null,
-        skillLevel: 'Intermediate',
-        profileImage: undefined,
-        gamesPlayed: [
-          {
-            id: '1',
-            date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-            result: 'win',
-            score: '11-9',
-            opponent: 'John Doe'
-          }
-        ],
-        bookedGames: []
-      };
-      
-      // Clear existing users and set only the test user
-      this.MOCK_USERS = new Map();
-      this.MOCK_USERS.set(testUser.email, testUser);
-      await this.saveMockUsers();
-      
-      // Clear global bookings
-      this.GLOBAL_GAME_BOOKINGS = new Map();
-      await this.saveGlobalBookings();
+      const storedUsers = await storage.getItem(STORAGE_KEYS.MOCK_USERS);
+      if (storedUsers) {
+        const parsedUsers = JSON.parse(storedUsers);
+        this.MOCK_USERS = new Map(parsedUsers);
+      }
+
+      // Add test user only if no users exist
+      if (this.MOCK_USERS.size === 0) {
+        const testUser: MockUser = {
+          id: '1',
+          email: 'test@example.com',
+          name: 'Test User',
+          password: 'password123',
+          emailVerified: true,
+          verificationToken: null,
+          skillLevel: 'Intermediate',
+          profileImage: undefined,
+          gamesPlayed: [
+            {
+              id: '1',
+              date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+              result: 'win',
+              score: '11-9',
+              opponent: 'John Doe'
+            }
+          ],
+          bookedGames: []
+        };
+        
+        this.MOCK_USERS.set(testUser.email, testUser);
+        await this.saveMockUsers();
+      }
     } catch (error) {
       console.error('MockApi: Error loading users:', error);
       throw error;
@@ -217,8 +219,7 @@ class MockApi {
       throw new Error('Email already registered');
     }
 
-    const verificationToken = generateVerificationToken();
-    const newUser = {
+    const newUser: MockUser = {
       id: (this.MOCK_USERS.size + 1).toString(),
       email,
       password,
@@ -229,16 +230,17 @@ class MockApi {
       gamesPlayed: []
     };
 
+    // Save the new user to the map
     this.MOCK_USERS.set(email, newUser);
-
-    // In a real implementation, this would send an email with the verification link
+    
+    // Save to storage immediately
+    await this.saveMockUsers();
 
     const { password: _, verificationToken: __, ...userWithoutPassword } = newUser;
-    const response = {
+    return {
       token: generateToken(newUser.id),
       user: userWithoutPassword,
     };
-    return response;
   }
 
   async verifyEmail(email: string, token: string): Promise<void> {
@@ -349,9 +351,9 @@ class MockApi {
     console.log('MockApi: Starting profile update for:', email, 'with data:', data);
     
     try {
-      // Use shorter delay for profile updates
-      await new Promise(resolve => setTimeout(resolve, PROFILE_UPDATE_DELAY));
-
+      // Load latest user data from storage
+      await this.loadMockUsers();
+      
       const user = this.MOCK_USERS.get(email);
       if (!user) {
         console.error('MockApi: User not found for email:', email);
