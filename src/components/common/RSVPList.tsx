@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Platform } from 'react-native';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import type { User, SkillLevel } from '@/types/game';
 import { useGameRegistration } from '@/hooks/useGameRegistration';
 import { useBookedGames } from '@/contexts/BookedGamesContext';
 import { useUserProfile } from '@/contexts/selectors/authSelectors';
+import { mockApi } from '@/services/mockApi';
 
 interface RSVPListProps {
   gameId: string;
@@ -53,37 +54,48 @@ const PlayerAvatar = React.memo(({ player, onPress, isRegistered }: PlayerAvatar
 ));
 
 export function RSVPList({ gameId, players, maxPlayers, onPlayerPress }: RSVPListProps) {
-  const { isLoading, error, registeredCount } = useGameRegistration(gameId);
-  const { bookedGames } = useBookedGames();
-  const currentUser = useUserProfile();
+  const { isLoading: isLoadingRegistration, error: registrationError, registeredCount } = useGameRegistration(gameId);
+  const [registeredPlayers, setRegisteredPlayers] = useState<User[]>([]);
+  const [isLoadingPlayers, setIsLoadingPlayers] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const registeredPlayers = useMemo(() => {
-    return bookedGames
-      .filter(game => game.gameId === gameId && game.status === 'upcoming')
-      .map(game => ({
-        id: game.id,
-        name: currentUser?.id === game.id.split('_')[0] ? currentUser.name || 'Anonymous' : 'Registered Player',
-        email: currentUser?.id === game.id.split('_')[0] ? currentUser.email || 'anonymous@player.com' : 'registered@player.com',
-        profileImage: currentUser?.id === game.id.split('_')[0] ? currentUser.profileImage : undefined,
-        skillLevel: (currentUser?.skillLevel || 'Beginner') as SkillLevel
-      }))
-      .sort((a, b) => {
-        // Sort by registration time (using the timestamp in the ID)
-        const timeA = parseInt(a.id.split('_')[1], 10);
-        const timeB = parseInt(b.id.split('_')[1], 10);
-        return timeA - timeB;
-      });
-  }, [bookedGames, gameId, currentUser]);
+  useEffect(() => {
+    const loadRegisteredPlayers = async () => {
+      try {
+        setIsLoadingPlayers(true);
+        const players = await mockApi.getRegisteredPlayers(gameId);
+        const typedPlayers: User[] = players.map(player => ({
+          ...player,
+          skillLevel: (player.skillLevel || 'Beginner') as SkillLevel
+        }));
+        setRegisteredPlayers(typedPlayers);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading registered players:', err);
+        setError(err instanceof Error ? err : new Error('Failed to load registered players'));
+      } finally {
+        setIsLoadingPlayers(false);
+      }
+    };
 
-  if (error) {
+    loadRegisteredPlayers();
+    // Set up polling to refresh the list periodically
+    const intervalId = setInterval(loadRegisteredPlayers, 5000);
+    return () => clearInterval(intervalId);
+  }, [gameId]);
+
+  if (error || registrationError) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Unable to load players</Text>
+        <Text style={styles.errorText}>
+          {error?.message || registrationError?.message || 'Unable to load players'}
+        </Text>
       </View>
     );
   }
 
   const totalPlayers = players.length + registeredPlayers.length;
+  const isLoading = isLoadingRegistration || isLoadingPlayers;
 
   return (
     <View style={styles.container}>

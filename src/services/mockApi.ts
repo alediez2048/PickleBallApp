@@ -73,6 +73,17 @@ interface BookedGame {
   skillRating: number;
   price: number;
   status: 'upcoming' | 'completed' | 'cancelled';
+  userId?: string;
+  userInfo?: {
+    name: string;
+    email: string;
+    profileImage?: string | {
+      uri: string;
+      base64: string;
+      timestamp: number;
+    };
+    skillLevel?: string;
+  };
 }
 
 interface MockUser {
@@ -546,11 +557,18 @@ class MockApi {
     // Generate a new booking ID that includes both game ID and timestamp
     const bookingId = `${game.gameId}_${Date.now()}`;
 
-    // Create the new booking
+    // Create the new booking with user information
     const bookedGame: BookedGame = {
       ...game,
       id: bookingId,
-      status: 'upcoming'
+      status: 'upcoming',
+      userId: user.id,
+      userInfo: {
+        name: user.name,
+        email: user.email,
+        profileImage: user.profileImage,
+        skillLevel: user.skillLevel
+      }
     };
 
     // First update global bookings
@@ -616,6 +634,41 @@ class MockApi {
       this.saveMockUsers(),
       this.saveGlobalBookings()
     ]);
+  }
+
+  async getRegisteredPlayers(gameId: string): Promise<Array<{
+    id: string;
+    name: string;
+    email: string;
+    profileImage?: string | { uri: string; base64: string; timestamp: number; };
+    skillLevel?: string;
+  }>> {
+    const registeredPlayers: Array<{
+      id: string;
+      name: string;
+      email: string;
+      profileImage?: string | { uri: string; base64: string; timestamp: number; };
+      skillLevel?: string;
+    }> = [];
+
+    // Iterate through all users to find bookings for this game
+    for (const user of this.MOCK_USERS.values()) {
+      const booking = user.bookedGames?.find(
+        game => game.gameId === gameId && game.status === 'upcoming'
+      );
+
+      if (booking) {
+        registeredPlayers.push({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          profileImage: user.profileImage,
+          skillLevel: user.skillLevel
+        });
+      }
+    }
+
+    return registeredPlayers;
   }
 }
 
