@@ -24,7 +24,9 @@ const ICON_MAPPING = {
   'location.fill': 'location-on',
   'calendar': 'calendar-today',
   'person.2.fill': 'people',
-  'star.fill': 'star'
+  'star.fill': 'star',
+  'chevron.down': 'keyboard-arrow-down',
+  'safari.fill': 'explore',
 } as const;
 
 type IconName = keyof typeof ICON_MAPPING;
