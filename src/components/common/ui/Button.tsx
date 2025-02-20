@@ -1,55 +1,35 @@
 import React from 'react';
 import {
   TouchableOpacity,
-  TouchableOpacityProps,
   StyleSheet,
-  ActivityIndicator,
   View,
+  ActivityIndicator,
+  TouchableOpacityProps,
 } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 
-// Define valid size mappings
-const SIZE_MAPPINGS = {
-  sm: 'small',
-  md: 'medium',
-  lg: 'large',
-};
-
-export interface ButtonProps extends TouchableOpacityProps {
-  children: React.ReactNode;
+interface ButtonProps extends TouchableOpacityProps {
   variant?: 'primary' | 'secondary' | 'outline' | 'danger';
-  size?: 'small' | 'medium' | 'large' | 'sm' | 'md' | 'lg';  // Updated to include shorthand
+  size?: 'small' | 'medium' | 'large';
   loading?: boolean;
-  disabled?: boolean;
   fullWidth?: boolean;
-  accessibilityLabel?: string;
-  accessibilityHint?: string;
+  children: React.ReactNode;
 }
 
 export const Button: React.FC<ButtonProps> = ({
-  children,
   variant = 'primary',
   size = 'medium',
   loading = false,
   disabled = false,
   fullWidth = false,
   style,
+  children,
   accessibilityLabel,
   accessibilityHint,
   onPress,
   ...props
 }) => {
   const isDisabled = disabled || loading;
-
-  // Normalize size prop
-  const normalizedSize = SIZE_MAPPINGS[size as keyof typeof SIZE_MAPPINGS] || size;
-
-  console.log('Button Size Normalization:', {
-    componentId: accessibilityLabel || children,
-    originalSize: size,
-    normalizedSize,
-    hasValidSize: normalizedSize in styles,
-  });
 
   const getButtonStyle = () => {
     const variantStyles = {
@@ -65,27 +45,14 @@ export const Button: React.FC<ButtonProps> = ({
       large: styles.large,
     };
 
-    const selectedSizeStyle = sizeStyles[normalizedSize as keyof typeof sizeStyles];
-
-    console.log('Button Style Resolution:', {
-      componentId: accessibilityLabel || children,
-      variant,
-      normalizedSize,
-      hasValidVariantStyle: variant in variantStyles,
-      hasValidSizeStyle: !!selectedSizeStyle,
-      customStyleType: style ? typeof style : 'none',
-    });
-
-    const computedStyles = [
+    return [
       styles.base,
       variantStyles[variant],
-      selectedSizeStyle,
+      sizeStyles[size],
       fullWidth && styles.fullWidth,
       isDisabled && styles.disabled,
       style,
     ];
-
-    return computedStyles;
   };
 
   const getTextStyle = () => {
@@ -96,34 +63,12 @@ export const Button: React.FC<ButtonProps> = ({
       danger: styles.dangerText,
     };
 
-    const textStyles = [
+    return [
       styles.text,
       variantTextStyles[variant],
       isDisabled && styles.disabledText,
     ];
-
-    console.log('Button Text Style:', {
-      componentId: accessibilityLabel || children,
-      variant,
-      isDisabled,
-      textStyles,
-    });
-
-    return textStyles;
   };
-
-  console.log('Button Render:', {
-    componentId: accessibilityLabel || children,
-    props: {
-      variant,
-      size,
-      loading,
-      disabled,
-      fullWidth,
-      hasCustomStyle: !!style,
-      hasOnPress: !!onPress,
-    },
-  });
 
   const buttonLabel = typeof children === 'string' ? children : accessibilityLabel;
 

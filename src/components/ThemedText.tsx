@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, TextProps, StyleSheet } from 'react-native';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 interface ThemedTextProps extends TextProps {
   variant?: 'body' | 'title' | 'subtitle' | 'caption';
@@ -10,13 +11,19 @@ export const ThemedText: React.FC<ThemedTextProps> = ({
   children,
   style,
   variant = 'body',
-  color = '#000000',
+  color,
   ...props
 }) => {
+  const colorScheme = useColorScheme();
+  
+  const themedColor = {
+    color: color || (colorScheme === 'dark' ? '#FFFFFF' : '#000000'),
+  };
+
   return (
     <Text
       style={[
-        { color },
+        themedColor,
         styles[variant],
         style,
       ]}

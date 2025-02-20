@@ -191,4 +191,4 @@ const styles = StyleSheet.create({
 
 TextInputComponent.displayName = 'TextInput';
 
-export const TextInput = withMemo(TextInputComponent); 
+export const TextInput = withMemo(TextInputComponent);
