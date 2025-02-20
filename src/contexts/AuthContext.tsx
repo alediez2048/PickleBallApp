@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { router } from 'expo-router';
 import { mockApi, FirstTimeProfileData, UpdateProfileData } from '@/services/mockApi';
 import { storage } from '@/services/storage';
@@ -16,7 +16,24 @@ interface User {
     base64: string;
     timestamp: number;
   };
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  address?: {
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  gamesPlayed?: Array<{
+    id: string;
+    date: string;
+    result: 'win' | 'loss';
+    score: string;
+    opponent: string;
+  }>;
   hasCompletedProfile?: boolean;
+  hasPaymentMethod: boolean;
 }
 
 interface AuthState {
@@ -38,6 +55,7 @@ interface AuthContextType extends AuthState {
   // Profile management methods
   updateProfile: (data: UpdateProfileData) => Promise<void>;
   updateFirstTimeProfile: (data: FirstTimeProfileData) => Promise<void>;
+  updatePaymentMethod: (hasPaymentMethod: boolean) => Promise<void>;
   
   // Auth state
   isAuthenticated: boolean;
@@ -110,24 +128,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
-      console.log('Signing up...', { email, name });
+      console.log('[Auth] Starting registration process', { email, name });
       setState(prev => ({ ...prev, isLoading: true }));
       
       const { token, user } = await mockApi.register({ email, password, name });
-      console.log('Sign up successful:', { token, user });
+      console.log('[Auth] Registration successful', { userId: user.id });
 
       // Store the auth data
       await Promise.all([
         storage.setItem('auth_token', token),
         storage.setItem('user', JSON.stringify(user)),
       ]);
-      console.log('Auth data stored');
+      console.log('[Auth] User data stored in local storage');
 
       // Update the state with the new user data
       setState({ token, user, isLoading: false });
-      // Navigation will be handled by the root layout based on emailVerified status
+      console.log('[Auth] Registration complete - user state updated');
     } catch (error) {
-      console.error('Sign up error:', error);
+      console.error('[Auth] Registration failed:', error);
       setState(prev => ({ ...prev, isLoading: false }));
       throw error;
     }
@@ -296,6 +314,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updatePaymentMethod = useCallback(async (hasPaymentMethod: boolean) => {
+    if (!state.user?.email) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      setState(prev => ({ ...prev, isLoading: true }));
+      
+      const updatedUser = {
+        ...state.user,
+        hasPaymentMethod
+      };
+      
+      // Store the updated user data
+      await storage.setItem('user', JSON.stringify(updatedUser));
+      
+      setState(prev => ({
+        ...prev,
+        user: updatedUser,
+        isLoading: false
+      }));
+
+      console.log('Payment method status updated successfully:', updatedUser);
+    } catch (error) {
+      console.error('Payment method update error:', error);
+      setState(prev => ({ ...prev, isLoading: false }));
+      throw error;
+    }
+  }, [state.user]);
+
   const value = {
     ...state,
     signIn,
@@ -305,6 +353,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithFacebook,
     updateProfile,
     updateFirstTimeProfile,
+    updatePaymentMethod,
     isAuthenticated: !!state.token,
   };
 

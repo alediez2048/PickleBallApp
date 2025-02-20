@@ -104,17 +104,7 @@ export function FirstTimeProfileForm({
   console.debug('[FirstTimeProfileForm] Component mounted', { platform: Platform.OS });
 
   useEffect(() => {
-    const dimensions = Dimensions.get('window');
-    console.debug('[FirstTimeProfileForm] Initial render', {
-      platform: Platform.OS,
-      windowDimensions: dimensions,
-      formFields: {
-        displayName: form.displayName !== undefined,
-        phoneNumber: form.phoneNumber !== undefined,
-        dateOfBirth: form.dateOfBirth !== undefined,
-        address: form.address !== undefined,
-      }
-    });
+    console.log('[Profile] First time profile form mounted');
   }, []);
 
   const onLayout = (event: LayoutChangeEvent) => {
@@ -134,6 +124,7 @@ export function FirstTimeProfileForm({
     });
 
     try {
+      console.log('[Profile] Starting profile update', { formData: form });
       setIsSubmitting(true);
       setError(null);
 
@@ -190,11 +181,16 @@ export function FirstTimeProfileForm({
 
       await updateFirstTimeProfile(profileData);
       
-      console.debug('[FirstTimeProfileForm] Profile update successful');
+      console.log('[Profile] Profile update successful');
       onComplete();
     } catch (err) {
-      console.error('[FirstTimeProfileForm] Profile update failed:', err);
+      console.error('[Profile] Profile update failed:', err);
       setError(err instanceof Error ? err.message : 'Failed to update profile');
+      Alert.alert(
+        'Error',
+        'Failed to update profile. Please try again.',
+        [{ text: 'OK' }]
+      );
     } finally {
       setIsSubmitting(false);
     }

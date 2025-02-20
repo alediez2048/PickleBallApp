@@ -16,6 +16,11 @@ export const useUserProfile = () => {
     isVerified: user?.emailVerified,
     skillLevel: user?.skillLevel,
     profileImage: user?.profileImage,
+    phoneNumber: user?.phoneNumber,
+    dateOfBirth: user?.dateOfBirth,
+    address: user?.address,
+    gamesPlayed: user?.gamesPlayed,
+    hasCompletedProfile: user?.hasCompletedProfile
   }), [user]);
 };
 

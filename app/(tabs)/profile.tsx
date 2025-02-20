@@ -8,6 +8,7 @@ import { Button } from '@/components/common/ui/Button';
 import { SkillLevel } from '@/types/game';
 import { useAuth } from '@/contexts/AuthContext';
 import { FirstTimeProfileForm } from '@/components/profile/FirstTimeProfileForm';
+import { useRouter } from 'expo-router';
 
 interface GameHistory {
   id: string;
@@ -53,6 +54,7 @@ export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
   const upcomingGames = useUpcomingGames();
+  const router = useRouter();
 
   const handleImagePick = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -139,6 +141,28 @@ export default function ProfileScreen() {
           </TouchableOpacity>
           <Text style={styles.name}>{user.name}</Text>
           <Text style={styles.email}>{user.email}</Text>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Skill Level</Text>
+            <Button 
+              variant="secondary" 
+              size="small"
+              onPress={() => router.push('/(skill-select)')}
+              style={styles.editButton}
+            >
+              Edit
+            </Button>
+          </View>
+          <View style={styles.skillLevelInfo}>
+            <Text style={styles.skillLevelValue}>
+              {user.skillLevel || 'Not set'}
+            </Text>
+            <Text style={styles.skillLevelDescription}>
+              {SKILL_LEVELS.find(level => level.value === user.skillLevel)?.label || 'Please set your skill level'}
+            </Text>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -246,7 +270,8 @@ export default function ProfileScreen() {
             <ScrollView style={styles.profileFormScroll}>
               <FirstTimeProfileForm onComplete={() => {
                 setIsProfileFormVisible(false);
-                // Refresh user data if needed
+                // Force a refresh of the profile data
+                setRefreshKey(prev => prev + 1);
               }} />
             </ScrollView>
           </View>
@@ -268,11 +293,10 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 30,
-    backgroundColor: '#f5f5f5',
     padding: 20,
-    borderRadius: 12,
-    marginHorizontal: -20,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   profileImageContainer: {
     width: 100,
@@ -318,10 +342,9 @@ const styles = StyleSheet.create({
     color: '#666666',
   },
   section: {
-    marginBottom: 25,
-    backgroundColor: '#f5f5f5',
     padding: 16,
-    borderRadius: 12,
+    backgroundColor: '#fff',
+    marginBottom: 8,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -331,7 +354,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#000',
   },
   sectionContent: {
@@ -467,7 +490,9 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   skillLevelInfo: {
-    flexDirection: 'column',
+    padding: 8,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 8,
   },
   skillLevelLockMessage: {
     fontSize: 12,
@@ -515,5 +540,15 @@ const styles = StyleSheet.create({
   },
   profileFormScroll: {
     maxHeight: '80%',
+  },
+  skillLevelValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 4,
+  },
+  skillLevelDescription: {
+    fontSize: 14,
+    color: '#666666',
   },
 }); 

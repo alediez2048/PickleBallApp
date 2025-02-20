@@ -124,6 +124,7 @@ interface MockUser {
   hasCompletedProfile?: boolean;
   gamesPlayed?: GameHistory[];
   bookedGames?: BookedGame[];
+  hasPaymentMethod: boolean;
 }
 
 interface GameHistory {
@@ -209,7 +210,8 @@ class MockApi {
               opponent: 'John Doe'
             }
           ],
-          bookedGames: []
+          bookedGames: [],
+          hasPaymentMethod: false
         };
         
         this.MOCK_USERS.set(testUser.email, testUser);
@@ -269,16 +271,19 @@ class MockApi {
   }
 
   async register({ email, password, name }: RegisterCredentials): Promise<AuthResponse> {
+    console.log('[MockApi] Starting registration', { email });
     await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
 
     // Basic domain validation
     const domain = email.split('@')[1];
     const blockedDomains = ['test.com', 'fake.com'];
     if (blockedDomains.includes(domain.toLowerCase())) {
+      console.error('[MockApi] Registration failed - invalid domain', { domain });
       throw new Error('Please use a valid email address');
     }
 
     if (this.MOCK_USERS.has(email)) {
+      console.error('[MockApi] Registration failed - email exists', { email });
       throw new Error('Email already registered');
     }
 
@@ -290,16 +295,20 @@ class MockApi {
       emailVerified: true,
       verificationToken: null,
       bookedGames: [],
-      gamesPlayed: []
+      gamesPlayed: [],
+      hasPaymentMethod: false
     };
 
     // Save the new user to the map
     this.MOCK_USERS.set(email, newUser);
+    console.log('[MockApi] Created new user', { userId: newUser.id });
     
     // Save to storage immediately
     await this.saveMockUsers();
+    console.log('[MockApi] Saved user to storage');
 
     const { password: _, verificationToken: __, ...userWithoutPassword } = newUser;
+    console.log('[MockApi] Registration complete');
     return {
       token: generateToken(newUser.id),
       user: userWithoutPassword,
@@ -399,6 +408,7 @@ class MockApi {
       password: '', // Social auth users don't have passwords
       emailVerified: true, // Social logins are considered verified
       verificationToken: null,
+      hasPaymentMethod: false
     };
 
     this.MOCK_USERS.set(newUser.email, newUser);

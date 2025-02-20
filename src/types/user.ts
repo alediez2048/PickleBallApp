@@ -21,6 +21,7 @@ export interface User {
     zipCode?: string;
   };
   hasCompletedProfile?: boolean;
+  hasPaymentMethod?: boolean;
 }
 
 export type AuthenticatedUser = Required<Pick<User, 'id' | 'email' | 'name'>> & User; 

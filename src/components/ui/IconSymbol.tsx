@@ -26,10 +26,25 @@ const ICON_MAPPING = {
   'person.2.fill': 'people',
   'star.fill': 'star',
   'chevron.down': 'keyboard-arrow-down',
-  'safari.fill': 'explore',
+  'creditcard.fill': 'credit-card',
 } as const;
 
-type IconName = keyof typeof ICON_MAPPING;
+type IconName =
+  | 'person.fill'
+  | 'house.fill'
+  | 'gamecontroller.fill'
+  | 'person.fill.badge.plus'
+  | 'exclamationmark.triangle.fill'
+  | 'trophy.fill'
+  | 'pencil'
+  | 'xmark'
+  | 'checkmark'
+  | 'location.fill'
+  | 'calendar'
+  | 'person.2.fill'
+  | 'star.fill'
+  | 'chevron.down'
+  | 'creditcard.fill';
 
 interface IconSymbolProps {
   name: IconName;
