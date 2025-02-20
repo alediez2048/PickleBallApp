@@ -44,7 +44,9 @@ export default function TabHomeScreen() {
           <View style={styles.buttonContainer}>
             <Button 
               onPress={() => router.push('/(tabs)/explore')} 
-              size="lg"
+              size="large"
+              variant="primary"
+              fullWidth
               style={styles.button}
             >
               Find Games

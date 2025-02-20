@@ -120,7 +120,9 @@ export default function EmailLoginScreen() {
 
               <Button 
                 onPress={handleLogin}
-                size="lg"
+                size="large"
+                variant="primary"
+                fullWidth
                 disabled={isLoading}
               >
                 Continue

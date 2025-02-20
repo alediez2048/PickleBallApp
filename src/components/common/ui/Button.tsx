@@ -5,6 +5,7 @@ import {
   View,
   ActivityIndicator,
   TouchableOpacityProps,
+  Platform,
 } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 
@@ -45,7 +46,7 @@ export const Button: React.FC<ButtonProps> = ({
       large: styles.large,
     };
 
-    return [
+    const computedStyles = [
       styles.base,
       variantStyles[variant],
       sizeStyles[size],
@@ -53,6 +54,19 @@ export const Button: React.FC<ButtonProps> = ({
       isDisabled && styles.disabled,
       style,
     ];
+
+    // Debug logging
+    console.debug('[Button Render]', {
+      text: typeof children === 'string' ? children : 'Custom children',
+      variant,
+      size,
+      isDisabled,
+      fullWidth,
+      customStyle: style,
+      computedStyles: computedStyles.filter(Boolean).map(s => Object.keys(s)),
+    });
+
+    return computedStyles;
   };
 
   const getTextStyle = () => {
@@ -63,11 +77,13 @@ export const Button: React.FC<ButtonProps> = ({
       danger: styles.dangerText,
     };
 
-    return [
+    const computedTextStyles = [
       styles.text,
       variantTextStyles[variant],
       isDisabled && styles.disabledText,
     ];
+
+    return computedTextStyles;
   };
 
   const buttonLabel = typeof children === 'string' ? children : accessibilityLabel;
@@ -106,7 +122,7 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: 20,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
@@ -130,19 +146,19 @@ const styles = StyleSheet.create({
     borderColor: '#DC2626',
   },
   small: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    minHeight: 32,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    minHeight: 36,
   },
   medium: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    minHeight: 40,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    minHeight: 44,
   },
   large: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    minHeight: 48,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    minHeight: 52,
   },
   fullWidth: {
     width: '100%',
@@ -156,6 +172,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
   primaryText: {
     color: '#FFFFFF',

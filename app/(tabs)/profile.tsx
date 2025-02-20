@@ -246,10 +246,11 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Skill Level</Text>
           <Button 
             variant="secondary" 
-            size="sm"
+            size="small"
             onPress={openSkillModal}
             disabled={updatingSkill || upcomingGames.length > 0}
             style={[
+              styles.editButton,
               upcomingGames.length > 0 && styles.disabledEditButton
             ]}
           >
@@ -336,7 +337,8 @@ export default function ProfileScreen() {
         <Button 
           variant="secondary" 
           onPress={signOut}
-          size="md"
+          size="medium"
+          fullWidth
           style={styles.signOutButton}
         >
           Sign Out
@@ -442,32 +444,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   editButton: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-      },
-      android: {
-        elevation: 5,
-      },
-      web: {
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)',
-      },
-    }),
+    minWidth: 80,
   },
   name: {
     fontSize: 24,
@@ -616,10 +593,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   signOutButton: {
-    width: '100%',
-    backgroundColor: '#f5f5f5',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    marginTop: 8,
   },
   disabledSkillOption: {
     opacity: 0.5,
