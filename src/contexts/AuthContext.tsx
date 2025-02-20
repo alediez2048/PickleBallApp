@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { router } from 'expo-router';
-import { mockApi } from '@/services/mockApi';
+import { mockApi, FirstTimeProfileData, UpdateProfileData } from '@/services/mockApi';
 import { storage } from '@/services/storage';
 import { socialAuth } from '@/services/socialAuth';
 import { Alert } from 'react-native';
@@ -16,6 +16,7 @@ interface User {
     base64: string;
     timestamp: number;
   };
+  hasCompletedProfile?: boolean;
 }
 
 interface AuthState {
@@ -24,22 +25,21 @@ interface AuthState {
   isLoading: boolean;
 }
 
-interface UpdateProfileData {
-  skillLevel?: string;
-  profileImage?: string | {
-    uri: string;
-    base64: string;
-    timestamp: number;
-  };
-}
-
 interface AuthContextType extends AuthState {
+  // Authentication methods
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
+  
+  // Social authentication methods
   signInWithGoogle: () => Promise<void>;
   signInWithFacebook: () => Promise<void>;
+  
+  // Profile management methods
   updateProfile: (data: UpdateProfileData) => Promise<void>;
+  updateFirstTimeProfile: (data: FirstTimeProfileData) => Promise<void>;
+  
+  // Auth state
   isAuthenticated: boolean;
 }
 
@@ -237,6 +237,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateFirstTimeProfile = async (data: FirstTimeProfileData) => {
+    try {
+      setState(prev => ({ ...prev, isLoading: true }));
+      
+      if (!state.user?.email) {
+        throw new Error('No authenticated user');
+      }
+
+      // Map FirstTimeProfileData to UpdateProfileData
+      const profileData: UpdateProfileData = {
+        skillLevel: data.skillLevel,
+        displayName: data.displayName,
+        phoneNumber: data.phoneNumber,
+        dateOfBirth: data.dateOfBirth,
+        address: data.address,
+        hasCompletedProfile: true
+      };
+
+      const { user: updatedUser } = await mockApi.updateProfile(state.user.email, profileData);
+      
+      // After successful profile update, update the stored user data
+      const userWithProfile = {
+        ...updatedUser,
+        hasCompletedProfile: true
+      };
+      
+      await storage.setItem('user', JSON.stringify(userWithProfile));
+      
+      setState(prev => ({
+        ...prev,
+        user: userWithProfile,
+        isLoading: false
+      }));
+
+      console.debug('Profile updated successfully:', userWithProfile);
+    } catch (error) {
+      console.error('Profile update error:', error);
+      setState(prev => ({ ...prev, isLoading: false }));
+      throw error;
+    }
+  };
+
   const value = {
     ...state,
     signIn,
@@ -245,6 +287,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGoogle,
     signInWithFacebook,
     updateProfile,
+    updateFirstTimeProfile,
     isAuthenticated: !!state.token,
   };
 

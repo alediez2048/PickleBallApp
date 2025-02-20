@@ -2,7 +2,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Slot, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -18,29 +18,49 @@ function RootLayoutNav() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const lastNavigationRef = useRef('');
 
   useEffect(() => {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inSkillGroup = segments[0] === '(skill-select)';
+    const inProfileSetup = segments[0] === '(profile-setup)';
+    const inMainApp = segments[0] === '(tabs)';
 
-    if (isAuthenticated) {
-      // Check if user needs to set skill level
-      if (!user?.skillLevel && segments[0] !== '(skill-select)') {
-        router.push('/(skill-select)');
-        return;
-      }
+    // Determine the target route based on current state
+    let targetRoute: '/(auth)/login' | '/(profile-setup)' | '/(skill-select)' | '/(tabs)' | null = null;
 
-      // If user has skill level and is in auth or skill select group, redirect to main app
-      if ((inAuthGroup || inSkillGroup) && user?.skillLevel) {
-        router.replace('/(tabs)');
+    if (!isAuthenticated) {
+      // If not authenticated, always go to login unless already in auth group
+      if (!inAuthGroup) {
+        targetRoute = '/(auth)/login';
       }
-    } else if (!inAuthGroup) {
-      // Redirect unauthenticated users to sign in
-      router.replace('/login');
+    } else {
+      // User is authenticated, determine next screen based on profile completion status
+      if (!user?.hasCompletedProfile && !inProfileSetup) {
+        targetRoute = '/(profile-setup)';
+      } else if (user?.hasCompletedProfile && !user?.skillLevel && !inSkillGroup) {
+        targetRoute = '/(skill-select)';
+      } else if (user?.hasCompletedProfile && user?.skillLevel && !inMainApp) {
+        targetRoute = '/(tabs)';
+      }
     }
-  }, [isAuthenticated, segments, isLoading, user?.skillLevel]);
+
+    // Only navigate if we have a target and it's different from our last navigation
+    if (targetRoute && targetRoute !== lastNavigationRef.current) {
+      console.debug('[Navigation]', {
+        from: segments.join('/'),
+        to: targetRoute,
+        auth: isAuthenticated,
+        profile: user?.hasCompletedProfile,
+        skill: user?.skillLevel
+      });
+      
+      lastNavigationRef.current = targetRoute;
+      router.replace(targetRoute);
+    }
+  }, [isAuthenticated, segments, isLoading, user?.skillLevel, user?.hasCompletedProfile]);
 
   return <Slot />;
 }

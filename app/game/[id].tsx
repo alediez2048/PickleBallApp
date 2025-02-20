@@ -10,13 +10,15 @@ import { mockApi } from '@/services/mockApi';
 import { SpotsAvailability } from '@/components/common/SpotsAvailability';
 import { GAME_CONSTANTS } from '@/types/game';
 import { RSVPList } from '@/components/common/RSVPList';
+import { FirstTimeProfileForm } from '@/components/profile/FirstTimeProfileForm';
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
+  const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [totalBookedPlayers, setTotalBookedPlayers] = useState(0);
   const { addBookedGame, cancelBooking } = useBookedGames();
@@ -167,6 +169,20 @@ export default function GameDetailsScreen() {
     }
   };
 
+  const handleBookButtonPress = () => {
+    // Check if user has completed their profile
+    if (!user?.hasCompletedProfile) {
+      setIsProfileFormVisible(true);
+    } else {
+      setIsBookingModalVisible(true);
+    }
+  };
+
+  const handleProfileComplete = () => {
+    setIsProfileFormVisible(false);
+    setIsBookingModalVisible(true);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -256,7 +272,7 @@ export default function GameDetailsScreen() {
               styles.reserveButton,
               game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.disabledButton
             ]}
-            onPress={() => setIsBookingModalVisible(true)}
+            onPress={handleBookButtonPress}
             activeOpacity={0.7}
             disabled={game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS}
           >
@@ -484,6 +500,26 @@ export default function GameDetailsScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Profile Form Modal */}
+      <Modal
+        visible={isProfileFormVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => !isLoading && setIsProfileFormVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, styles.profileFormContent]}>
+            <TouchableOpacity
+              onPress={() => !isLoading && setIsProfileFormVisible(false)}
+              style={styles.modalCloseButton}
+            >
+              <IconSymbol name="xmark" size={24} color="#666666" />
+            </TouchableOpacity>
+            <FirstTimeProfileForm onComplete={handleProfileComplete} />
           </View>
         </View>
       </Modal>
@@ -1103,5 +1139,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 16,
+  },
+  profileFormContent: {
+    width: '95%',
+    maxWidth: 500,
+    maxHeight: '90%',
   },
 }); 

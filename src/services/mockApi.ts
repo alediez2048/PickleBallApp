@@ -50,13 +50,24 @@ export interface SocialAuthCredentials {
   };
 }
 
-interface UpdateProfileData {
+export interface UpdateProfileData {
   skillLevel?: string;
   profileImage?: string | {
     uri: string;
     base64: string;
     timestamp: number;
   };
+  displayName?: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  address?: {
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  hasCompletedProfile?: boolean;
 }
 
 interface BookedGame {
@@ -109,6 +120,34 @@ interface GameHistory {
   result: 'win' | 'loss';
   score: string;
   opponent: string;
+}
+
+export interface FirstTimeProfileData {
+  displayName: string;
+  phoneNumber: string;
+  dateOfBirth: string;
+  address: {
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  skillLevel: string;
+  playingExperience: string;
+  preferredPlayStyle: string[];
+  membershipTier: string;
+  preferences: {
+    notifications: boolean;
+    emailUpdates: boolean;
+    matchAlerts: boolean;
+  };
+  waiverAccepted: boolean;
+  waiverSignedAt?: string;
+  termsAccepted: boolean;
+  termsAcceptedAt: string;
+  privacyPolicyAccepted: boolean;
+  privacyPolicyAcceptedAt: string;
 }
 
 const STORAGE_KEYS = {
