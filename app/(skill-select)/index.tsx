@@ -126,34 +126,9 @@ export default function SkillSelectScreen() {
     setExpandedSkill(expandedSkill === skill ? null : skill);
   };
 
-  const handleClose = () => {
-    Alert.alert(
-      'Skip Skill Selection?',
-      'Setting your skill level helps us match you with appropriate games. You can always change it later in your profile.',
-      [
-        {
-          text: 'Continue Setup',
-          style: 'cancel',
-        },
-        {
-          text: 'Skip for Now',
-          style: 'destructive',
-          onPress: () => router.replace('/(tabs)'),
-        },
-      ]
-    );
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={handleClose}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <IconSymbol name="xmark" size={24} color="#666666" />
-        </TouchableOpacity>
         <Text style={styles.title}>Select Your Skill Level</Text>
         <Text style={styles.subtitle}>
           Choose the level that best matches your current abilities.
@@ -381,31 +356,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40,
-    right: 24,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F5F5F5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
   },
 }); 
