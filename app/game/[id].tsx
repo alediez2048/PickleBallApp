@@ -171,15 +171,26 @@ export default function GameDetailsScreen() {
 
   const handleBookButtonPress = () => {
     // Check if user has completed their profile
+    console.debug('[GameDetails] Platform:', Platform.OS);
+    console.debug('[GameDetails] Book button pressed');
+    console.debug('[GameDetails] User profile status:', { hasCompletedProfile: user?.hasCompletedProfile });
+    
     if (!user?.hasCompletedProfile) {
+      console.debug('[GameDetails] Showing profile form modal');
+      // Show profile completion modal directly
       setIsProfileFormVisible(true);
-    } else {
-      setIsBookingModalVisible(true);
+      return;
     }
+    
+    console.debug('[GameDetails] Showing booking confirmation modal');
+    // Proceed with booking
+    setIsBookingModalVisible(true);
   };
 
   const handleProfileComplete = () => {
+    console.debug('[GameDetails] Profile completed, transitioning to booking modal');
     setIsProfileFormVisible(false);
+    // After profile completion, show the booking modal
     setIsBookingModalVisible(true);
   };
 
@@ -507,21 +518,26 @@ export default function GameDetailsScreen() {
       {/* Profile Form Modal */}
       <Modal
         visible={isProfileFormVisible}
-        animationType="fade"
+        animationType="slide"
         transparent={true}
         onRequestClose={() => !isLoading && setIsProfileFormVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, styles.profileFormContent]}>
-            <TouchableOpacity
-              onPress={() => !isLoading && setIsProfileFormVisible(false)}
-              style={styles.modalCloseButton}
-            >
-              <IconSymbol name="xmark" size={24} color="#666666" />
-            </TouchableOpacity>
-            <FirstTimeProfileForm onComplete={handleProfileComplete} />
+        <SafeAreaView style={styles.profileFormOverlay}>
+          <View style={styles.profileFormContainer}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity
+                onPress={() => !isLoading && setIsProfileFormVisible(false)}
+                style={styles.modalCloseButton}
+              >
+                <IconSymbol name="xmark" size={24} color="#666666" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Complete Your Profile</Text>
+            </View>
+            <ScrollView style={styles.profileFormScroll}>
+              <FirstTimeProfileForm onComplete={handleProfileComplete} />
+            </ScrollView>
           </View>
-        </View>
+        </SafeAreaView>
       </Modal>
     </SafeAreaView>
   );
@@ -682,6 +698,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: 16,
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
@@ -706,18 +723,16 @@ const styles = StyleSheet.create({
   },
   modalCloseButton: {
     position: 'absolute',
-    right: 16,
-    top: 16,
+    left: 16,
     padding: 8,
     zIndex: 1,
   },
   modalTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#000000',
-    marginTop: 12,
-    marginBottom: 24,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#111827',
     textAlign: 'center',
+    flex: 1,
   },
   bookingGameCard: {
     backgroundColor: '#F8F9FA',
@@ -1140,9 +1155,42 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-  profileFormContent: {
+  profileFormOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileFormContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     width: '95%',
     maxWidth: 500,
+    height: '90%',
     maxHeight: '90%',
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    position: 'relative',
+  },
+  profileFormScroll: {
+    flex: 1,
   },
 }); 

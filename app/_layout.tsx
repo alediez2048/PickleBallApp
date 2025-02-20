@@ -37,12 +37,10 @@ function RootLayoutNav() {
         targetRoute = '/(auth)/login';
       }
     } else {
-      // User is authenticated, determine next screen based on profile completion status
-      if (!user?.hasCompletedProfile && !inProfileSetup) {
-        targetRoute = '/(profile-setup)';
-      } else if (user?.hasCompletedProfile && !user?.skillLevel && !inSkillGroup) {
+      // User is authenticated, only check for skill level
+      if (!user?.skillLevel && !inSkillGroup) {
         targetRoute = '/(skill-select)';
-      } else if (user?.hasCompletedProfile && user?.skillLevel && !inMainApp) {
+      } else if (user?.skillLevel && !inMainApp) {
         targetRoute = '/(tabs)';
       }
     }

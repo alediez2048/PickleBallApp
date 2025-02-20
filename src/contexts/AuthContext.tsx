@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { mockApi, FirstTimeProfileData, UpdateProfileData } from '@/services/mockApi';
 import { storage } from '@/services/storage';
 import { socialAuth } from '@/services/socialAuth';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 interface User {
   id: string;
@@ -239,9 +239,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateFirstTimeProfile = async (data: FirstTimeProfileData) => {
     try {
+      console.debug('[AuthContext] Starting first time profile update', {
+        platform: Platform.OS,
+        hasUser: !!state.user,
+        userEmail: state.user?.email,
+        data
+      });
+
       setState(prev => ({ ...prev, isLoading: true }));
       
       if (!state.user?.email) {
+        console.error('[AuthContext] No authenticated user found');
         throw new Error('No authenticated user');
       }
 
@@ -255,25 +263,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         hasCompletedProfile: true
       };
 
+      console.debug('[AuthContext] Calling mockApi.updateProfile', {
+        email: state.user.email,
+        profileData
+      });
+
       const { user: updatedUser } = await mockApi.updateProfile(state.user.email, profileData);
       
+      console.debug('[AuthContext] Profile update API call successful', { updatedUser });
+
       // After successful profile update, update the stored user data
       const userWithProfile = {
         ...updatedUser,
         hasCompletedProfile: true
       };
       
+      console.debug('[AuthContext] Storing updated user data');
       await storage.setItem('user', JSON.stringify(userWithProfile));
       
+      console.debug('[AuthContext] Updating state with new user data');
       setState(prev => ({
         ...prev,
         user: userWithProfile,
         isLoading: false
       }));
 
-      console.debug('Profile updated successfully:', userWithProfile);
+      console.debug('[AuthContext] First time profile update completed successfully');
     } catch (error) {
-      console.error('Profile update error:', error);
+      console.error('[AuthContext] Profile update error:', error);
       setState(prev => ({ ...prev, isLoading: false }));
       throw error;
     }

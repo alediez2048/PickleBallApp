@@ -1,6 +1,7 @@
 import { storage } from './storage';
 import { MOCK_GAMES } from '@/utils/mockData';
 import { Game } from '@/types/game';
+import { Platform } from 'react-native';
 
 // Simulated network delay
 const NETWORK_DELAY = 1000;
@@ -110,6 +111,17 @@ interface MockUser {
     base64: string;
     timestamp: number;
   };
+  displayName?: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  address?: {
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  hasCompletedProfile?: boolean;
   gamesPlayed?: GameHistory[];
   bookedGames?: BookedGame[];
 }
@@ -148,6 +160,7 @@ export interface FirstTimeProfileData {
   termsAcceptedAt: string;
   privacyPolicyAccepted: boolean;
   privacyPolicyAcceptedAt: string;
+  hasCompletedProfile?: boolean;
 }
 
 const STORAGE_KEYS = {
@@ -398,23 +411,46 @@ class MockApi {
   }
 
   async updateProfile(email: string, data: UpdateProfileData): Promise<{ user: Omit<MockUser, 'password' | 'verificationToken'> }> {
-    console.log('MockApi: Starting profile update for:', email, 'with data:', data);
+    console.debug('[MockApi] Starting profile update', {
+      platform: Platform.OS,
+      email,
+      data: JSON.stringify(data, null, 2)
+    });
     
     try {
       // Load latest user data from storage
       await this.loadMockUsers();
+      console.debug('[MockApi] Loaded mock users from storage');
       
       const user = this.MOCK_USERS.get(email);
       if (!user) {
-        console.error('MockApi: User not found for email:', email);
+        console.error('[MockApi] User not found for email:', email);
         throw new Error('User not found');
       }
+      console.debug('[MockApi] Found existing user:', {
+        id: user.id,
+        email: user.email,
+        currentSkillLevel: user.skillLevel
+      });
 
       let updatedUser = { ...user };
+      console.debug('[MockApi] Created updated user object');
 
-      // Check for skill level change
+      // Process all fields from UpdateProfileData that exist in MockUser
+      const allowedFields = ['skillLevel', 'profileImage', 'displayName', 'phoneNumber', 'dateOfBirth', 'address', 'hasCompletedProfile'] as const;
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && allowedFields.includes(key as typeof allowedFields[number])) {
+          console.debug(`[MockApi] Updating field: ${key}`, { value });
+          (updatedUser as any)[key] = value;
+        }
+      });
+
+      // Check for skill level change specifically
       if (data.skillLevel !== undefined && data.skillLevel !== user.skillLevel) {
-        console.log('MockApi: Attempting to update skill level to:', data.skillLevel);
+        console.debug('[MockApi] Attempting to update skill level', {
+          current: user.skillLevel,
+          new: data.skillLevel
+        });
         
         // Check for active bookings
         const activeBookings = user.bookedGames?.filter(
@@ -422,16 +458,17 @@ class MockApi {
         ) || [];
 
         if (activeBookings.length > 0) {
-          console.error('MockApi: Cannot change skill level with active bookings');
+          console.error('[MockApi] Cannot change skill level with active bookings');
           throw new Error('Cannot change skill level while you have upcoming games. Please complete or cancel your existing games first.');
         }
 
         updatedUser.skillLevel = data.skillLevel;
+        console.debug('[MockApi] Skill level updated successfully');
       }
 
       // Handle profile image update
       if (data.profileImage) {
-        console.log('MockApi: Updating profile image');
+        console.debug('[MockApi] Updating profile image');
         if (typeof data.profileImage === 'string') {
           updatedUser.profileImage = data.profileImage;
         } else {
@@ -441,19 +478,26 @@ class MockApi {
             timestamp: data.profileImage.timestamp
           };
         }
+        console.debug('[MockApi] Profile image updated successfully');
       }
 
       // Update user in the map
       this.MOCK_USERS.set(email, updatedUser);
+      console.debug('[MockApi] Updated user in MOCK_USERS map');
       
       // Save changes immediately
       await this.saveMockUsers();
-      console.log('MockApi: Profile updated successfully');
+      console.debug('[MockApi] Saved changes to storage');
 
       const { password: _, verificationToken: __, ...userWithoutPassword } = updatedUser;
+      console.debug('[MockApi] Profile update completed successfully', {
+        updatedFields: Object.keys(data),
+        hasCompletedProfile: updatedUser.hasCompletedProfile
+      });
+
       return { user: userWithoutPassword };
     } catch (error) {
-      console.error('MockApi: Error updating profile:', error);
+      console.error('[MockApi] Error updating profile:', error);
       throw error;
     }
   }

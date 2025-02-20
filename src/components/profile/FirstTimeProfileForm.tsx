@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,6 +7,8 @@ import {
   Platform,
   Alert,
   TouchableOpacity,
+  Dimensions,
+  LayoutChangeEvent,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Button } from '@components/common/ui/Button';
@@ -75,9 +77,11 @@ interface FormData {
 export function FirstTimeProfileForm({
   onComplete,
 }: FirstTimeProfileFormProps) {
+  console.debug('[FirstTimeProfileForm] Component mounting', Platform.OS);
+
   const { user, updateFirstTimeProfile } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [form, setForm] = useState<FormData>({
     displayName: '',
     phoneNumber: '',
     dateOfBirth: '',
@@ -85,7 +89,7 @@ export function FirstTimeProfileForm({
     city: '',
     state: '',
     zipCode: '',
-    country: '',
+    country: 'United States',
     skillLevel: SkillLevel.Beginner,
     playingExperience: 0,
     preferredPlayStyle: [],
@@ -97,41 +101,105 @@ export function FirstTimeProfileForm({
   const [activeModal, setActiveModal] = useState<'terms' | 'privacy' | 'waiver' | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<SkillLevel>(SkillLevel.Beginner);
   const [showSkillDescription, setShowSkillDescription] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  console.debug('[FirstTimeProfileForm] Component mounted', { platform: Platform.OS });
+
+  useEffect(() => {
+    const dimensions = Dimensions.get('window');
+    console.debug('[FirstTimeProfileForm] Initial render', {
+      platform: Platform.OS,
+      windowDimensions: dimensions,
+      formFields: {
+        displayName: form.displayName !== undefined,
+        phoneNumber: form.phoneNumber !== undefined,
+        dateOfBirth: form.dateOfBirth !== undefined,
+        address: form.address !== undefined,
+      }
+    });
+  }, []);
+
+  const onLayout = (event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    console.debug('[FirstTimeProfileForm] Form layout measured', {
+      width,
+      height,
+      platform: Platform.OS,
+      isVisible: true
+    });
+  };
 
   const handleSubmit = async () => {
-    try {
-      setIsLoading(true);
-      console.debug('[FirstTimeProfileForm] Submitting profile data:', formData);
+    console.debug('[FirstTimeProfileForm] Starting form submission', {
+      platform: Platform.OS,
+      formData: form
+    });
 
-      await updateFirstTimeProfile({
-        displayName: formData.displayName,
-        phoneNumber: formData.phoneNumber,
-        dateOfBirth: formData.dateOfBirth,
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      // Validate required fields
+      if (!form.displayName?.trim()) {
+        console.debug('[FirstTimeProfileForm] Validation failed: displayName required');
+        setError('Display name is required');
+        return;
+      }
+
+      if (!form.phoneNumber?.trim()) {
+        console.debug('[FirstTimeProfileForm] Validation failed: phoneNumber required');
+        setError('Phone number is required');
+        return;
+      }
+
+      if (!form.dateOfBirth) {
+        console.debug('[FirstTimeProfileForm] Validation failed - missing date of birth');
+        setError('Date of birth is required');
+        return;
+      }
+
+      const profileData: FirstTimeProfileData = {
+        displayName: form.displayName.trim(),
+        phoneNumber: form.phoneNumber.trim(),
+        dateOfBirth: form.dateOfBirth,
         address: {
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
-          country: formData.country,
+          address: form.address.trim(),
+          city: form.city.trim(),
+          state: form.state.trim(),
+          zipCode: form.zipCode.trim(),
+          country: form.country
         },
-        skillLevel: formData.skillLevel,
-        playingExperience: formData.playingExperience,
-        preferredPlayStyle: formData.preferredPlayStyle,
-        waiverAccepted: formData.waiverAccepted,
-        termsAccepted: formData.termsAccepted,
-        privacyPolicyAccepted: formData.privacyPolicyAccepted,
+        skillLevel: form.skillLevel,
+        playingExperience: form.playingExperience.toString(),
+        preferredPlayStyle: form.preferredPlayStyle,
+        membershipTier: 'free',
+        preferences: {
+          notifications: true,
+          emailUpdates: true,
+          matchAlerts: true
+        },
+        waiverAccepted: form.waiverAccepted,
+        waiverSignedAt: new Date().toISOString(),
+        termsAccepted: form.termsAccepted,
+        termsAcceptedAt: new Date().toISOString(),
+        privacyPolicyAccepted: form.privacyPolicyAccepted,
+        privacyPolicyAcceptedAt: new Date().toISOString(),
+        hasCompletedProfile: true
+      };
+
+      console.debug('[FirstTimeProfileForm] Calling updateFirstTimeProfile', {
+        profileData: JSON.stringify(profileData, null, 2)
       });
 
-      console.debug('[FirstTimeProfileForm] Profile updated successfully');
+      await updateFirstTimeProfile(profileData);
+      
+      console.debug('[FirstTimeProfileForm] Profile update successful');
       onComplete();
-    } catch (error) {
-      console.error('[FirstTimeProfileForm] Error updating profile:', error);
-      Alert.alert(
-        'Error',
-        'Failed to update profile. Please try again.'
-      );
+    } catch (err) {
+      console.error('[FirstTimeProfileForm] Profile update failed:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -139,20 +207,20 @@ export function FirstTimeProfileForm({
     const now = new Date().toISOString();
     switch (activeModal) {
       case 'terms':
-        setFormData(prev => ({ ...prev, termsAccepted: true, termsAcceptedAt: now }));
+        setForm(prev => ({ ...prev, termsAccepted: true, termsAcceptedAt: now }));
         break;
       case 'privacy':
-        setFormData(prev => ({ ...prev, privacyPolicyAccepted: true, privacyPolicyAcceptedAt: now }));
+        setForm(prev => ({ ...prev, privacyPolicyAccepted: true, privacyPolicyAcceptedAt: now }));
         break;
       case 'waiver':
-        setFormData(prev => ({ ...prev, waiverAccepted: true, waiverSignedAt: now }));
+        setForm(prev => ({ ...prev, waiverAccepted: true, waiverSignedAt: now }));
         break;
     }
     setActiveModal(null);
   };
 
   const handlePlayStyleToggle = (style: PlayStyle) => {
-    setFormData(prev => {
+    setForm(prev => {
       const newPlayStyles = prev.preferredPlayStyle.includes(style)
         ? prev.preferredPlayStyle.filter(s => s !== style)
         : [...prev.preferredPlayStyle, style];
@@ -164,292 +232,301 @@ export function FirstTimeProfileForm({
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <View 
       style={styles.container}
+      onLayout={onLayout}
     >
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.content}>
-          <ThemedText variant="title" style={styles.title}>
-            Complete Your Profile
-          </ThemedText>
-          <ThemedText variant="subtitle" style={styles.subtitle}>
-            Tell us a bit about yourself to get started
-          </ThemedText>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+      >
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.content}>
+            <ThemedText variant="title" style={styles.title}>
+              Complete Your Profile
+            </ThemedText>
+            <ThemedText variant="subtitle" style={styles.subtitle}>
+              Tell us a bit about yourself to get started
+            </ThemedText>
 
-          <View style={styles.form}>
-            <TextInput
-              label="Display Name"
-              value={formData.displayName}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, displayName: text }))}
-              error={errors.displayName}
-              autoCapitalize="words"
-              editable={!isLoading}
-            />
+            <View style={styles.form}>
+              <TextInput
+                label="Display Name"
+                value={form.displayName}
+                onChangeText={(text) => setForm(prev => ({ ...prev, displayName: text }))}
+                error={errors.displayName}
+                autoCapitalize="words"
+                editable={!isSubmitting}
+              />
 
-            <TextInput
-              label="Phone Number"
-              value={formData.phoneNumber}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, phoneNumber: text }))}
-              error={errors.phoneNumber}
-              keyboardType="phone-pad"
-              editable={!isLoading}
-            />
+              <TextInput
+                label="Phone Number"
+                value={form.phoneNumber}
+                onChangeText={(text) => setForm(prev => ({ ...prev, phoneNumber: text }))}
+                error={errors.phoneNumber}
+                keyboardType="phone-pad"
+                editable={!isSubmitting}
+              />
 
-            <TextInput
-              label="Date of Birth"
-              value={formData.dateOfBirth}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, dateOfBirth: text }))}
-              error={errors.dateOfBirth}
-              placeholder="YYYY-MM-DD"
-              editable={!isLoading}
-            />
+              <TextInput
+                label="Date of Birth"
+                value={form.dateOfBirth}
+                onChangeText={(text) => setForm(prev => ({ ...prev, dateOfBirth: text }))}
+                error={errors.dateOfBirth}
+                placeholder="YYYY-MM-DD"
+                editable={!isSubmitting}
+              />
 
-            <TextInput
-              label="Address"
-              value={formData.address}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, address: text }))}
-              error={errors.address}
-              editable={!isLoading}
-            />
+              <TextInput
+                label="Address"
+                value={form.address}
+                onChangeText={(text) => setForm(prev => ({ ...prev, address: text }))}
+                error={errors.address}
+                editable={!isSubmitting}
+              />
 
-            <View style={styles.row}>
-              <View style={styles.halfWidth}>
-                <TextInput
-                  label="City"
-                  value={formData.city}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, city: text }))}
-                  error={errors.city}
-                  editable={!isLoading}
-                />
-              </View>
-              <View style={styles.halfWidth}>
-                <TextInput
-                  label="State"
-                  value={formData.state}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, state: text }))}
-                  error={errors.state}
-                  editable={!isLoading}
-                />
-              </View>
-            </View>
-
-            <View style={styles.row}>
-              <View style={styles.halfWidth}>
-                <TextInput
-                  label="ZIP Code"
-                  value={formData.zipCode}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, zipCode: text }))}
-                  error={errors.zipCode}
-                  keyboardType="numeric"
-                  editable={!isLoading}
-                />
-              </View>
-              <View style={styles.halfWidth}>
-                <TextInput
-                  label="Country"
-                  value={formData.country}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, country: text }))}
-                  error={errors.country}
-                  editable={!isLoading}
-                />
-              </View>
-            </View>
-
-            {/* Skill Level Selection */}
-            <View style={styles.section}>
-              <ThemedText variant="subtitle" style={styles.sectionTitle}>
-                Playing Experience
-              </ThemedText>
-              
-              <View style={styles.skillLevelContainer}>
-                <ThemedText variant="body">Skill Level</ThemedText>
-                <View style={styles.skillButtonsContainer}>
-                  {SKILL_LEVELS.map((level) => (
-                    <TouchableOpacity
-                      key={level.value}
-                      style={[
-                        styles.skillButton,
-                        selectedSkill === level.value && styles.selectedSkillButton,
-                      ]}
-                      onPress={() => setSelectedSkill(level.value)}
-                    >
-                      <ThemedText
-                        style={[
-                          styles.skillButtonText,
-                          selectedSkill === level.value && styles.selectedSkillButtonText,
-                        ]}
-                      >
-                        {level.label}
-                      </ThemedText>
-                    </TouchableOpacity>
-                  ))}
+              <View style={styles.row}>
+                <View style={styles.halfWidth}>
+                  <TextInput
+                    label="City"
+                    value={form.city}
+                    onChangeText={(text) => setForm(prev => ({ ...prev, city: text }))}
+                    error={errors.city}
+                    editable={!isSubmitting}
+                  />
                 </View>
+                <View style={styles.halfWidth}>
+                  <TextInput
+                    label="State"
+                    value={form.state}
+                    onChangeText={(text) => setForm(prev => ({ ...prev, state: text }))}
+                    error={errors.state}
+                    editable={!isSubmitting}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.row}>
+                <View style={styles.halfWidth}>
+                  <TextInput
+                    label="ZIP Code"
+                    value={form.zipCode}
+                    onChangeText={(text) => setForm(prev => ({ ...prev, zipCode: text }))}
+                    error={errors.zipCode}
+                    keyboardType="numeric"
+                    editable={!isSubmitting}
+                  />
+                </View>
+                <View style={styles.halfWidth}>
+                  <TextInput
+                    label="Country"
+                    value={form.country}
+                    onChangeText={(text) => setForm(prev => ({ ...prev, country: text }))}
+                    error={errors.country}
+                    editable={!isSubmitting}
+                  />
+                </View>
+              </View>
+
+              {/* Skill Level Selection */}
+              <View style={styles.section}>
+                <ThemedText variant="subtitle" style={styles.sectionTitle}>
+                  Playing Experience
+                </ThemedText>
                 
-                <TouchableOpacity
-                  style={styles.infoButton}
-                  onPress={() => setShowSkillDescription(!showSkillDescription)}
-                >
-                  <IconSymbol
-                    name={showSkillDescription ? 'checkmark' : 'person.fill'}
-                    size={20}
-                    color="#666666"
-                  />
-                  <ThemedText variant="caption" style={styles.infoButtonText}>
-                    {showSkillDescription ? 'Hide Description' : 'What\'s my level?'}
-                  </ThemedText>
-                </TouchableOpacity>
-
-                {showSkillDescription && (
-                  <View style={styles.skillDescription}>
-                    <ThemedText variant="body">
-                      {SKILL_LEVELS.find(level => level.value === selectedSkill)?.description}
-                    </ThemedText>
-                  </View>
-                )}
-              </View>
-
-              {/* Playing Experience */}
-              <View style={styles.experienceContainer}>
-                <ThemedText variant="body">Playing Experience</ThemedText>
-                <TextInput
-                  label="Months of Experience"
-                  value={formData.playingExperience.toString()}
-                  onChangeText={(text) => 
-                    setFormData(prev => ({ 
-                      ...prev, 
-                      playingExperience: parseInt(text) || 0 
-                    }))
-                  }
-                  keyboardType="numeric"
-                  error={errors.playingExperience}
-                  editable={!isLoading}
-                />
-              </View>
-
-              {/* Preferred Play Style */}
-              <View style={styles.playStyleContainer}>
-                <ThemedText variant="body">Preferred Play Style</ThemedText>
-                <View style={styles.playStyleButtons}>
-                  {PLAY_STYLES.map((style) => (
-                    <TouchableOpacity
-                      key={style.value}
-                      style={[
-                        styles.playStyleButton,
-                        formData.preferredPlayStyle.includes(style.value) && styles.selectedPlayStyleButton,
-                      ]}
-                      onPress={() => handlePlayStyleToggle(style.value as PlayStyle)}
-                    >
-                      <ThemedText
+                <View style={styles.skillLevelContainer}>
+                  <ThemedText variant="body">Skill Level</ThemedText>
+                  <View style={styles.skillButtonsContainer}>
+                    {SKILL_LEVELS.map((level) => (
+                      <TouchableOpacity
+                        key={level.value}
                         style={[
-                          styles.playStyleButtonText,
-                          formData.preferredPlayStyle.includes(style.value) && styles.selectedPlayStyleButtonText,
+                          styles.skillButton,
+                          selectedSkill === level.value && styles.selectedSkillButton,
                         ]}
+                        onPress={() => setSelectedSkill(level.value)}
                       >
-                        {style.label}
+                        <ThemedText
+                          style={[
+                            styles.skillButtonText,
+                            selectedSkill === level.value && styles.selectedSkillButtonText,
+                          ]}
+                        >
+                          {level.label}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  
+                  <TouchableOpacity
+                    style={styles.infoButton}
+                    onPress={() => setShowSkillDescription(!showSkillDescription)}
+                  >
+                    <IconSymbol
+                      name={showSkillDescription ? 'checkmark' : 'person.fill'}
+                      size={20}
+                      color="#666666"
+                    />
+                    <ThemedText variant="caption" style={styles.infoButtonText}>
+                      {showSkillDescription ? 'Hide Description' : 'What\'s my level?'}
+                    </ThemedText>
+                  </TouchableOpacity>
+
+                  {showSkillDescription && (
+                    <View style={styles.skillDescription}>
+                      <ThemedText variant="body">
+                        {SKILL_LEVELS.find(level => level.value === selectedSkill)?.description}
                       </ThemedText>
-                    </TouchableOpacity>
-                  ))}
+                    </View>
+                  )}
+                </View>
+
+                {/* Playing Experience */}
+                <View style={styles.experienceContainer}>
+                  <ThemedText variant="body">Playing Experience</ThemedText>
+                  <TextInput
+                    label="Months of Experience"
+                    value={form.playingExperience.toString()}
+                    onChangeText={(text) => 
+                      setForm(prev => ({ 
+                        ...prev, 
+                        playingExperience: parseInt(text) || 0 
+                      }))
+                    }
+                    keyboardType="numeric"
+                    error={errors.playingExperience}
+                    editable={!isSubmitting}
+                  />
+                </View>
+
+                {/* Preferred Play Style */}
+                <View style={styles.playStyleContainer}>
+                  <ThemedText variant="body">Preferred Play Style</ThemedText>
+                  <View style={styles.playStyleButtons}>
+                    {PLAY_STYLES.map((style) => (
+                      <TouchableOpacity
+                        key={style.value}
+                        style={[
+                          styles.playStyleButton,
+                          form.preferredPlayStyle.includes(style.value) && styles.selectedPlayStyleButton,
+                        ]}
+                        onPress={() => handlePlayStyleToggle(style.value as PlayStyle)}
+                      >
+                        <ThemedText
+                          style={[
+                            styles.playStyleButtonText,
+                            form.preferredPlayStyle.includes(style.value) && styles.selectedPlayStyleButtonText,
+                          ]}
+                        >
+                          {style.label}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              </View>
+
+              {/* Legal Agreements */}
+              <View style={styles.section}>
+                <ThemedText variant="subtitle" style={styles.sectionTitle}>
+                  Legal Agreements
+                </ThemedText>
+                
+                <View style={styles.legalContainer}>
+                  <TouchableOpacity
+                    style={[styles.legalButton, form.termsAccepted && styles.acceptedLegalButton]}
+                    onPress={() => setActiveModal('terms')}
+                  >
+                    <IconSymbol
+                      name={form.termsAccepted ? 'checkmark' : 'person.fill'}
+                      size={24}
+                      color={form.termsAccepted ? '#4CAF50' : '#666666'}
+                    />
+                    <ThemedText style={styles.legalButtonText}>
+                      Accept Terms & Conditions
+                    </ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.legalButton, form.privacyPolicyAccepted && styles.acceptedLegalButton]}
+                    onPress={() => setActiveModal('privacy')}
+                  >
+                    <IconSymbol
+                      name={form.privacyPolicyAccepted ? 'checkmark' : 'person.fill'}
+                      size={24}
+                      color={form.privacyPolicyAccepted ? '#4CAF50' : '#666666'}
+                    />
+                    <ThemedText style={styles.legalButtonText}>
+                      Accept Privacy Policy
+                    </ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.legalButton, form.waiverAccepted && styles.acceptedLegalButton]}
+                    onPress={() => setActiveModal('waiver')}
+                  >
+                    <IconSymbol
+                      name={form.waiverAccepted ? 'checkmark' : 'person.fill'}
+                      size={24}
+                      color={form.waiverAccepted ? '#4CAF50' : '#666666'}
+                    />
+                    <ThemedText style={styles.legalButtonText}>
+                      Accept Liability Waiver
+                    </ThemedText>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
 
-            {/* Legal Agreements */}
-            <View style={styles.section}>
-              <ThemedText variant="subtitle" style={styles.sectionTitle}>
-                Legal Agreements
-              </ThemedText>
-              
-              <View style={styles.legalContainer}>
-                <TouchableOpacity
-                  style={[styles.legalButton, formData.termsAccepted && styles.acceptedLegalButton]}
-                  onPress={() => setActiveModal('terms')}
-                >
-                  <IconSymbol
-                    name={formData.termsAccepted ? 'checkmark' : 'person.fill'}
-                    size={24}
-                    color={formData.termsAccepted ? '#4CAF50' : '#666666'}
-                  />
-                  <ThemedText style={styles.legalButtonText}>
-                    Accept Terms & Conditions
-                  </ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.legalButton, formData.privacyPolicyAccepted && styles.acceptedLegalButton]}
-                  onPress={() => setActiveModal('privacy')}
-                >
-                  <IconSymbol
-                    name={formData.privacyPolicyAccepted ? 'checkmark' : 'person.fill'}
-                    size={24}
-                    color={formData.privacyPolicyAccepted ? '#4CAF50' : '#666666'}
-                  />
-                  <ThemedText style={styles.legalButtonText}>
-                    Accept Privacy Policy
-                  </ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.legalButton, formData.waiverAccepted && styles.acceptedLegalButton]}
-                  onPress={() => setActiveModal('waiver')}
-                >
-                  <IconSymbol
-                    name={formData.waiverAccepted ? 'checkmark' : 'person.fill'}
-                    size={24}
-                    color={formData.waiverAccepted ? '#4CAF50' : '#666666'}
-                  />
-                  <ThemedText style={styles.legalButtonText}>
-                    Accept Liability Waiver
-                  </ThemedText>
-                </TouchableOpacity>
-              </View>
+            <View style={styles.actions}>
+              <Button
+                onPress={handleSubmit}
+                disabled={isSubmitting}
+                loading={isSubmitting}
+                style={styles.submitButton}
+              >
+                {isSubmitting ? 'Saving...' : 'Complete Profile'}
+              </Button>
             </View>
           </View>
+        </ScrollView>
 
-          <Button
-            variant="primary"
-            size="large"
-            onPress={handleSubmit}
-            loading={isLoading}
-            disabled={isLoading || !formData.termsAccepted || !formData.privacyPolicyAccepted || !formData.waiverAccepted}
-            style={styles.submitButton}
-          >
-            Complete Profile
-          </Button>
-        </View>
-      </ScrollView>
-
-      <TermsModal
-        visible={activeModal !== null}
-        onClose={() => setActiveModal(null)}
-        onAccept={handleTermsAccept}
-        type={activeModal || 'terms'}
-        isLoading={isLoading}
-      />
-    </KeyboardAvoidingView>
+        <TermsModal
+          visible={activeModal !== null}
+          type={activeModal || 'terms'}
+          onAccept={handleTermsAccept}
+          onClose={() => setActiveModal(null)}
+        />
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    padding: 16,
+    backgroundColor: '#FFFFFF',
   },
   scrollView: {
     flex: 1,
+    width: '100%',
   },
   content: {
     padding: 24,
-    paddingBottom: 48,
+    paddingBottom: 40,
   },
   title: {
+    fontSize: 24,
+    fontWeight: 'bold',
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
-    marginBottom: 32,
+    fontSize: 16,
+    color: '#666666',
+    marginBottom: 24,
     textAlign: 'center',
-    color: '#666',
   },
   form: {
     gap: 16,
@@ -457,12 +534,16 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: 12,
+    marginBottom: 16,
   },
   halfWidth: {
     flex: 1,
   },
-  submitButton: {
+  actions: {
     marginTop: 24,
+  },
+  submitButton: {
+    width: '100%',
   },
   section: {
     marginBottom: 32,
