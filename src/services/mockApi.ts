@@ -145,7 +145,7 @@ export interface FirstTimeProfileData {
     zipCode: string;
     country: string;
   };
-  skillLevel: string;
+  skillLevel?: string;
   playingExperience: string;
   preferredPlayStyle: string[];
   membershipTier: string;

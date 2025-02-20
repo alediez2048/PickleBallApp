@@ -66,7 +66,6 @@ interface FormData {
   state: string;
   zipCode: string;
   country: string;
-  skillLevel: SkillLevel;
   playingExperience: number;
   preferredPlayStyle: PlayStyle[];
   waiverAccepted: boolean;
@@ -90,7 +89,6 @@ export function FirstTimeProfileForm({
     state: '',
     zipCode: '',
     country: 'United States',
-    skillLevel: SkillLevel.Beginner,
     playingExperience: 0,
     preferredPlayStyle: [],
     waiverAccepted: false,
@@ -169,7 +167,6 @@ export function FirstTimeProfileForm({
           zipCode: form.zipCode.trim(),
           country: form.country
         },
-        skillLevel: form.skillLevel,
         playingExperience: form.playingExperience.toString(),
         preferredPlayStyle: form.preferredPlayStyle,
         membershipTier: 'free',
@@ -334,54 +331,6 @@ export function FirstTimeProfileForm({
                   Playing Experience
                 </ThemedText>
                 
-                <View style={styles.skillLevelContainer}>
-                  <ThemedText variant="body">Skill Level</ThemedText>
-                  <View style={styles.skillButtonsContainer}>
-                    {SKILL_LEVELS.map((level) => (
-                      <TouchableOpacity
-                        key={level.value}
-                        style={[
-                          styles.skillButton,
-                          selectedSkill === level.value && styles.selectedSkillButton,
-                        ]}
-                        onPress={() => setSelectedSkill(level.value)}
-                      >
-                        <ThemedText
-                          style={[
-                            styles.skillButtonText,
-                            selectedSkill === level.value && styles.selectedSkillButtonText,
-                          ]}
-                        >
-                          {level.label}
-                        </ThemedText>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                  
-                  <TouchableOpacity
-                    style={styles.infoButton}
-                    onPress={() => setShowSkillDescription(!showSkillDescription)}
-                  >
-                    <IconSymbol
-                      name={showSkillDescription ? 'checkmark' : 'person.fill'}
-                      size={20}
-                      color="#666666"
-                    />
-                    <ThemedText variant="caption" style={styles.infoButtonText}>
-                      {showSkillDescription ? 'Hide Description' : 'What\'s my level?'}
-                    </ThemedText>
-                  </TouchableOpacity>
-
-                  {showSkillDescription && (
-                    <View style={styles.skillDescription}>
-                      <ThemedText variant="body">
-                        {SKILL_LEVELS.find(level => level.value === selectedSkill)?.description}
-                      </ThemedText>
-                    </View>
-                  )}
-                </View>
-
-                {/* Playing Experience */}
                 <View style={styles.experienceContainer}>
                   <ThemedText variant="body">Playing Experience</ThemedText>
                   <TextInput
@@ -398,31 +347,31 @@ export function FirstTimeProfileForm({
                     editable={!isSubmitting}
                   />
                 </View>
+              </View>
 
-                {/* Preferred Play Style */}
-                <View style={styles.playStyleContainer}>
-                  <ThemedText variant="body">Preferred Play Style</ThemedText>
-                  <View style={styles.playStyleButtons}>
-                    {PLAY_STYLES.map((style) => (
-                      <TouchableOpacity
-                        key={style.value}
+              {/* Preferred Play Style */}
+              <View style={styles.playStyleContainer}>
+                <ThemedText variant="body">Preferred Play Style</ThemedText>
+                <View style={styles.playStyleButtons}>
+                  {PLAY_STYLES.map((style) => (
+                    <TouchableOpacity
+                      key={style.value}
+                      style={[
+                        styles.playStyleButton,
+                        form.preferredPlayStyle.includes(style.value) && styles.selectedPlayStyleButton,
+                      ]}
+                      onPress={() => handlePlayStyleToggle(style.value as PlayStyle)}
+                    >
+                      <ThemedText
                         style={[
-                          styles.playStyleButton,
-                          form.preferredPlayStyle.includes(style.value) && styles.selectedPlayStyleButton,
+                          styles.playStyleButtonText,
+                          form.preferredPlayStyle.includes(style.value) && styles.selectedPlayStyleButtonText,
                         ]}
-                        onPress={() => handlePlayStyleToggle(style.value as PlayStyle)}
                       >
-                        <ThemedText
-                          style={[
-                            styles.playStyleButtonText,
-                            form.preferredPlayStyle.includes(style.value) && styles.selectedPlayStyleButtonText,
-                          ]}
-                        >
-                          {style.label}
-                        </ThemedText>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                        {style.label}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  ))}
                 </View>
               </View>
 
@@ -552,49 +501,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 18,
     fontWeight: '600',
-  },
-  skillLevelContainer: {
-    marginBottom: 24,
-  },
-  skillButtonsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 8,
-  },
-  skillButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#fff',
-  },
-  selectedSkillButton: {
-    borderColor: '#4CAF50',
-    backgroundColor: '#4CAF50',
-  },
-  skillButtonText: {
-    color: '#666666',
-  },
-  selectedSkillButtonText: {
-    color: '#fff',
-  },
-  infoButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    padding: 8,
-  },
-  infoButtonText: {
-    marginLeft: 8,
-    color: '#666666',
-  },
-  skillDescription: {
-    marginTop: 8,
-    padding: 12,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
   },
   experienceContainer: {
     marginBottom: 24,

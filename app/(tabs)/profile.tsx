@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Alert, Platform, SafeAreaView, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useUserProfile } from '@/contexts/selectors/authSelectors';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -7,6 +7,7 @@ import { useUpcomingGames } from '@/contexts/selectors/gameSelectors';
 import { Button } from '@/components/common/ui/Button';
 import { SkillLevel } from '@/types/game';
 import { useAuth } from '@/contexts/AuthContext';
+import { FirstTimeProfileForm } from '@/components/profile/FirstTimeProfileForm';
 
 interface GameHistory {
   id: string;
@@ -28,6 +29,14 @@ interface UserProfile {
     timestamp: number;
   };
   gamesPlayed?: GameHistory[];
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+  };
 }
 
 const SKILL_LEVELS = [
@@ -41,119 +50,9 @@ export default function ProfileScreen() {
   const user = useUserProfile() as UserProfile;
   const { updateProfile, signOut } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
-  const [isSkillModalVisible, setIsSkillModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [updatingSkill, setUpdatingSkill] = useState(false);
-  const [selectedSkill, setSelectedSkill] = useState<string | undefined>(user?.skillLevel);
+  const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
   const upcomingGames = useUpcomingGames();
-
-  // Update selected skill when user profile changes
-  React.useEffect(() => {
-    if (!updatingSkill) {
-      setSelectedSkill(user?.skillLevel);
-    }
-  }, [user?.skillLevel, updatingSkill]);
-
-  // Reset states when modal is closed
-  const handleCloseModal = React.useCallback(() => {
-    setIsSkillModalVisible(false);
-    setUpdatingSkill(false);
-    setSelectedSkill(user?.skillLevel);
-  }, [user?.skillLevel]);
-
-  const showErrorAlert = React.useCallback((errorMessage: string, hasUpcomingGames: boolean) => {
-    if (hasUpcomingGames) {
-      Alert.alert(
-        'Cannot Update Skill Level',
-        'You have upcoming games booked. You must complete or cancel your existing games before changing your skill level.',
-        [
-          {
-            text: 'View My Games',
-            onPress: handleCloseModal,
-            style: 'default'
-          },
-          {
-            text: 'Cancel',
-            onPress: handleCloseModal,
-            style: 'cancel'
-          }
-        ],
-        { 
-          cancelable: false,
-          onDismiss: handleCloseModal 
-        }
-      );
-    } else {
-      Alert.alert(
-        'Error',
-        errorMessage,
-        [
-          {
-            text: 'OK',
-            onPress: handleCloseModal
-          }
-        ],
-        { 
-          cancelable: false,
-          onDismiss: handleCloseModal 
-        }
-      );
-    }
-  }, [handleCloseModal]);
-
-  const handleSkillLevelSelect = React.useCallback(async (skillLevel: string) => {
-    if (skillLevel === user?.skillLevel) {
-      handleCloseModal();
-      return;
-    }
-
-    try {
-      setUpdatingSkill(true);
-      await updateProfile({ skillLevel });
-      handleCloseModal();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update skill level. Please try again.';
-      Alert.alert(
-        'Error',
-        errorMessage,
-        [
-          {
-            text: 'OK',
-            onPress: handleCloseModal
-          }
-        ]
-      );
-    } finally {
-      setUpdatingSkill(false);
-      setSelectedSkill(user?.skillLevel);
-    }
-  }, [user?.skillLevel, updateProfile, handleCloseModal]);
-
-  const openSkillModal = React.useCallback(() => {
-    if (upcomingGames.length > 0) {
-      Alert.alert(
-        'Cannot Update Skill Level',
-        'You have upcoming games booked. You must complete or cancel your existing games before changing your skill level.',
-        [
-          {
-            text: 'View My Games',
-            style: 'default'
-          },
-          {
-            text: 'OK',
-            style: 'cancel'
-          }
-        ]
-      );
-      return;
-    }
-    
-    if (updatingSkill) {
-      return;
-    }
-    
-    setIsSkillModalVisible(true);
-  }, [updatingSkill, upcomingGames.length]);
 
   const handleImagePick = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -217,183 +116,143 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.profileImageContainer}
-          onPress={handleImagePick}
-          accessibilityLabel="Change profile picture"
-        >
-          {user?.profileImage ? (
-            <Image 
-              source={getImageSource(user.profileImage)}
-              style={styles.profileImage}
-              key={refreshKey}
-            />
-          ) : (
-            <IconSymbol name="person.fill" size={60} color="#666666" />
-          )}
-          <View style={styles.editButton}>
-            <IconSymbol name="pencil" size={20} color="#666666" />
-          </View>
-        </TouchableOpacity>
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.email}>{user.email}</Text>
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Skill Level</Text>
-          <Button 
-            variant="secondary" 
-            size="small"
-            onPress={openSkillModal}
-            disabled={updatingSkill || upcomingGames.length > 0}
-            style={[
-              styles.editButton,
-              upcomingGames.length > 0 && styles.disabledEditButton
-            ]}
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.profileImageContainer}
+            onPress={handleImagePick}
+            accessibilityLabel="Change profile picture"
           >
-            {upcomingGames.length > 0 ? 'Locked' : updatingSkill ? 'Updating...' : 'Edit'}
-          </Button>
+            {user?.profileImage ? (
+              <Image 
+                source={getImageSource(user.profileImage)}
+                style={styles.profileImage}
+                key={refreshKey}
+              />
+            ) : (
+              <IconSymbol name="person.fill" size={60} color="#666666" />
+            )}
+            <View style={styles.editButton}>
+              <IconSymbol name="pencil" size={20} color="#666666" />
+            </View>
+          </TouchableOpacity>
+          <Text style={styles.name}>{user.name}</Text>
+          <Text style={styles.email}>{user.email}</Text>
         </View>
-        <View style={styles.skillLevelInfo}>
-          <Text style={styles.sectionContent}>
-            {user?.skillLevel || 'Not set'}
-            {updatingSkill && ' (Updating...)'}
-          </Text>
-          {upcomingGames.length > 0 && (
-            <Text style={styles.skillLevelLockMessage}>
-              Cannot change skill level while you have upcoming games
-            </Text>
-          )}
-        </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Games Played</Text>
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {user.gamesPlayed?.length || 0}
-            </Text>
-            <Text style={styles.statLabel}>Total Games</Text>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Profile Information</Text>
+            <Button 
+              variant="secondary" 
+              size="small"
+              onPress={() => setIsProfileFormVisible(true)}
+              style={styles.editButton}
+            >
+              Edit
+            </Button>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {user.gamesPlayed?.filter(game => game.result === 'win').length || 0}
-            </Text>
-            <Text style={styles.statLabel}>Wins</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {user.gamesPlayed?.filter(game => game.result === 'loss').length || 0}
-            </Text>
-            <Text style={styles.statLabel}>Losses</Text>
-          </View>
-        </View>
-        {user.gamesPlayed && user.gamesPlayed.length > 0 ? (
-          <View style={styles.recentGames}>
-            <Text style={styles.recentGamesTitle}>Recent Games</Text>
-            {user.gamesPlayed.slice(0, 3).map((game, index) => (
-              <View key={game.id} style={styles.recentGame}>
-                <View>
-                  <Text style={[
-                    styles.gameResult,
-                    { color: game.result === 'win' ? '#4CAF50' : '#F44336' }
-                  ]}>
-                    {game.result === 'win' ? 'Won' : 'Lost'}
-                  </Text>
-                  <Text style={styles.gameScore}>{game.score}</Text>
-                </View>
-                <Text style={styles.gameDate}>
-                  {new Date(game.date).toLocaleDateString()}
-                </Text>
-              </View>
-            ))}
-          </View>
-        ) : (
-          <Text style={styles.sectionContent}>No games played yet</Text>
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Upcoming Games</Text>
-        {upcomingGames.length > 0 ? (
-          upcomingGames.slice(0, 3).map(game => (
-            <View key={game.id} style={styles.gameItem}>
-              <Text style={styles.gameTitle}>{game.title}</Text>
-              <Text style={styles.gameDate}>
-                {new Date(game.startTime).toLocaleDateString()}
+          <View style={styles.profileInfo}>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Phone:</Text>
+              <Text style={styles.infoValue}>{user?.phoneNumber || 'Not set'}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Date of Birth:</Text>
+              <Text style={styles.infoValue}>{user?.dateOfBirth || 'Not set'}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Address:</Text>
+              <Text style={styles.infoValue}>
+                {user?.address?.street || 'Not set'}
               </Text>
             </View>
-          ))
-        ) : (
-          <Text style={styles.sectionContent}>No upcoming games</Text>
-        )}
-      </View>
-
-      <View style={[styles.section, styles.signOutSection]}>
-        <Button 
-          variant="secondary" 
-          onPress={signOut}
-          size="medium"
-          fullWidth
-          style={styles.signOutButton}
-        >
-          Sign Out
-        </Button>
-      </View>
-
-      <Modal
-        visible={isSkillModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={handleCloseModal}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Skill Level</Text>
-              <TouchableOpacity 
-                onPress={handleCloseModal}
-                style={[styles.closeButton, updatingSkill && styles.disabledButton]}
-                disabled={updatingSkill}
-              >
-                <IconSymbol name="xmark" size={24} color={updatingSkill ? '#999999' : '#666666'} />
-              </TouchableOpacity>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>City:</Text>
+              <Text style={styles.infoValue}>
+                {user?.address?.city || 'Not set'}
+              </Text>
             </View>
-            {SKILL_LEVELS.map((level) => (
-              <TouchableOpacity
-                key={level.value}
-                style={[
-                  styles.skillOption,
-                  user?.skillLevel === level.value && styles.selectedSkill,
-                  updatingSkill && styles.disabledSkillOption
-                ]}
-                onPress={() => !updatingSkill && handleSkillLevelSelect(level.value)}
-                disabled={updatingSkill}
-              >
-                <Text style={[
-                  styles.skillOptionText,
-                  user?.skillLevel === level.value && styles.selectedSkillText,
-                  updatingSkill && styles.disabledSkillText
-                ]}>
-                  {level.label}
-                </Text>
-                {user?.skillLevel === level.value && (
-                  <IconSymbol 
-                    name="checkmark" 
-                    size={20} 
-                    color={updatingSkill ? '#999999' : '#4CAF50'} 
-                  />
-                )}
-              </TouchableOpacity>
-            ))}
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>State:</Text>
+              <Text style={styles.infoValue}>
+                {user?.address?.state || 'Not set'}
+              </Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>ZIP Code:</Text>
+              <Text style={styles.infoValue}>
+                {user?.address?.zipCode || 'Not set'}
+              </Text>
+            </View>
           </View>
         </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Games Played</Text>
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {user.gamesPlayed?.length || 0}
+              </Text>
+              <Text style={styles.statLabel}>Total Games</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {user.gamesPlayed?.filter(game => game.result === 'win').length || 0}
+              </Text>
+              <Text style={styles.statLabel}>Wins</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {user.gamesPlayed?.filter(game => game.result === 'loss').length || 0}
+              </Text>
+              <Text style={styles.statLabel}>Losses</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={[styles.section, styles.signOutSection]}>
+          <Button 
+            variant="secondary" 
+            onPress={signOut}
+            size="medium"
+            fullWidth
+            style={styles.signOutButton}
+          >
+            Sign Out
+          </Button>
+        </View>
+      </ScrollView>
+
+      <Modal
+        visible={isProfileFormVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsProfileFormVisible(false)}
+      >
+        <SafeAreaView style={styles.profileFormOverlay}>
+          <View style={styles.profileFormContainer}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity
+                onPress={() => setIsProfileFormVisible(false)}
+                style={styles.modalCloseButton}
+              >
+                <IconSymbol name="xmark" size={24} color="#666666" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Update Profile</Text>
+            </View>
+            <ScrollView style={styles.profileFormScroll}>
+              <FirstTimeProfileForm onComplete={() => {
+                setIsProfileFormVisible(false);
+                // Refresh user data if needed
+              }} />
+            </ScrollView>
+          </View>
+        </SafeAreaView>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -401,6 +260,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  scrollView: {
+    flex: 1,
     padding: 20,
     paddingTop: 60,
   },
@@ -617,5 +479,41 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
     opacity: 0.5,
     borderColor: '#CCCCCC',
+  },
+  profileInfo: {
+    padding: 16,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  infoLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  infoValue: {
+    fontSize: 16,
+    color: '#666666',
+  },
+  profileFormOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  profileFormContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '80%',
+  },
+  modalCloseButton: {
+    padding: 8,
+  },
+  profileFormScroll: {
+    maxHeight: '80%',
   },
 }); 
