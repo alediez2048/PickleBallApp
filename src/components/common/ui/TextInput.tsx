@@ -69,6 +69,7 @@ const TextInputComponent = forwardRef<RNTextInput, TextInputProps>(
 
           <RNTextInput
             ref={ref}
+            testID="text-input"
             style={[
               styles.input,
               startIcon && styles.inputWithStartIcon,
@@ -90,6 +91,7 @@ const TextInputComponent = forwardRef<RNTextInput, TextInputProps>(
           {endIcon && (
             onEndIconPress ? (
               <TouchableOpacity
+                testID="end-icon-button"
                 style={styles.iconContainer}
                 onPress={onEndIconPress}
                 accessibilityRole="button"
@@ -98,7 +100,7 @@ const TextInputComponent = forwardRef<RNTextInput, TextInputProps>(
                 {endIcon}
               </TouchableOpacity>
             ) : (
-              <View style={styles.iconContainer} accessibilityRole="image">
+              <View testID="end-icon" style={styles.iconContainer}>
                 {endIcon}
               </View>
             )

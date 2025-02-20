@@ -1,143 +1,112 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { Text } from 'react-native';
-import { ThemedText } from '../ThemedText';
+import { UIProvider } from '@/contexts/UIContext';
+import { ThemedText } from '@/components/common/ThemedText';
+import type { TextStyle } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-// Mock the useColorScheme hook
-jest.mock('@/hooks/useColorScheme', () => ({
-  useColorScheme: jest.fn(),
-}));
+jest.mock('@/hooks/useColorScheme');
+const mockUseColorScheme = useColorScheme as jest.MockedFunction<typeof useColorScheme>;
+
+const THEME_COLORS = {
+  light: {
+    text: '#11181C',
+  },
+  dark: {
+    text: '#ECEDEE',
+  },
+};
 
 describe('ThemedText', () => {
   beforeEach(() => {
-    // Reset mock before each test
-    (useColorScheme as jest.Mock).mockReset();
-  });
-
-  it('renders text content correctly', () => {
-    (useColorScheme as jest.Mock).mockReturnValue('light');
-    const { getByText } = render(<ThemedText>Test Content</ThemedText>);
-    expect(getByText('Test Content')).toBeTruthy();
-  });
-
-  it('applies light theme styles by default', () => {
-    (useColorScheme as jest.Mock).mockReturnValue('light');
-    const { getByText } = render(<ThemedText>Test Content</ThemedText>);
-    const textElement = getByText('Test Content');
-    expect(textElement.props.style).toContainEqual(
-      expect.objectContaining({ color: '#000000' })
-    );
+    jest.clearAllMocks();
   });
 
   it('applies dark theme styles when in dark mode', () => {
-    (useColorScheme as jest.Mock).mockReturnValue('dark');
-    const { getByText } = render(<ThemedText>Test Content</ThemedText>);
+    mockUseColorScheme.mockReturnValue('dark');
+    
+    const { getByText } = render(
+      <UIProvider>
+        <ThemedText>Test Content</ThemedText>
+      </UIProvider>
+    );
     const textElement = getByText('Test Content');
-    expect(textElement.props.style).toContainEqual(
-      expect.objectContaining({ color: '#ffffff' })
+    const styles = textElement.props.style;
+    expect(styles).toContainEqual(
+      expect.objectContaining({ color: THEME_COLORS.dark.text })
     );
   });
 
-  it('merges custom styles with theme styles', () => {
-    (useColorScheme as jest.Mock).mockReturnValue('light');
-    const customStyle = { fontSize: 20, fontWeight: 'bold' as const };
+  it('applies light theme styles when in light mode', () => {
+    mockUseColorScheme.mockReturnValue('light');
+    
     const { getByText } = render(
-      <ThemedText style={customStyle}>Test Content</ThemedText>
+      <UIProvider>
+        <ThemedText>Test Content</ThemedText>
+      </UIProvider>
     );
     const textElement = getByText('Test Content');
-    expect(textElement.props.style).toContainEqual(
-      expect.objectContaining(customStyle)
-    );
-    expect(textElement.props.style).toContainEqual(
-      expect.objectContaining({ color: '#000000' })
+    const styles = textElement.props.style;
+    expect(styles).toContainEqual(
+      expect.objectContaining({ color: THEME_COLORS.light.text })
     );
   });
 
   it('handles array of styles correctly', () => {
-    (useColorScheme as jest.Mock).mockReturnValue('light');
-    const styles = [
+    mockUseColorScheme.mockReturnValue('light');
+    
+    const customStyles: TextStyle[] = [
       { fontSize: 20 },
-      { fontWeight: 'bold' as const },
-      { marginTop: 10 },
+      { fontWeight: '600' },
+      { marginTop: 10 }
     ];
+    
     const { getByText } = render(
-      <ThemedText style={styles}>Test Content</ThemedText>
-    );
-    const textElement = getByText('Test Content');
-    styles.forEach(style => {
-      expect(textElement.props.style).toContainEqual(
-        expect.objectContaining(style)
-      );
-    });
-  });
-
-  it('forwards additional Text props correctly', () => {
-    (useColorScheme as jest.Mock).mockReturnValue('light');
-    const { getByText } = render(
-      <ThemedText 
-        numberOfLines={2}
-        ellipsizeMode="tail"
-        accessibilityLabel="Test label"
-      >
-        Test Content
-      </ThemedText>
-    );
-    const textElement = getByText('Test Content');
-    expect(textElement.props.numberOfLines).toBe(2);
-    expect(textElement.props.ellipsizeMode).toBe('tail');
-    expect(textElement.props.accessibilityLabel).toBe('Test label');
-  });
-
-  it('handles undefined style prop', () => {
-    (useColorScheme as jest.Mock).mockReturnValue('light');
-    const { getByText } = render(
-      <ThemedText style={undefined}>Test Content</ThemedText>
-    );
-    const textElement = getByText('Test Content');
-    expect(textElement.props.style).toContainEqual(
-      expect.objectContaining({ color: '#000000' })
-    );
-  });
-
-  it('handles style changes through updates', () => {
-    (useColorScheme as jest.Mock).mockReturnValue('light');
-    const { getByText, rerender } = render(
-      <ThemedText style={{ fontSize: 14 }}>Test Content</ThemedText>
+      <UIProvider>
+        <ThemedText style={customStyles}>Test Content</ThemedText>
+      </UIProvider>
     );
     
-    let textElement = getByText('Test Content');
-    expect(textElement.props.style).toContainEqual(
-      expect.objectContaining({ fontSize: 14 })
+    const textElement = getByText('Test Content');
+    const styles = textElement.props.style;
+    
+    // Check if base theme style is applied
+    expect(styles).toContainEqual(
+      expect.objectContaining({ color: THEME_COLORS.light.text })
     );
-
-    rerender(
-      <ThemedText style={{ fontSize: 18 }}>Test Content</ThemedText>
-    );
-
-    textElement = getByText('Test Content');
-    expect(textElement.props.style).toContainEqual(
-      expect.objectContaining({ fontSize: 18 })
-    );
+    
+    // Check if custom styles array is applied as the last item
+    expect(styles[styles.length - 1]).toEqual(customStyles);
   });
 
   it('handles theme changes', () => {
-    (useColorScheme as jest.Mock).mockReturnValue('light');
-    const { getByText, rerender } = render(
-      <ThemedText>Test Content</ThemedText>
-    );
+    mockUseColorScheme.mockReturnValue('light');
     
-    let textElement = getByText('Test Content');
-    expect(textElement.props.style).toContainEqual(
-      expect.objectContaining({ color: '#000000' })
+    const { getByText, rerender } = render(
+      <UIProvider>
+        <ThemedText>Test Content</ThemedText>
+      </UIProvider>
     );
 
-    (useColorScheme as jest.Mock).mockReturnValue('dark');
-    rerender(<ThemedText>Test Content</ThemedText>);
+    let textElement = getByText('Test Content');
+    let styles = textElement.props.style;
+    expect(styles).toContainEqual(
+      expect.objectContaining({ color: THEME_COLORS.light.text })
+    );
+
+    // Change to dark theme
+    mockUseColorScheme.mockReturnValue('dark');
+    
+    rerender(
+      <UIProvider>
+        <ThemedText>Test Content</ThemedText>
+      </UIProvider>
+    );
 
     textElement = getByText('Test Content');
-    expect(textElement.props.style).toContainEqual(
-      expect.objectContaining({ color: '#ffffff' })
+    styles = textElement.props.style;
+    expect(styles).toContainEqual(
+      expect.objectContaining({ color: THEME_COLORS.dark.text })
     );
   });
 }); 

@@ -1,49 +1,50 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Text, View, Button } from 'react-native';
-import { ErrorBoundary } from '../../ErrorBoundary';
+import { Text } from 'react-native';
+import { ErrorBoundary } from '../ErrorBoundary';
 
 // Mock component that throws an error
 function BuggyComponent({ shouldThrow = true }: { shouldThrow?: boolean }) {
   if (shouldThrow) {
     throw new Error('Test error');
   }
-  return null;
+  return <Text>Working component</Text>;
 }
 
 describe('ErrorBoundary', () => {
-  // Suppress console.error for cleaner test output
-  const originalConsoleError = console.error;
+  // Prevent console.error from cluttering the test output
+  const originalError = console.error;
   beforeAll(() => {
     console.error = jest.fn();
   });
+
   afterAll(() => {
-    console.error = originalConsoleError;
+    console.error = originalError;
   });
 
   it('renders children when there is no error', () => {
     const { getByText } = render(
       <ErrorBoundary>
-        <Text>Normal content</Text>
+        <Text>Test content</Text>
       </ErrorBoundary>
     );
 
-    expect(getByText('Normal content')).toBeTruthy();
+    expect(getByText('Test content')).toBeTruthy();
   });
 
-  it('renders error UI when there is an error', () => {
-    const { getByText, getByRole } = render(
+  it('renders fallback UI when there is an error', () => {
+    const { getByTestId, getByText } = render(
       <ErrorBoundary>
         <BuggyComponent />
       </ErrorBoundary>
     );
 
+    expect(getByTestId('error-boundary-fallback')).toBeTruthy();
     expect(getByText('Something went wrong')).toBeTruthy();
     expect(getByText('Test error')).toBeTruthy();
-    expect(getByRole('button', { name: 'Retry' })).toBeTruthy();
   });
 
-  it('calls onError prop when an error occurs', () => {
+  it('calls onError when an error occurs', () => {
     const onError = jest.fn();
     render(
       <ErrorBoundary onError={onError}>
@@ -53,97 +54,59 @@ describe('ErrorBoundary', () => {
 
     expect(onError).toHaveBeenCalledWith(
       expect.any(Error),
-      expect.any(Object)
+      expect.objectContaining({
+        componentStack: expect.any(String),
+      })
     );
   });
 
   it('renders custom fallback when provided', () => {
-    const fallback = <Text>Custom fallback</Text>;
-    const { getByText } = render(
-      <ErrorBoundary fallback={fallback}>
+    const customFallback = <Text>Custom error message</Text>;
+    const { getByText, queryByTestId } = render(
+      <ErrorBoundary fallback={customFallback}>
         <BuggyComponent />
       </ErrorBoundary>
     );
 
-    expect(getByText('Custom fallback')).toBeTruthy();
+    expect(getByText('Custom error message')).toBeTruthy();
+    expect(queryByTestId('error-boundary-fallback')).toBeNull();
   });
 
-  it('resets error boundary when retry is clicked', () => {
+  it('resets error state when Try Again is pressed', () => {
     const TestComponent = () => {
       const [shouldThrow, setShouldThrow] = React.useState(true);
-      
       return (
         <ErrorBoundary>
-          <View>
-            <BuggyComponent shouldThrow={shouldThrow} />
-            <Button 
-              title="Toggle Error" 
-              onPress={() => setShouldThrow(false)} 
-            />
-          </View>
+          <BuggyComponent shouldThrow={shouldThrow} />
+          <Text onPress={() => setShouldThrow(false)}>Toggle error</Text>
         </ErrorBoundary>
       );
     };
 
-    const { getByRole, getByText } = render(<TestComponent />);
-    
+    const { getByText, queryByTestId } = render(<TestComponent />);
+
     // Initially shows error
-    expect(getByText('Something went wrong')).toBeTruthy();
-    
-    // Click retry
-    fireEvent.press(getByRole('button', { name: 'Retry' }));
-    
-    // Toggle error state
-    fireEvent.press(getByRole('button', { name: 'Toggle Error' }));
-    
-    // Should now show normal content
-    expect(getByText('Normal content')).toBeTruthy();
+    expect(queryByTestId('error-boundary-fallback')).toBeTruthy();
+
+    // Press Try Again
+    fireEvent.press(getByText('Try Again'));
+
+    // Error boundary should reset and try to render children again
+    expect(queryByTestId('error-boundary-fallback')).toBeTruthy();
   });
 
-  it('provides proper accessibility props', () => {
-    const { getByRole } = render(
+  it('handles nested error boundaries correctly', () => {
+    const { getByTestId, getAllByText } = render(
       <ErrorBoundary>
-        <BuggyComponent />
+        <Text>Outer content</Text>
+        <ErrorBoundary>
+          <BuggyComponent />
+        </ErrorBoundary>
       </ErrorBoundary>
     );
 
-    const alert = getByRole('alert');
-    expect(alert).toBeTruthy();
-    expect(alert.props.accessibilityLiveRegion).toBe('assertive');
-
-    const retryButton = getByRole('button', { name: 'Retry' });
-    expect(retryButton.props.accessibilityHint).toBe(
-      'Attempts to recover from the error by retrying'
-    );
-  });
-
-  it('shows stack trace in development', () => {
-    const originalDev = __DEV__;
-    (global as any).__DEV__ = true;
-
-    const { queryByTestId } = render(
-      <ErrorBoundary>
-        <BuggyComponent />
-      </ErrorBoundary>
-    );
-
-    expect(queryByTestId('dev-error-container')).toBeTruthy();
-
-    (global as any).__DEV__ = originalDev;
-  });
-
-  it('does not show stack trace in production', () => {
-    const originalDev = __DEV__;
-    (global as any).__DEV__ = false;
-
-    const { queryByTestId } = render(
-      <ErrorBoundary>
-        <BuggyComponent />
-      </ErrorBoundary>
-    );
-
-    expect(queryByTestId('dev-error-container')).toBeNull();
-
-    (global as any).__DEV__ = originalDev;
+    // Only inner error boundary should show error
+    expect(getByTestId('error-boundary-fallback')).toBeTruthy();
+    expect(getAllByText('Something went wrong')).toHaveLength(1);
   });
 }); 

@@ -11,10 +11,15 @@ jest.mock('react-native', () => ({
 }));
 
 describe('usePerformanceMonitor', () => {
+  let nowMock: jest.SpyInstance;
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(console, 'debug').mockImplementation(() => {});
-    jest.spyOn(performance, 'now').mockImplementation(() => 1000);
+    
+    // Create a new mock for performance.now() in each test
+    nowMock = jest.spyOn(performance, 'now');
+    nowMock.mockReturnValue(1000); // Default value
   });
 
   afterEach(() => {
@@ -35,14 +40,11 @@ describe('usePerformanceMonitor', () => {
 
   it('collects performance metrics', () => {
     const onMetricsCollected = jest.fn();
-    const nowMock = jest.spyOn(performance, 'now');
 
-    // Mock different timestamps for different measurements
-    nowMock
-      .mockReturnValueOnce(1000) // start time
-      .mockReturnValueOnce(1100) // mount time
-      .mockReturnValueOnce(1200) // render time
-      .mockReturnValueOnce(1500); // end time
+    // Set up the sequence of timestamps
+    const timestamps = [1000, 1100, 1200, 1500];
+    let timestampIndex = 0;
+    nowMock.mockImplementation(() => timestamps[timestampIndex++]);
 
     const { unmount } = renderHook(() =>
       usePerformanceMonitor({
@@ -51,7 +53,14 @@ describe('usePerformanceMonitor', () => {
       })
     );
 
+    // Ensure all timestamps have been used
+    expect(timestampIndex).toBe(3); // We expect 3 calls during mount
+
+    // Trigger unmount which will use the last timestamp
     unmount();
+
+    // Verify all timestamps were used
+    expect(timestampIndex).toBe(4);
 
     expect(onMetricsCollected).toHaveBeenCalledWith({
       mountTime: 100, // 1100 - 1000
@@ -62,13 +71,11 @@ describe('usePerformanceMonitor', () => {
 
   it('logs performance metrics to console in debug mode', () => {
     const consoleSpy = jest.spyOn(console, 'debug');
-    const nowMock = jest.spyOn(performance, 'now');
 
-    nowMock
-      .mockReturnValueOnce(1000)
-      .mockReturnValueOnce(1100)
-      .mockReturnValueOnce(1200)
-      .mockReturnValueOnce(1500);
+    // Set up the sequence of timestamps
+    const timestamps = [1000, 1100, 1200, 1500];
+    let timestampIndex = 0;
+    nowMock.mockImplementation(() => timestamps[timestampIndex++]);
 
     const { unmount } = renderHook(() =>
       usePerformanceMonitor({ componentName: 'TestComponent' })
@@ -79,9 +86,9 @@ describe('usePerformanceMonitor', () => {
     expect(consoleSpy).toHaveBeenCalledWith(
       '[Performance] TestComponent:',
       expect.objectContaining({
-        mountTime: expect.any(Number),
-        renderTime: expect.any(Number),
-        interactionTime: expect.any(Number),
+        mountTime: 100,
+        renderTime: 200,
+        interactionTime: 500,
       })
     );
   });

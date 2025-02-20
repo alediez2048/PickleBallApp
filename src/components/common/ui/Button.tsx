@@ -1,141 +1,165 @@
 import React from 'react';
-import { TouchableOpacity, Text, TouchableOpacityProps, ActivityIndicator, View, StyleSheet } from 'react-native';
-import { withMemo } from '@/components/hoc/withMemo';
+import {
+  TouchableOpacity,
+  TouchableOpacityProps,
+  StyleSheet,
+  ActivityIndicator,
+  View,
+} from 'react-native';
+import { ThemedText } from '@/components/ThemedText';
 
-interface ButtonProps extends TouchableOpacityProps {
-  variant?: 'primary' | 'secondary';
-  size?: 'sm' | 'md' | 'lg';
+export interface ButtonProps extends TouchableOpacityProps {
   children: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'outline';
+  size?: 'small' | 'medium' | 'large';
   loading?: boolean;
+  disabled?: boolean;
+  fullWidth?: boolean;
   accessibilityLabel?: string;
   accessibilityHint?: string;
 }
 
-const ButtonComponent: React.FC<ButtonProps> = ({
-  variant = 'primary',
-  size = 'md',
+export const Button: React.FC<ButtonProps> = ({
   children,
-  disabled,
-  loading,
+  variant = 'primary',
+  size = 'medium',
+  loading = false,
+  disabled = false,
+  fullWidth = false,
   style,
   accessibilityLabel,
   accessibilityHint,
+  onPress,
   ...props
 }) => {
-  const buttonStyles = [
-    styles.button,
-    styles[`${size}Button`],
-    variant === 'primary' ? styles.primaryButton : styles.secondaryButton,
-    disabled && styles.disabledButton,
-    style,
-  ];
+  const isDisabled = disabled || loading;
 
-  const textStyles = [
-    styles.text,
-    styles[`${size}Text`],
-    variant === 'primary' ? styles.primaryText : styles.secondaryText,
-    disabled && styles.disabledText,
-  ];
+  const getButtonStyle = () => {
+    const variantStyles = {
+      primary: styles.primary,
+      secondary: styles.secondary,
+      outline: styles.outline,
+    };
 
-  // Determine the button's label for screen readers
-  const buttonLabel = accessibilityLabel || (typeof children === 'string' ? children : undefined);
+    const sizeStyles = {
+      small: styles.small,
+      medium: styles.medium,
+      large: styles.large,
+    };
+
+    return [
+      styles.base,
+      variantStyles[variant],
+      sizeStyles[size],
+      fullWidth && styles.fullWidth,
+      isDisabled && styles.disabled,
+      style,
+    ];
+  };
+
+  const getTextStyle = () => {
+    const variantTextStyles = {
+      primary: styles.primaryText,
+      secondary: styles.secondaryText,
+      outline: styles.outlineText,
+    };
+
+    return [
+      styles.text,
+      variantTextStyles[variant],
+      isDisabled && styles.disabledText,
+    ];
+  };
+
+  const buttonLabel = typeof children === 'string' ? children : accessibilityLabel;
 
   return (
     <TouchableOpacity
-      style={buttonStyles}
-      disabled={disabled || loading}
+      testID="button"
+      style={getButtonStyle()}
+      disabled={isDisabled}
+      onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={buttonLabel}
       accessibilityHint={accessibilityHint}
       accessibilityState={{
-        disabled: disabled || loading,
+        disabled: isDisabled,
         busy: loading,
       }}
       {...props}
     >
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator 
-            color={variant === 'primary' ? '#fff' : '#000'} 
+          <ActivityIndicator
+            testID="loading-spinner"
+            color={variant === 'outline' ? '#4CAF50' : '#FFFFFF'}
             accessibilityLabel="Loading"
           />
         </View>
+      ) : typeof children === 'string' ? (
+        <ThemedText style={getTextStyle()}>{children}</ThemedText>
       ) : (
-        typeof children === 'string' ? (
-          <Text 
-            style={textStyles}
-            numberOfLines={1}
-            accessibilityRole="text"
-          >
-            {children}
-          </Text>
-        ) : (
-          children
-        )
+        children
       )}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  button: {
-    flexDirection: 'row',
+  base: {
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    marginVertical: 6,
+    flexDirection: 'row',
   },
-  smButton: {
-    height: 32,
-    paddingHorizontal: 12,
+  primary: {
+    backgroundColor: '#4CAF50',
   },
-  mdButton: {
-    height: 40,
-    paddingHorizontal: 16,
+  secondary: {
+    backgroundColor: '#2196F3',
   },
-  lgButton: {
-    height: 48,
-    paddingHorizontal: 20,
-  },
-  primaryButton: {
-    backgroundColor: '#000',
-  },
-  secondaryButton: {
-    backgroundColor: '#fff',
+  outline: {
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#4CAF50',
   },
-  disabledButton: {
+  small: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  medium: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  large: {
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  disabled: {
     opacity: 0.5,
   },
   text: {
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  smText: {
-    fontSize: 14,
-  },
-  mdText: {
     fontSize: 16,
-  },
-  lgText: {
-    fontSize: 18,
+    fontWeight: '600',
   },
   primaryText: {
-    color: '#fff',
+    color: '#FFFFFF',
   },
   secondaryText: {
-    color: '#000',
+    color: '#FFFFFF',
+  },
+  outlineText: {
+    color: '#4CAF50',
   },
   disabledText: {
-    opacity: 0.7,
+    color: '#999999',
   },
   loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    minHeight: 24,
     justifyContent: 'center',
+    alignItems: 'center',
   },
-});
-
-export const Button = withMemo(ButtonComponent); 
+}); 

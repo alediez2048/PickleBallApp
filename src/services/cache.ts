@@ -15,6 +15,21 @@ interface CacheOptions extends CacheConfig {
   key: string;
 }
 
+// Polyfill CustomEvent for Node.js environment
+if (typeof CustomEvent === 'undefined') {
+  class CustomEventPolyfill<T = any> {
+    type: string;
+    detail: T;
+    
+    constructor(type: string, options?: { detail: T }) {
+      this.type = type;
+      this.detail = options?.detail as T;
+    }
+  }
+  
+  (global as any).CustomEvent = CustomEventPolyfill;
+}
+
 class CacheService {
   private static instance: CacheService;
   private refreshTimers: Map<string, NodeJS.Timeout>;
