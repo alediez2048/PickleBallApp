@@ -63,7 +63,9 @@ export const Button: React.FC<ButtonProps> = ({
       isDisabled,
       fullWidth,
       customStyle: style,
-      computedStyles: computedStyles.filter(Boolean).map(s => Object.keys(s)),
+      computedStyles: computedStyles
+        .filter((s): s is NonNullable<typeof s> => s !== null && s !== undefined)
+        .map(s => typeof s === 'object' ? Object.keys(s) : [])
     });
 
     return computedStyles;
