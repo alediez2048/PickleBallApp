@@ -120,7 +120,7 @@ export default function RegisterScreen() {
                 </Text>
               )}
 
-              <Button onPress={handleRegister} size="lg" disabled={isLoading}>
+              <Button onPress={handleRegister} size="large" disabled={isLoading}>
                 Create Account
               </Button>
 

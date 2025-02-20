@@ -8,10 +8,17 @@ import {
 } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 
+// Define valid size mappings
+const SIZE_MAPPINGS = {
+  sm: 'small',
+  md: 'medium',
+  lg: 'large',
+};
+
 export interface ButtonProps extends TouchableOpacityProps {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline';
-  size?: 'small' | 'medium' | 'large';
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger';
+  size?: 'small' | 'medium' | 'large' | 'sm' | 'md' | 'lg';  // Updated to include shorthand
   loading?: boolean;
   disabled?: boolean;
   fullWidth?: boolean;
@@ -34,11 +41,22 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const isDisabled = disabled || loading;
 
+  // Normalize size prop
+  const normalizedSize = SIZE_MAPPINGS[size as keyof typeof SIZE_MAPPINGS] || size;
+
+  console.log('Button Size Normalization:', {
+    componentId: accessibilityLabel || children,
+    originalSize: size,
+    normalizedSize,
+    hasValidSize: normalizedSize in styles,
+  });
+
   const getButtonStyle = () => {
     const variantStyles = {
       primary: styles.primary,
       secondary: styles.secondary,
       outline: styles.outline,
+      danger: styles.danger,
     };
 
     const sizeStyles = {
@@ -47,14 +65,27 @@ export const Button: React.FC<ButtonProps> = ({
       large: styles.large,
     };
 
-    return [
+    const selectedSizeStyle = sizeStyles[normalizedSize as keyof typeof sizeStyles];
+
+    console.log('Button Style Resolution:', {
+      componentId: accessibilityLabel || children,
+      variant,
+      normalizedSize,
+      hasValidVariantStyle: variant in variantStyles,
+      hasValidSizeStyle: !!selectedSizeStyle,
+      customStyleType: style ? typeof style : 'none',
+    });
+
+    const computedStyles = [
       styles.base,
       variantStyles[variant],
-      sizeStyles[size],
+      selectedSizeStyle,
       fullWidth && styles.fullWidth,
       isDisabled && styles.disabled,
       style,
     ];
+
+    return computedStyles;
   };
 
   const getTextStyle = () => {
@@ -62,14 +93,37 @@ export const Button: React.FC<ButtonProps> = ({
       primary: styles.primaryText,
       secondary: styles.secondaryText,
       outline: styles.outlineText,
+      danger: styles.dangerText,
     };
 
-    return [
+    const textStyles = [
       styles.text,
       variantTextStyles[variant],
       isDisabled && styles.disabledText,
     ];
+
+    console.log('Button Text Style:', {
+      componentId: accessibilityLabel || children,
+      variant,
+      isDisabled,
+      textStyles,
+    });
+
+    return textStyles;
   };
+
+  console.log('Button Render:', {
+    componentId: accessibilityLabel || children,
+    props: {
+      variant,
+      size,
+      loading,
+      disabled,
+      fullWidth,
+      hasCustomStyle: !!style,
+      hasOnPress: !!onPress,
+    },
+  });
 
   const buttonLabel = typeof children === 'string' ? children : accessibilityLabel;
 
@@ -107,43 +161,56 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: 8,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   primary: {
     backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
   },
   secondary: {
     backgroundColor: '#2196F3',
+    borderColor: '#2196F3',
   },
   outline: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
     borderColor: '#4CAF50',
   },
+  danger: {
+    backgroundColor: '#DC2626',
+    borderColor: '#DC2626',
+  },
   small: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    minHeight: 32,
   },
   medium: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    minHeight: 40,
   },
   large: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    minHeight: 48,
   },
   fullWidth: {
     width: '100%',
   },
   disabled: {
     opacity: 0.5,
+    backgroundColor: '#E0E0E0',
+    borderColor: '#E0E0E0',
   },
   text: {
     fontSize: 16,
     fontWeight: '600',
+    textAlign: 'center',
   },
   primaryText: {
     color: '#FFFFFF',
@@ -154,8 +221,11 @@ const styles = StyleSheet.create({
   outlineText: {
     color: '#4CAF50',
   },
+  dangerText: {
+    color: '#FFFFFF',
+  },
   disabledText: {
-    color: '#999999',
+    color: '#666666',
   },
   loadingContainer: {
     minHeight: 24,

@@ -185,6 +185,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    gap: 12,
   },
   iconContainer: {
     position: 'absolute',

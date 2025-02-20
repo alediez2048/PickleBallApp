@@ -14,7 +14,7 @@ const TAB_ITEMS = [
   {
     name: 'explore',
     label: 'Explore',
-    icon: 'safari.fill' as const,
+    icon: 'gamecontroller.fill' as const,
   },
   {
     name: 'profile',
