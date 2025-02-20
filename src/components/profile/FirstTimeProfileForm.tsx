@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -100,6 +100,7 @@ export function FirstTimeProfileForm({
   const [selectedSkill, setSelectedSkill] = useState<SkillLevel>(SkillLevel.Beginner);
   const [showSkillDescription, setShowSkillDescription] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const layoutMeasured = useRef(false);
 
   console.debug('[FirstTimeProfileForm] Component mounted', { platform: Platform.OS });
 
@@ -109,12 +110,15 @@ export function FirstTimeProfileForm({
 
   const onLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
-    console.debug('[FirstTimeProfileForm] Form layout measured', {
-      width,
-      height,
-      platform: Platform.OS,
-      isVisible: true
-    });
+    if (!layoutMeasured.current) {
+      console.debug('[FirstTimeProfileForm] Initial form layout measured', {
+        width,
+        height,
+        platform: Platform.OS,
+        isVisible: true
+      });
+      layoutMeasured.current = true;
+    }
   };
 
   const handleSubmit = async () => {

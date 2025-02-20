@@ -28,6 +28,17 @@ function RootLayoutNav() {
     const inProfileSetup = segments[0] === '(profile-setup)';
     const inMainApp = segments[0] === '(tabs)';
 
+    console.log('[Navigation Debug]', {
+      currentSegment: segments[0],
+      isAuthenticated,
+      hasSkillLevel: user?.skillLevel,
+      hasCompletedProfile: user?.hasCompletedProfile,
+      inAuthGroup,
+      inSkillGroup,
+      inProfileSetup,
+      inMainApp
+    });
+
     // Determine the target route based on current state
     let targetRoute: '/(auth)/login' | '/(profile-setup)' | '/(skill-select)' | '/(tabs)' | null = null;
 
@@ -37,22 +48,29 @@ function RootLayoutNav() {
         targetRoute = '/(auth)/login';
       }
     } else {
-      // User is authenticated, only check for skill level
-      if (!user?.skillLevel && !inSkillGroup) {
+      // User is authenticated, check profile completion first
+      if (!user?.hasCompletedProfile && !inProfileSetup) {
+        targetRoute = '/(profile-setup)';
+      }
+      // Only check skill level after profile is complete and only during initial setup
+      else if (!user?.skillLevel && !inSkillGroup && user?.hasCompletedProfile && !inMainApp) {
         targetRoute = '/(skill-select)';
-      } else if (user?.skillLevel && !inMainApp) {
+      }
+      // Only redirect to main app if coming from auth or setup flows
+      else if (user?.skillLevel && user?.hasCompletedProfile && !inMainApp && (inAuthGroup || inProfileSetup || inSkillGroup)) {
         targetRoute = '/(tabs)';
       }
     }
 
     // Only navigate if we have a target and it's different from our last navigation
     if (targetRoute && targetRoute !== lastNavigationRef.current) {
-      console.debug('[Navigation]', {
+      console.log('[Navigation] Redirecting:', {
         from: segments.join('/'),
         to: targetRoute,
         auth: isAuthenticated,
         profile: user?.hasCompletedProfile,
-        skill: user?.skillLevel
+        skill: user?.skillLevel,
+        inMainApp
       });
       
       lastNavigationRef.current = targetRoute;

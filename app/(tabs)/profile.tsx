@@ -41,10 +41,26 @@ interface UserProfile {
 }
 
 const SKILL_LEVELS = [
-  { value: SkillLevel.Beginner, label: 'Beginner' },
-  { value: SkillLevel.Intermediate, label: 'Intermediate' },
-  { value: SkillLevel.Advanced, label: 'Advanced' },
-  { value: SkillLevel.Open, label: 'Open' },
+  {
+    value: 'Beginner',
+    label: 'Beginner',
+    description: 'New to pickleball or playing for less than 6 months',
+  },
+  {
+    value: 'Intermediate',
+    label: 'Intermediate',
+    description: 'Comfortable with basic shots and rules, playing for 6 months to 2 years',
+  },
+  {
+    value: 'Advanced',
+    label: 'Advanced',
+    description: 'Experienced player with strong shot control and strategy',
+  },
+  {
+    value: 'Open',
+    label: 'Open',
+    description: 'Competitive player with tournament experience',
+  },
 ];
 
 export default function ProfileScreen() {
@@ -53,6 +69,7 @@ export default function ProfileScreen() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
+  const [isSkillModalVisible, setIsSkillModalVisible] = useState(false);
   const upcomingGames = useUpcomingGames();
   const router = useRouter();
 
@@ -109,6 +126,21 @@ export default function ProfileScreen() {
     return { uri: profileImage.base64 };
   };
 
+  const handleSkillUpdate = async (newSkillLevel: string) => {
+    try {
+      setIsLoading(true);
+      await updateProfile({ skillLevel: newSkillLevel });
+      setIsSkillModalVisible(false);
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'Failed to update skill level'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!user) {
     return (
       <View style={styles.container}>
@@ -149,7 +181,7 @@ export default function ProfileScreen() {
             <Button 
               variant="secondary" 
               size="small"
-              onPress={() => router.push('/(skill-select)')}
+              onPress={() => setIsSkillModalVisible(true)}
               style={styles.editButton}
             >
               Edit
@@ -277,6 +309,48 @@ export default function ProfileScreen() {
           </View>
         </SafeAreaView>
       </Modal>
+
+      <Modal
+        visible={isSkillModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsSkillModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Update Skill Level</Text>
+              <TouchableOpacity
+                onPress={() => setIsSkillModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <IconSymbol name="xmark" size={24} color="#666666" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.modalScroll}>
+              {SKILL_LEVELS.map((level) => (
+                <TouchableOpacity
+                  key={level.value}
+                  style={[
+                    styles.skillOption,
+                    user.skillLevel === level.value && styles.selectedSkill,
+                  ]}
+                  onPress={() => handleSkillUpdate(level.value)}
+                  disabled={isLoading}
+                >
+                  <View>
+                    <Text style={styles.skillOptionText}>{level.label}</Text>
+                    <Text style={styles.skillDescription}>{level.description}</Text>
+                  </View>
+                  {user.skillLevel === level.value && (
+                    <IconSymbol name="checkmark" size={20} color="#4CAF50" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -388,14 +462,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: 20,
     maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   modalTitle: {
     fontSize: 20,
@@ -404,26 +479,30 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 8,
   },
+  modalScroll: {
+    padding: 16,
+  },
   skillOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 12,
+    padding: 16,
     borderRadius: 8,
-    marginBottom: 8,
     backgroundColor: '#f5f5f5',
+    marginBottom: 8,
   },
   selectedSkill: {
     backgroundColor: '#E8F5E9',
   },
   skillOptionText: {
     fontSize: 16,
-    color: '#333333',
-  },
-  selectedSkillText: {
-    color: '#4CAF50',
     fontWeight: '500',
+    marginBottom: 4,
+  },
+  skillDescription: {
+    fontSize: 14,
+    color: '#666666',
+    maxWidth: '90%',
   },
   statsContainer: {
     flexDirection: 'row',
