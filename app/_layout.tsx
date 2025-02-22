@@ -48,15 +48,15 @@ function RootLayoutNav() {
         targetRoute = '/(auth)/login';
       }
     } else {
-      // User is authenticated, check profile completion first
-      if (!user?.hasCompletedProfile && !inProfileSetup) {
-        targetRoute = '/(profile-setup)';
-      }
-      // Only check skill level after profile is complete and only during initial setup
-      else if (!user?.skillLevel && !inSkillGroup && user?.hasCompletedProfile && !inMainApp) {
+      // User is authenticated, check skill level first
+      if (!user?.skillLevel && !inSkillGroup) {
         targetRoute = '/(skill-select)';
       }
-      // Only redirect to main app if coming from auth or setup flows
+      // Then check profile completion
+      else if (user?.skillLevel && !user?.hasCompletedProfile && !inProfileSetup) {
+        targetRoute = '/(profile-setup)';
+      }
+      // Only redirect to main app if all requirements are met
       else if (user?.skillLevel && user?.hasCompletedProfile && !inMainApp && (inAuthGroup || inProfileSetup || inSkillGroup)) {
         targetRoute = '/(tabs)';
       }

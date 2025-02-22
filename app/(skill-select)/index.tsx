@@ -99,7 +99,7 @@ export default function SkillSelectScreen() {
     setIsUpdating(true);
     try {
       await updateProfile({ skillLevel: selectedSkill });
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/explore');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update skill level';
       Alert.alert(
