@@ -11,6 +11,9 @@ import { SpotsAvailability } from '@/components/common/SpotsAvailability';
 import { GAME_CONSTANTS } from '@/types/game';
 import { RSVPList } from '@/components/common/RSVPList';
 import { FirstTimeProfileForm } from '@/components/profile/FirstTimeProfileForm';
+import { MembershipPlanModal } from '@/components/membership/MembershipPlanModal';
+import { PaymentMethodModal } from '@/components/payment/PaymentMethodModal';
+import { MembershipPlan } from '@/types/membership';
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -25,6 +28,9 @@ export default function GameDetailsScreen() {
   const upcomingGames = useUpcomingBookedGames();
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
   const [selectedGame, setSelectedGame] = useState<typeof MOCK_GAMES[keyof typeof MOCK_GAMES] | null>(null);
+  const [showMembershipModal, setShowMembershipModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
 
   // Get the correct game based on the ID
   const game = MOCK_GAMES[id as keyof typeof MOCK_GAMES];
@@ -188,10 +194,24 @@ export default function GameDetailsScreen() {
   };
 
   const handleProfileComplete = () => {
-    console.debug('[GameDetails] Profile completed, transitioning to booking modal');
     setIsProfileFormVisible(false);
-    // After profile completion, show the booking modal
-    setIsBookingModalVisible(true);
+    setShowMembershipModal(true);
+  };
+
+  const handlePlanSelect = (plan: MembershipPlan) => {
+    setSelectedPlan(plan);
+    setShowMembershipModal(false);
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentComplete = async () => {
+    setShowPaymentModal(false);
+    try {
+      // After payment is complete, show the booking modal to complete the reservation
+      setIsBookingModalVisible(true);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to complete booking. Please try again.');
+    }
   };
 
   return (
@@ -539,6 +559,23 @@ export default function GameDetailsScreen() {
           </View>
         </SafeAreaView>
       </Modal>
+
+      {/* Membership Plan Modal */}
+      <MembershipPlanModal
+        visible={showMembershipModal}
+        onClose={() => setShowMembershipModal(false)}
+        onSelectPlan={handlePlanSelect}
+      />
+
+      {/* Payment Method Modal */}
+      {selectedPlan && (
+        <PaymentMethodModal
+          visible={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onComplete={handlePaymentComplete}
+          selectedPlan={selectedPlan}
+        />
+      )}
     </SafeAreaView>
   );
 }

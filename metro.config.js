@@ -29,9 +29,19 @@ config.resolver.sourceExts = [...config.resolver.sourceExts, 'mjs'];
 // 4. Enable symlinks for monorepo support
 config.resolver.enableSymlinks = true;
 
-// 5. Basic logging configuration
+// 5. Performance optimizations and cache configuration
+config.maxWorkers = 4;
+config.transformer.minifierConfig = {
+  compress: false,
+  mangle: false
+};
+
+// 6. Reset cache store configuration
+config.cacheStores = [];
+
+// 7. Basic logging configuration
 config.reporter = {
-  update: () => {}, // Suppress update messages
+  update: () => {},
   log: (message) => {
     if (message.includes('error') || message.includes('Error')) {
       console.error(message);
