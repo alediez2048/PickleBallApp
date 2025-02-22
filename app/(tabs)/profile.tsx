@@ -9,6 +9,8 @@ import { SkillLevel } from '@/types/game';
 import { useAuth } from '@/contexts/AuthContext';
 import { FirstTimeProfileForm } from '@/components/profile/FirstTimeProfileForm';
 import { useRouter } from 'expo-router';
+import { MembershipManagementSection } from '@/components/membership/MembershipManagementSection';
+import { MembershipPlan } from '@/types/membership';
 
 interface GameHistory {
   id: string;
@@ -38,6 +40,7 @@ interface UserProfile {
     state?: string;
     zipCode?: string;
   };
+  membership?: MembershipPlan;
 }
 
 const SKILL_LEVELS = [
@@ -65,7 +68,7 @@ const SKILL_LEVELS = [
 
 export default function ProfileScreen() {
   const user = useUserProfile() as UserProfile;
-  const { updateProfile, signOut } = useAuth();
+  const { updateProfile, signOut, updateMembership } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
@@ -195,6 +198,13 @@ export default function ProfileScreen() {
               {SKILL_LEVELS.find(level => level.value === user.skillLevel)?.label || 'Please set your skill level'}
             </Text>
           </View>
+        </View>
+
+        <View style={styles.section}>
+          <MembershipManagementSection
+            currentPlan={user?.membership}
+            onUpdatePlan={updateMembership}
+          />
         </View>
 
         <View style={styles.section}>

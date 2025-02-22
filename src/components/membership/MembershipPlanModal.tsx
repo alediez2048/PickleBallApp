@@ -116,7 +116,9 @@ export function MembershipPlanModal({
                   onPress={() => onSelectPlan(plan)}
                   style={styles.selectButton}
                 >
-                  Select {plan.name}
+                  <Text style={styles.selectButtonText}>
+                    Select {plan.name}
+                  </Text>
                 </Button>
               </TouchableOpacity>
             ))}
@@ -227,5 +229,10 @@ const styles = StyleSheet.create({
   },
   selectButton: {
     width: '100%',
+  },
+  selectButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
 }); 

@@ -4,12 +4,22 @@ import { mockApi, FirstTimeProfileData, UpdateProfileData } from '@/services/moc
 import { storage } from '@/services/storage';
 import { socialAuth } from '@/services/socialAuth';
 import { Alert, Platform } from 'react-native';
+import { MembershipPlan } from '@/types/membership';
 
-interface User {
+interface PaymentMethod {
   id: string;
-  email: string;
-  name: string;
-  emailVerified: boolean;
+  last4: string;
+  brand: string;
+  expiryMonth: string;
+  expiryYear: string;
+  isDefault: boolean;
+}
+
+interface UserProfile {
+  id?: string;
+  email?: string;
+  name?: string;
+  isVerified?: boolean;
   skillLevel?: string;
   profileImage?: string | {
     uri: string;
@@ -19,25 +29,17 @@ interface User {
   phoneNumber?: string;
   dateOfBirth?: string;
   address?: {
-    address: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
   };
-  gamesPlayed?: Array<{
-    id: string;
-    date: string;
-    result: 'win' | 'loss';
-    score: string;
-    opponent: string;
-  }>;
-  hasCompletedProfile?: boolean;
-  hasPaymentMethod: boolean;
+  membership?: MembershipPlan;
+  paymentMethods?: PaymentMethod[];
 }
 
 interface AuthState {
-  user: User | null;
+  user: UserProfile | null;
   token: string | null;
   isLoading: boolean;
 }
@@ -53,9 +55,10 @@ interface AuthContextType extends AuthState {
   signInWithFacebook: () => Promise<void>;
   
   // Profile management methods
-  updateProfile: (data: UpdateProfileData) => Promise<void>;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   updateFirstTimeProfile: (data: FirstTimeProfileData) => Promise<void>;
-  updatePaymentMethod: (hasPaymentMethod: boolean) => Promise<void>;
+  updateMembership: (plan: MembershipPlan) => Promise<void>;
+  updatePaymentMethods: (methods: PaymentMethod[]) => Promise<void>;
   
   // Auth state
   isAuthenticated: boolean;
@@ -228,7 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateProfile = async (data: UpdateProfileData) => {
+  const updateProfile = async (updates: Partial<UserProfile>) => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
       
@@ -236,7 +239,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No authenticated user');
       }
 
-      const { user: updatedUser } = await mockApi.updateProfile(state.user.email, data);
+      const { user: updatedUser } = await mockApi.updateProfile(state.user.email, updates as UpdateProfileData);
       
       // Store the updated user data
       await storage.setItem('user', JSON.stringify(updatedUser));
@@ -314,35 +317,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updatePaymentMethod = useCallback(async (hasPaymentMethod: boolean) => {
-    if (!state.user?.email) {
-      throw new Error('User not authenticated');
-    }
-
+  const updateMembership = async (plan: MembershipPlan) => {
     try {
-      setState(prev => ({ ...prev, isLoading: true }));
-      
+      if (!state.user) {
+        throw new Error('No authenticated user');
+      }
+
+      // Update user with new membership plan
       const updatedUser = {
         ...state.user,
-        hasPaymentMethod
+        membership: plan
       };
-      
+
       // Store the updated user data
       await storage.setItem('user', JSON.stringify(updatedUser));
-      
+
+      // Update state
       setState(prev => ({
         ...prev,
-        user: updatedUser,
-        isLoading: false
+        user: updatedUser
       }));
 
-      console.log('Payment method status updated successfully:', updatedUser);
+      console.log('Membership updated successfully:', plan);
     } catch (error) {
-      console.error('Payment method update error:', error);
-      setState(prev => ({ ...prev, isLoading: false }));
+      console.error('Error updating membership:', error);
       throw error;
     }
-  }, [state.user]);
+  };
+
+  const updatePaymentMethods = async (methods: PaymentMethod[]) => {
+    try {
+      if (!state.user) {
+        throw new Error('No authenticated user');
+      }
+
+      // Update user with new payment methods
+      const updatedUser = {
+        ...state.user,
+        paymentMethods: methods
+      };
+
+      // Store the updated user data
+      await storage.setItem('user', JSON.stringify(updatedUser));
+
+      // Update state
+      setState(prev => ({
+        ...prev,
+        user: updatedUser
+      }));
+
+      console.log('Payment methods updated successfully:', methods);
+    } catch (error) {
+      console.error('Error updating payment methods:', error);
+      throw error;
+    }
+  };
 
   const value = {
     ...state,
@@ -353,7 +382,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithFacebook,
     updateProfile,
     updateFirstTimeProfile,
-    updatePaymentMethod,
+    updateMembership,
+    updatePaymentMethods,
     isAuthenticated: !!state.token,
   };
 

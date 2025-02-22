@@ -13,14 +13,14 @@ export const useUserProfile = () => {
     id: user?.id,
     name: user?.name,
     email: user?.email,
-    isVerified: user?.emailVerified,
+    isVerified: user?.isVerified,
     skillLevel: user?.skillLevel,
     profileImage: user?.profileImage,
     phoneNumber: user?.phoneNumber,
     dateOfBirth: user?.dateOfBirth,
     address: user?.address,
-    gamesPlayed: user?.gamesPlayed,
-    hasCompletedProfile: user?.hasCompletedProfile
+    membership: user?.membership,
+    paymentMethods: user?.paymentMethods
   }), [user]);
 };
 
