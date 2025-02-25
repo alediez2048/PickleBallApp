@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Alert, Platform, SafeAreaView, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image, Modal, Alert, Platform, SafeAreaView, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useUserProfile } from '@/contexts/selectors/authSelectors';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -11,6 +11,7 @@ import { FirstTimeProfileForm } from '@/components/profile/FirstTimeProfileForm'
 import { useRouter } from 'expo-router';
 import { MembershipManagementSection } from '@/components/membership/MembershipManagementSection';
 import { MembershipPlan } from '@/types/membership';
+import { ThemedText } from '@/components/ThemedText';
 
 interface GameHistory {
   id: string;
@@ -147,14 +148,15 @@ export default function ProfileScreen() {
   if (!user) {
     return (
       <View style={styles.container}>
-        <Text>Loading...</Text>
+        <ThemedText>Loading...</ThemedText>
       </View>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Profile Header */}
         <View style={styles.header}>
           <TouchableOpacity 
             style={styles.profileImageContainer}
@@ -168,130 +170,149 @@ export default function ProfileScreen() {
                 key={refreshKey}
               />
             ) : (
-              <IconSymbol name="person.fill" size={60} color="#666666" />
+              <View style={styles.defaultAvatar}>
+                <IconSymbol name="person.fill" size={48} color="#FFFFFF" />
+              </View>
             )}
-            <View style={styles.editButton}>
-              <IconSymbol name="pencil" size={20} color="#666666" />
+            <View style={styles.editImageButton}>
+              <IconSymbol name="pencil" size={14} color="#FFFFFF" />
             </View>
           </TouchableOpacity>
-          <Text style={styles.name}>{user.name}</Text>
-          <Text style={styles.email}>{user.email}</Text>
+          <ThemedText variant="title" style={styles.name}>{user.name}</ThemedText>
+          <ThemedText variant="caption" style={styles.email}>{user.email}</ThemedText>
         </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Skill Level</Text>
+        {/* Skill Level Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <ThemedText variant="subtitle" style={styles.cardTitle}>Skill Level</ThemedText>
             <Button 
-              variant="secondary" 
+              variant="outline" 
               size="small"
               onPress={() => setIsSkillModalVisible(true)}
-              style={styles.editButton}
             >
               Edit
             </Button>
           </View>
-          <View style={styles.skillLevelInfo}>
-            <Text style={styles.skillLevelValue}>
-              {user.skillLevel || 'Not set'}
-            </Text>
-            <Text style={styles.skillLevelDescription}>
-              {SKILL_LEVELS.find(level => level.value === user.skillLevel)?.label || 'Please set your skill level'}
-            </Text>
+          <View style={styles.skillLevelContainer}>
+            <View style={styles.skillBadge}>
+              <ThemedText style={styles.skillLevelText}>
+                {user.skillLevel || 'Not set'}
+              </ThemedText>
+            </View>
+            <ThemedText variant="caption" style={styles.skillLevelDescription}>
+              {SKILL_LEVELS.find(level => level.value === user.skillLevel)?.description || 'Please set your skill level'}
+            </ThemedText>
           </View>
         </View>
 
-        <View style={styles.section}>
+        {/* Membership Card */}
+        <View style={styles.card}>
           <MembershipManagementSection
             currentPlan={user?.membership}
             onUpdatePlan={updateMembership}
           />
         </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Profile Information</Text>
+        {/* Profile Information Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <ThemedText variant="subtitle" style={styles.cardTitle}>Profile Information</ThemedText>
             <Button 
-              variant="secondary" 
+              variant="outline" 
               size="small"
               onPress={() => setIsProfileFormVisible(true)}
-              style={styles.editButton}
             >
               Edit
             </Button>
           </View>
           <View style={styles.profileInfo}>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Phone:</Text>
-              <Text style={styles.infoValue}>{user?.phoneNumber || 'Not set'}</Text>
+              <ThemedText variant="caption" style={styles.infoLabel}>Phone</ThemedText>
+              <ThemedText style={styles.infoValue}>{user?.phoneNumber || 'Not set'}</ThemedText>
             </View>
+            <View style={styles.divider} />
+            
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Date of Birth:</Text>
-              <Text style={styles.infoValue}>{user?.dateOfBirth || 'Not set'}</Text>
+              <ThemedText variant="caption" style={styles.infoLabel}>Date of Birth</ThemedText>
+              <ThemedText style={styles.infoValue}>{user?.dateOfBirth || 'Not set'}</ThemedText>
             </View>
+            <View style={styles.divider} />
+            
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Address:</Text>
-              <Text style={styles.infoValue}>
+              <ThemedText variant="caption" style={styles.infoLabel}>Address</ThemedText>
+              <ThemedText style={styles.infoValue}>
                 {user?.address?.street || 'Not set'}
-              </Text>
+              </ThemedText>
             </View>
+            <View style={styles.divider} />
+            
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>City:</Text>
-              <Text style={styles.infoValue}>
+              <ThemedText variant="caption" style={styles.infoLabel}>City</ThemedText>
+              <ThemedText style={styles.infoValue}>
                 {user?.address?.city || 'Not set'}
-              </Text>
+              </ThemedText>
             </View>
+            <View style={styles.divider} />
+            
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>State:</Text>
-              <Text style={styles.infoValue}>
+              <ThemedText variant="caption" style={styles.infoLabel}>State</ThemedText>
+              <ThemedText style={styles.infoValue}>
                 {user?.address?.state || 'Not set'}
-              </Text>
+              </ThemedText>
             </View>
+            <View style={styles.divider} />
+            
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>ZIP Code:</Text>
-              <Text style={styles.infoValue}>
+              <ThemedText variant="caption" style={styles.infoLabel}>ZIP Code</ThemedText>
+              <ThemedText style={styles.infoValue}>
                 {user?.address?.zipCode || 'Not set'}
-              </Text>
+              </ThemedText>
             </View>
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Games Played</Text>
+        {/* Games Played Card */}
+        <View style={styles.card}>
+          <ThemedText variant="subtitle" style={styles.cardTitle}>Games History</ThemedText>
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>
+              <ThemedText style={styles.statNumber}>
                 {user.gamesPlayed?.length || 0}
-              </Text>
-              <Text style={styles.statLabel}>Total Games</Text>
+              </ThemedText>
+              <ThemedText variant="caption" style={styles.statLabel}>Total Games</ThemedText>
             </View>
+            <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>
+              <ThemedText style={[styles.statNumber, styles.winText]}>
                 {user.gamesPlayed?.filter(game => game.result === 'win').length || 0}
-              </Text>
-              <Text style={styles.statLabel}>Wins</Text>
+              </ThemedText>
+              <ThemedText variant="caption" style={styles.statLabel}>Wins</ThemedText>
             </View>
+            <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>
+              <ThemedText style={[styles.statNumber, styles.lossText]}>
                 {user.gamesPlayed?.filter(game => game.result === 'loss').length || 0}
-              </Text>
-              <Text style={styles.statLabel}>Losses</Text>
+              </ThemedText>
+              <ThemedText variant="caption" style={styles.statLabel}>Losses</ThemedText>
             </View>
           </View>
         </View>
 
-        <View style={[styles.section, styles.signOutSection]}>
+        {/* Sign Out Button */}
+        <View style={styles.signOutContainer}>
           <Button 
-            variant="secondary" 
+            variant="outline" 
             onPress={signOut}
-            size="medium"
+            size="large"
             fullWidth
-            style={styles.signOutButton}
           >
             Sign Out
           </Button>
         </View>
       </ScrollView>
 
+      {/* Profile Form Modal */}
       <Modal
         visible={isProfileFormVisible}
         transparent
@@ -307,7 +328,7 @@ export default function ProfileScreen() {
               >
                 <IconSymbol name="xmark" size={24} color="#666666" />
               </TouchableOpacity>
-              <Text style={styles.modalTitle}>Update Profile</Text>
+              <ThemedText variant="title" style={styles.modalTitle}>Update Profile</ThemedText>
             </View>
             <ScrollView style={styles.profileFormScroll}>
               <FirstTimeProfileForm onComplete={() => {
@@ -320,6 +341,7 @@ export default function ProfileScreen() {
         </SafeAreaView>
       </Modal>
 
+      {/* Skill Level Modal */}
       <Modal
         visible={isSkillModalVisible}
         animationType="slide"
@@ -329,7 +351,7 @@ export default function ProfileScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Update Skill Level</Text>
+              <ThemedText variant="title" style={styles.modalTitle}>Update Skill Level</ThemedText>
               <TouchableOpacity
                 onPress={() => setIsSkillModalVisible(false)}
                 style={styles.closeButton}
@@ -348,9 +370,9 @@ export default function ProfileScreen() {
                   onPress={() => handleSkillUpdate(level.value)}
                   disabled={isLoading}
                 >
-                  <View>
-                    <Text style={styles.skillOptionText}>{level.label}</Text>
-                    <Text style={styles.skillDescription}>{level.description}</Text>
+                  <View style={styles.skillOptionContent}>
+                    <ThemedText style={styles.skillOptionText}>{level.label}</ThemedText>
+                    <ThemedText variant="caption" style={styles.skillDescription}>{level.description}</ThemedText>
                   </View>
                   {user.skillLevel === level.value && (
                     <IconSymbol name="checkmark" size={20} color="#4CAF50" />
@@ -368,29 +390,18 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f8f9fa',
   },
   scrollView: {
     flex: 1,
-    padding: 20,
-    paddingTop: 60,
+    padding: 16,
   },
   header: {
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  profileImageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
-    overflow: 'hidden',
+    borderRadius: 16,
+    marginBottom: 16,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -398,70 +409,164 @@ const styles = StyleSheet.create({
           width: 0,
           height: 2,
         },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowOpacity: 0.05,
+        shadowRadius: 3.84,
       },
       android: {
-        elevation: 3,
-      },
-      web: {
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+        elevation: 2,
       },
     }),
+  },
+  profileImageContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
+    position: 'relative',
+  },
+  defaultAvatar: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 50,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   profileImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 50,
   },
-  editButton: {
-    minWidth: 80,
+  editImageButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#4CAF50',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
   },
   name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: 4,
+    textAlign: 'center',
   },
   email: {
-    fontSize: 16,
     color: '#666666',
+    textAlign: 'center',
   },
-  section: {
-    padding: 16,
+  card: {
     backgroundColor: '#fff',
-    marginBottom: 8,
+    borderRadius: 16,
+    marginBottom: 16,
+    padding: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.05,
+        shadowRadius: 3.84,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
-  sectionHeader: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 18,
+  cardTitle: {
     fontWeight: '600',
-    color: '#000',
   },
-  sectionContent: {
+  skillLevelContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+  },
+  skillBadge: {
+    backgroundColor: '#E8F5E9',
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  skillLevelText: {
+    color: '#4CAF50',
+    fontWeight: '600',
     fontSize: 16,
+  },
+  skillLevelDescription: {
     color: '#666666',
   },
-  gameItem: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    backgroundColor: '#fff',
-    marginHorizontal: -16,
-    paddingHorizontal: 16,
+  profileInfo: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
   },
-  gameTitle: {
-    fontSize: 16,
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  infoLabel: {
+    color: '#666666',
+  },
+  infoValue: {
     fontWeight: '500',
-    color: '#000',
   },
-  gameDate: {
-    fontSize: 14,
+  divider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    width: '100%',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statDivider: {
+    width: 1,
+    backgroundColor: '#e0e0e0',
+    marginHorizontal: 8,
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 4,
+  },
+  winText: {
+    color: '#4CAF50',
+  },
+  lossText: {
+    color: '#F44336',
+  },
+  statLabel: {
     color: '#666666',
-    marginTop: 4,
+  },
+  signOutContainer: {
+    marginTop: 8,
+    marginBottom: 24,
   },
   modalOverlay: {
     flex: 1,
@@ -480,11 +585,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#f0f0f0',
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    flex: 1,
+    textAlign: 'center',
   },
   closeButton: {
     padding: 8,
@@ -497,119 +602,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    borderRadius: 8,
-    backgroundColor: '#f5f5f5',
-    marginBottom: 8,
+    borderRadius: 12,
+    backgroundColor: '#f8f9fa',
+    marginBottom: 12,
+  },
+  skillOptionContent: {
+    flex: 1,
+    paddingRight: 8,
   },
   selectedSkill: {
     backgroundColor: '#E8F5E9',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
   },
   skillOptionText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     marginBottom: 4,
   },
   skillDescription: {
-    fontSize: 14,
-    color: '#666666',
-    maxWidth: '90%',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    marginBottom: 16,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  recentGames: {
-    width: '100%',
-  },
-  recentGamesTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 8,
-  },
-  recentGame: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  gameResult: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  gameScore: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  signOutSection: {
-    marginTop: 0,
-    paddingHorizontal: 0,
-    width: '100%',
-  },
-  signOutButton: {
-    marginTop: 8,
-  },
-  disabledSkillOption: {
-    opacity: 0.5,
-  },
-  disabledSkillText: {
-    color: '#999999',
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
-  skillLevelInfo: {
-    padding: 8,
-    backgroundColor: '#f8f8f8',
-    borderRadius: 8,
-  },
-  skillLevelLockMessage: {
-    fontSize: 12,
-    marginTop: 4,
-    color: '#666666',
-    fontStyle: 'italic',
-  },
-  disabledEditButton: {
-    backgroundColor: '#E0E0E0',
-    opacity: 0.5,
-    borderColor: '#CCCCCC',
-  },
-  profileInfo: {
-    padding: 16,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  infoLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  infoValue: {
-    fontSize: 16,
     color: '#666666',
   },
   profileFormOverlay: {
@@ -621,23 +632,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '80%',
+    padding: 16,
+    maxHeight: '90%',
   },
   modalCloseButton: {
     padding: 8,
   },
   profileFormScroll: {
-    maxHeight: '80%',
-  },
-  skillLevelValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 4,
-  },
-  skillLevelDescription: {
-    fontSize: 14,
-    color: '#666666',
+    maxHeight: '90%',
   },
 }); 
