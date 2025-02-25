@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, SafeAreaView, Text, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
-import { Button } from '@components/common/ui/Button';
-import { LoadingSpinner } from '@components/common/ui/LoadingSpinner';
+import { Button } from '@/components/common/ui/Button';
+import { LoadingSpinner } from '@/components/common/ui/LoadingSpinner';
 import { validateEmail } from '@/utils/validation';
 import { mockApi } from '@/services/mockApi';
+import { ThemedText } from '@/components/ThemedText';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -53,16 +54,16 @@ export default function ForgotPasswordScreen() {
             onPress={() => router.back()}
             style={styles.backButton}
           >
-            <Text style={styles.backButtonText}>← Back</Text>
+            <ThemedText style={styles.backButtonText}>← Back</ThemedText>
           </TouchableOpacity>
 
           <View style={styles.formContainer}>
             {/* Title */}
             <View style={styles.titleContainer}>
-              <Text style={styles.title}>Reset your password</Text>
-              <Text style={styles.subtitle}>
+              <ThemedText variant="title" style={styles.title}>Reset your password</ThemedText>
+              <ThemedText variant="subtitle" style={styles.subtitle}>
                 Enter your email address and we'll send you instructions to reset your password
-              </Text>
+              </ThemedText>
             </View>
 
             {/* Form */}
@@ -83,31 +84,34 @@ export default function ForgotPasswordScreen() {
                   editable={!isLoading}
                 />
                 {error && (
-                  <Text style={styles.errorText}>{error}</Text>
+                  <ThemedText style={styles.errorText}>{error}</ThemedText>
                 )}
                 {success && (
-                  <Text style={styles.successText}>{success}</Text>
+                  <ThemedText style={styles.successText}>{success}</ThemedText>
                 )}
               </View>
 
               <Button 
                 onPress={handleResetPassword} 
-                size="lg" 
+                size="large" 
+                variant="primary"
+                fullWidth
                 disabled={isLoading}
               >
                 Send Reset Instructions
               </Button>
 
               <View style={styles.signInContainer}>
-                <Text style={styles.signInText}>
+                <ThemedText variant="caption" style={styles.signInText}>
                   Remember your password?{' '}
-                  <Text 
+                  <ThemedText 
+                    variant="caption" 
                     style={styles.signInLink} 
                     onPress={() => router.push('/(auth)/email-login')}
                   >
                     Sign in
-                  </Text>
-                </Text>
+                  </ThemedText>
+                </ThemedText>
               </View>
             </View>
           </View>
@@ -148,13 +152,9 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
     color: '#6B7280',
     textAlign: 'center',
   },
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    borderRadius: 8,
+    borderRadius: 25,
     fontSize: 16,
     color: '#000',
   },
@@ -192,10 +192,9 @@ const styles = StyleSheet.create({
   },
   signInText: {
     color: '#6B7280',
-    fontSize: 14,
   },
   signInLink: {
-    color: '#000',
+    color: '#4CAF50',
     fontWeight: '600',
   },
 }); 

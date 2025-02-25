@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, SafeAreaView, Text, StyleSheet } from 'react-native';
+import { View, SafeAreaView, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import { Button } from '@components/common/ui/Button';
-import { LoadingSpinner } from '@components/common/ui/LoadingSpinner';
+import { Button } from '@/components/common/ui/Button';
+import { LoadingSpinner } from '@/components/common/ui/LoadingSpinner';
 import { mockApi } from '@/services/mockApi';
 import { useAuth } from '@/contexts/AuthContext';
-import { VerifyEmailIcon } from '@components/common/icons/VerifyEmailIcon';
+import { VerifyEmailIcon } from '@/components/common/icons/VerifyEmailIcon';
+import { ThemedText } from '@/components/ThemedText';
 
 export default function VerifyEmailScreen() {
   const { user, signOut } = useAuth();
@@ -56,27 +57,29 @@ export default function VerifyEmailScreen() {
           <VerifyEmailIcon size={80} />
         </View>
 
-        <Text style={styles.title}>Verify your email</Text>
-        <Text style={styles.subtitle}>
+        <ThemedText variant="title" style={styles.title}>Verify your email</ThemedText>
+        <ThemedText variant="subtitle" style={styles.subtitle}>
           We've sent a verification email to{'\n'}
-          <Text style={styles.email}>{user?.email}</Text>
-        </Text>
+          <ThemedText variant="subtitle" style={styles.email}>{user?.email}</ThemedText>
+        </ThemedText>
 
         <View style={styles.messageContainer}>
           {error && (
-            <Text style={styles.errorText}>{error}</Text>
+            <ThemedText style={styles.errorText}>{error}</ThemedText>
           )}
           {success && (
-            <Text style={styles.successText}>{success}</Text>
+            <ThemedText style={styles.successText}>{success}</ThemedText>
           )}
         </View>
 
         <View style={styles.buttonContainer}>
-          <Text style={styles.resendText}>
+          <ThemedText variant="caption" style={styles.resendText}>
             Didn't receive the email?
-          </Text>
+          </ThemedText>
           <Button
-            variant="secondary"
+            variant="primary"
+            size="large"
+            fullWidth
             onPress={handleResendVerification}
             disabled={isLoading}
           >
@@ -85,11 +88,13 @@ export default function VerifyEmailScreen() {
 
           <View style={styles.divider} />
 
-          <Text style={styles.signInText}>
+          <ThemedText variant="caption" style={styles.signInText}>
             Want to use a different account?
-          </Text>
+          </ThemedText>
           <Button
-            variant="secondary"
+            variant="outline"
+            size="large"
+            fullWidth
             onPress={handleBackToSignIn}
             disabled={isLoading}
           >
@@ -117,20 +122,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
     marginBottom: 16,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
     color: '#6B7280',
     textAlign: 'center',
     marginBottom: 24,
   },
   email: {
-    color: '#000',
     fontWeight: '600',
   },
   messageContainer: {
@@ -154,7 +154,6 @@ const styles = StyleSheet.create({
   },
   resendText: {
     color: '#6B7280',
-    fontSize: 14,
   },
   divider: {
     height: 1,
@@ -164,6 +163,5 @@ const styles = StyleSheet.create({
   },
   signInText: {
     color: '#6B7280',
-    fontSize: 14,
   },
 }); 

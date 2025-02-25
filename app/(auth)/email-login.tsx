@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet, Text } from 'react-native';
+import { View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@components/common/ui/Button';
-import { LoadingSpinner } from '@components/common/ui/LoadingSpinner';
+import { Button } from '@/components/common/ui/Button';
+import { LoadingSpinner } from '@/components/common/ui/LoadingSpinner';
 import { validateLoginForm } from '@/utils/validation';
+import { ThemedText } from '@/components/ThemedText';
 
 export default function EmailLoginScreen() {
   const [email, setEmail] = useState('');
@@ -52,18 +53,18 @@ export default function EmailLoginScreen() {
             onPress={() => router.back()}
             style={styles.backButton}
           >
-            <Text style={styles.backButtonText}>← Back</Text>
+            <ThemedText style={styles.backButtonText}>← Back</ThemedText>
           </TouchableOpacity>
 
           <View style={styles.formContainer}>
             {/* Title */}
             <View style={styles.titleContainer}>
-              <Text style={styles.title}>
+              <ThemedText variant="title" style={styles.title}>
                 Sign in with email
-              </Text>
-              <Text style={styles.subtitle}>
+              </ThemedText>
+              <ThemedText variant="subtitle" style={styles.subtitle}>
                 Enter your email and password
-              </Text>
+              </ThemedText>
             </View>
 
             {/* Form */}
@@ -81,9 +82,9 @@ export default function EmailLoginScreen() {
                   returnKeyType="next"
                 />
                 {errors.email && (
-                  <Text style={styles.errorText}>
+                  <ThemedText style={styles.errorText}>
                     {errors.email}
-                  </Text>
+                  </ThemedText>
                 )}
               </View>
 
@@ -100,22 +101,22 @@ export default function EmailLoginScreen() {
                   onSubmitEditing={handleLogin}
                 />
                 {errors.password && (
-                  <Text style={styles.errorText}>
+                  <ThemedText style={styles.errorText}>
                     {errors.password}
-                  </Text>
+                  </ThemedText>
                 )}
                 <TouchableOpacity 
                   onPress={() => router.push('/(auth)/forgot-password')}
                   style={styles.forgotPasswordContainer}
                 >
-                  <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+                  <ThemedText style={styles.forgotPasswordText}>Forgot password?</ThemedText>
                 </TouchableOpacity>
               </View>
 
               {errors.form && (
-                <Text style={[styles.errorText, styles.formError]}>
+                <ThemedText style={[styles.errorText, styles.formError]}>
                   {errors.form}
-                </Text>
+                </ThemedText>
               )}
 
               <Button 
@@ -166,13 +167,9 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
     color: '#6B7280',
   },
   form: {
@@ -187,7 +184,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    borderRadius: 8,
+    borderRadius: 25,
     fontSize: 16,
     color: '#000',
   },
@@ -206,7 +203,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   forgotPasswordText: {
-    color: '#000',
+    color: '#4CAF50',
     fontSize: 14,
     fontWeight: '500',
   },

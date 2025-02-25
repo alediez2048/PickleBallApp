@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, SafeAreaView, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
 import { Link, router } from 'expo-router';
-import { Button } from '@components/common/ui/Button';
+import { Button } from '@/components/common/ui/Button';
 import { AntDesign } from '@expo/vector-icons';
-import { GoogleIcon } from '@components/common/icons/GoogleIcon';
+import { GoogleIcon } from '@/components/common/icons/GoogleIcon';
 import { useAuth } from '@/contexts/AuthContext';
-import { LoadingSpinner } from '@components/common/ui/LoadingSpinner';
+import { LoadingSpinner } from '@/components/common/ui/LoadingSpinner';
+import { ThemedText } from '@/components/ThemedText';
 
 export default function LoginScreen() {
   const { signInWithGoogle, signInWithFacebook } = useAuth();
@@ -37,25 +38,26 @@ export default function LoginScreen() {
         <View style={styles.content}>
           {/* Logo */}
           <View style={styles.logoContainer}>
-            <Text style={styles.logo}>
+            <ThemedText variant="title" style={styles.logo}>
               PicklePass
-            </Text>
+            </ThemedText>
           </View>
 
           {/* Title */}
-          <Text style={styles.title}>
+          <ThemedText variant="title" style={styles.title}>
             Welcome to PicklePass
-          </Text>
-          <Text style={styles.subtitle}>
+          </ThemedText>
+          <ThemedText variant="subtitle" style={styles.subtitle}>
             Sign in or create an account to get started
-          </Text>
+          </ThemedText>
 
           {/* Buttons Container */}
           <View style={styles.buttonContainer}>
             {/* Email Button */}
             <Button
               variant="primary"
-              size="lg"
+              size="large"
+              fullWidth
               onPress={() => router.push('/(auth)/email-login')}
             >
               Sign in with Email
@@ -63,8 +65,9 @@ export default function LoginScreen() {
 
             {/* Register Button */}
             <Button
-              variant="secondary"
-              size="lg"
+              variant="outline"
+              size="large"
+              fullWidth
               onPress={() => router.push('/(auth)/register')}
             >
               Create New Account
@@ -73,48 +76,52 @@ export default function LoginScreen() {
             {/* Divider */}
             <View style={styles.dividerContainer}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
+              <ThemedText variant="caption" style={styles.dividerText}>or</ThemedText>
               <View style={styles.dividerLine} />
             </View>
 
             {/* Social Buttons */}
-            <Button
-              variant="secondary"
-              size="lg"
+            <TouchableOpacity 
+              style={[styles.socialButton, styles.socialButtonWithBorder]} 
               disabled={true}
-              onPress={() => {}}
+              activeOpacity={0.8}
+              onPress={() => handleSocialSignIn('google')}
             >
               <View style={styles.socialButtonContent}>
-                <View style={styles.iconContainer}>
+                <View style={styles.socialIconContainer}>
                   <GoogleIcon size={20} />
                 </View>
-                <Text style={[styles.socialButtonText, styles.disabledText]}>Google Sign-In (Coming Soon)</Text>
+                <ThemedText style={styles.socialButtonText}>Continue with Google</ThemedText>
               </View>
-            </Button>
+            </TouchableOpacity>
 
-            <Button
-              variant="secondary"
-              size="lg"
+            <TouchableOpacity 
+              style={[styles.socialButton, styles.socialButtonWithBorder]} 
               disabled={true}
-              onPress={() => {}}
+              activeOpacity={0.8}
+              onPress={() => handleSocialSignIn('facebook')}
             >
               <View style={styles.socialButtonContent}>
-                <View style={styles.iconContainer}>
+                <View style={styles.socialIconContainer}>
                   <AntDesign name="facebook-square" size={20} color="#1877F2" />
                 </View>
-                <Text style={[styles.socialButtonText, styles.disabledText]}>Facebook Sign-In (Coming Soon)</Text>
+                <ThemedText style={styles.socialButtonText}>Continue with Facebook</ThemedText>
               </View>
-            </Button>
+            </TouchableOpacity>
           </View>
 
           {/* Sign In Link */}
           <View style={styles.signInContainer}>
-            <Text style={styles.signInText}>
+            <ThemedText variant="caption" style={styles.signInText}>
               Already have an account?{' '}
-              <Text style={styles.signInLink} onPress={() => router.push('/(auth)/email-login')}>
+              <ThemedText 
+                variant="caption" 
+                style={styles.signInLink} 
+                onPress={() => router.push('/(auth)/email-login')}
+              >
                 Sign in
-              </Text>
-            </Text>
+              </ThemedText>
+            </ThemedText>
           </View>
         </View>
       </View>
@@ -146,24 +153,19 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#000',
   },
   title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#000',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
     color: '#6B7280',
     textAlign: 'center',
     marginBottom: 32,
   },
   buttonContainer: {
     width: '100%',
-    gap: 12,
+    gap: 16,
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -177,27 +179,39 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     marginHorizontal: 12,
-    color: '#6B7280',
-    fontSize: 14,
+  },
+  socialButton: {
+    height: 52,
+    borderRadius: 25,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    position: 'relative',
+    backgroundColor: '#FFFFFF',
+  },
+  socialButtonWithBorder: {
+    borderWidth: 1,
+    borderColor: '#DADCE0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   socialButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    gap: 12,
   },
-  iconContainer: {
-    position: 'absolute',
-    left: 16,
+  socialIconContainer: {
+    marginRight: 12,
   },
   socialButtonText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000',
-  },
-  disabledText: {
-    color: '#6B7280',
+    color: '#3c4043',
   },
   signInContainer: {
     marginTop: 32,
@@ -205,10 +219,9 @@ const styles = StyleSheet.create({
   },
   signInText: {
     color: '#6B7280',
-    fontSize: 14,
   },
   signInLink: {
-    color: '#000',
+    color: '#4CAF50',
     fontWeight: '600',
   },
 }); 

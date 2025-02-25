@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, SafeAreaView, Text, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@components/common/ui/Button';
-import { LoadingSpinner } from '@components/common/ui/LoadingSpinner';
+import { Button } from '@/components/common/ui/Button';
+import { LoadingSpinner } from '@/components/common/ui/LoadingSpinner';
 import { validateRegisterForm } from '@/utils/validation';
+import { ThemedText } from '@/components/ThemedText';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
@@ -56,14 +57,14 @@ export default function RegisterScreen() {
             onPress={() => router.back()}
             style={styles.backButton}
           >
-            <Text style={styles.backButtonText}>← Back</Text>
+            <ThemedText style={styles.backButtonText}>← Back</ThemedText>
           </TouchableOpacity>
 
           <View style={styles.formContainer}>
             {/* Title */}
             <View style={styles.titleContainer}>
-              <Text style={styles.title}>Create your account</Text>
-              <Text style={styles.subtitle}>Enter your details below</Text>
+              <ThemedText variant="title" style={styles.title}>Create your account</ThemedText>
+              <ThemedText variant="subtitle" style={styles.subtitle}>Enter your details below</ThemedText>
             </View>
 
             {/* Form */}
@@ -79,7 +80,7 @@ export default function RegisterScreen() {
                   editable={!isLoading}
                 />
                 {errors.name && (
-                  <Text style={styles.errorText}>{errors.name}</Text>
+                  <ThemedText style={styles.errorText}>{errors.name}</ThemedText>
                 )}
               </View>
 
@@ -95,7 +96,7 @@ export default function RegisterScreen() {
                   editable={!isLoading}
                 />
                 {errors.email && (
-                  <Text style={styles.errorText}>{errors.email}</Text>
+                  <ThemedText style={styles.errorText}>{errors.email}</ThemedText>
                 )}
               </View>
 
@@ -110,27 +111,37 @@ export default function RegisterScreen() {
                   editable={!isLoading}
                 />
                 {errors.password && (
-                  <Text style={styles.errorText}>{errors.password}</Text>
+                  <ThemedText style={styles.errorText}>{errors.password}</ThemedText>
                 )}
               </View>
 
               {errors.form && (
-                <Text style={[styles.errorText, styles.formError]}>
+                <ThemedText style={[styles.errorText, styles.formError]}>
                   {errors.form}
-                </Text>
+                </ThemedText>
               )}
 
-              <Button onPress={handleRegister} size="large" disabled={isLoading}>
+              <Button 
+                onPress={handleRegister} 
+                size="large" 
+                variant="primary"
+                fullWidth
+                disabled={isLoading}
+              >
                 Create Account
               </Button>
 
               <View style={styles.signInContainer}>
-                <Text style={styles.signInText}>
+                <ThemedText variant="caption" style={styles.signInText}>
                   Already have an account?{' '}
-                  <Text style={styles.signInLink} onPress={() => router.push('/(auth)/login')}>
+                  <ThemedText 
+                    variant="caption" 
+                    style={styles.signInLink} 
+                    onPress={() => router.push('/(auth)/login')}
+                  >
                     Sign in
-                  </Text>
-                </Text>
+                  </ThemedText>
+                </ThemedText>
               </View>
             </View>
           </View>
@@ -171,13 +182,9 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
     color: '#6B7280',
   },
   form: {
@@ -192,7 +199,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    borderRadius: 8,
+    borderRadius: 25,
     fontSize: 16,
     color: '#000',
   },
@@ -212,10 +219,9 @@ const styles = StyleSheet.create({
   },
   signInText: {
     color: '#6B7280',
-    fontSize: 14,
   },
   signInLink: {
-    color: '#000',
+    color: '#4CAF50',
     fontWeight: '600',
   },
 }); 
