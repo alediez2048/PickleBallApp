@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Pla
 import { useRouter } from 'expo-router';
 import { MOCK_GAMES } from '@/utils/mockData';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { SkillLevel } from '@/types/game';
+import { SkillLevel, Game } from '@/types/game';
 import { useUserProfile } from '@/contexts/selectors/authSelectors';
 import { useBookedGames, useUpcomingBookedGames } from '@/contexts/BookedGamesContext';
 import { mockApi } from '@/services/mockApi';
@@ -179,6 +179,76 @@ export default function ExploreScreen() {
     return game.skillLevel === selectedSkillLevel;
   });
 
+  // Function to group games by date
+  const groupGamesByDate = (games: Game[]): Record<string, Game[]> => {
+    const groupedGames: Record<string, Game[]> = {};
+    
+    games.forEach(game => {
+      const gameDate = new Date(game.startTime);
+      const today = new Date();
+      
+      // Reset times to midnight for date comparison
+      const gameDateMidnight = new Date(gameDate.getFullYear(), gameDate.getMonth(), gameDate.getDate());
+      const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      const tomorrowMidnight = new Date(todayMidnight);
+      tomorrowMidnight.setDate(tomorrowMidnight.getDate() + 1);
+      
+      let dateKey: string;
+      
+      if (gameDateMidnight.getTime() === todayMidnight.getTime()) {
+        dateKey = 'Today';
+      } else if (gameDateMidnight.getTime() === tomorrowMidnight.getTime()) {
+        dateKey = 'Tomorrow';
+      } else {
+        // Format date as "Day of Week, Month Day" for future dates
+        dateKey = gameDate.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          month: 'short', 
+          day: 'numeric' 
+        });
+      }
+      
+      if (!groupedGames[dateKey]) {
+        groupedGames[dateKey] = [];
+      }
+      
+      groupedGames[dateKey].push(game);
+    });
+    
+    // Sort games by time within each day
+    Object.keys(groupedGames).forEach(dateKey => {
+      groupedGames[dateKey].sort((a, b) => 
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+      );
+    });
+    
+    return groupedGames;
+  };
+
+  // Group filtered games by date
+  const groupedGames = groupGamesByDate(filteredGames);
+  
+  // Get sorted date keys (Today, Tomorrow, then chronological order)
+  const getOrderedDateKeys = (): string[] => {
+    const dateKeys = Object.keys(groupedGames);
+    
+    return dateKeys.sort((a: string, b: string) => {
+      if (a === 'Today') return -1;
+      if (b === 'Today') return 1;
+      if (a === 'Tomorrow') return -1;
+      if (b === 'Tomorrow') return 1;
+      
+      // For other dates, convert to date objects and compare
+      const dateA = new Date(a.replace(/Today|Tomorrow/g, ''));
+      const dateB = new Date(b.replace(/Today|Tomorrow/g, ''));
+      
+      return dateA.getTime() - dateB.getTime();
+    });
+  };
+
+  const orderedDateKeys = getOrderedDateKeys();
+
   const skillLevels = [
     { value: 'all' as const, label: 'All Levels' },
     { value: SkillLevel.Beginner, label: 'Beginner' },
@@ -319,105 +389,122 @@ export default function ExploreScreen() {
 
       {/* Games List */}
       <ScrollView style={styles.gamesContainer}>
-        {filteredGames.length > 0 ? (
-          filteredGames.map((game) => {
-            const reservationStatus = gameStatuses[game.id] || {
-              canReserve: false,
-              buttonText: 'Loading...',
-              buttonStyle: styles.disabledButton,
-              textStyle: styles.disabledButtonText,
-              isBooked: false
-            };
-            
-            // Check if the game is booked by the current user
-            const isBooked = upcomingGames.some(
-              bookedGame => bookedGame.gameId === game.id && bookedGame.status === 'upcoming'
-            );
-            
-            return (
-              <View
-                key={`explore-${game.id}`}
-                style={[
-                  styles.gameCard,
-                  !isSkillLevelMatch(game.skillLevel) && styles.mismatchedGameCard
-                ]}
-              >
-                <TouchableOpacity
-                  style={styles.gameCardContent}
-                  onPress={() => handleGamePress(game.id)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.gameHeader}>
-                    <View>
-                      <Text style={styles.timeText}>
-                        {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </Text>
-                      <Text style={styles.courtText}>{game.location.name}</Text>
-                    </View>
-                    <View style={[
-                      styles.skillLevelTag,
-                      { backgroundColor: getSkillLevelColor(game.skillLevel) + '15' }
-                    ]}>
-                      <View 
-                        style={[
-                          styles.skillLevelDot,
-                          { backgroundColor: getSkillLevelColor(game.skillLevel) }
-                        ]} 
-                      />
-                      <Text style={[
-                        styles.skillLevelText,
-                        { color: getSkillLevelColor(game.skillLevel) }
-                      ]}>
-                        {game.skillLevel}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.locationInfo}>
-                    <Text style={styles.addressText}>{game.location.address}</Text>
-                    <Text style={styles.cityText}>{game.location.city}, {game.location.state}</Text>
-                  </View>
-                </TouchableOpacity>
-
-                <View style={styles.gameFooter}>
-                  <View style={styles.spotsContainer}>
-                    <SpotsAvailability 
-                      gameId={game.id} 
-                      variant="card"
-                      showLoadingState={false}
-                    />
-                  </View>
-                  {isBooked ? (
-                    <TouchableOpacity
-                      style={styles.cancelButton}
-                      onPress={() => handleCancelRegistration(game.id)}
-                    >
-                      <Text style={styles.cancelText}>Cancel</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity
-                      style={[
-                        reservationStatus.buttonStyle,
-                        game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.disabledButton
-                      ]}
-                      onPress={() => handleGamePress(game.id)}
-                      disabled={game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS}
-                    >
-                      <Text style={[
-                        reservationStatus.textStyle,
-                        game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.disabledButtonText
-                      ]}>
-                        {game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS 
-                          ? 'Game Full' 
-                          : reservationStatus.buttonText
-                        }
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
+        {Object.keys(groupedGames).length > 0 ? (
+          orderedDateKeys.map(dateKey => (
+            <View key={`date-${dateKey}`} style={styles.dateSection}>
+              <View style={styles.dateTitleContainer}>
+                <Text style={styles.dateTitle}>{dateKey}</Text>
+                {dateKey === 'Today' || dateKey === 'Tomorrow' ? (
+                  <Text style={styles.dateSubtitle}>
+                    {new Date(
+                      dateKey === 'Today' 
+                        ? Date.now() 
+                        : Date.now() + 86400000
+                    ).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </Text>
+                ) : null}
               </View>
-            );
-          })
+              
+              {groupedGames[dateKey].map((game) => {
+                const reservationStatus = gameStatuses[game.id] || {
+                  canReserve: false,
+                  buttonText: 'Loading...',
+                  buttonStyle: styles.disabledButton,
+                  textStyle: styles.disabledButtonText,
+                  isBooked: false
+                };
+                
+                // Check if the game is booked by the current user
+                const isBooked = upcomingGames.some(
+                  bookedGame => bookedGame.gameId === game.id && bookedGame.status === 'upcoming'
+                );
+                
+                return (
+                  <View
+                    key={`explore-${game.id}`}
+                    style={[
+                      styles.gameCard,
+                      !isSkillLevelMatch(game.skillLevel) && styles.mismatchedGameCard
+                    ]}
+                  >
+                    <TouchableOpacity
+                      style={styles.gameCardContent}
+                      onPress={() => handleGamePress(game.id)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.gameHeader}>
+                        <View>
+                          <Text style={styles.timeText}>
+                            {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </Text>
+                          <Text style={styles.courtText}>{game.location.name}</Text>
+                        </View>
+                        <View style={[
+                          styles.skillLevelTag,
+                          { backgroundColor: getSkillLevelColor(game.skillLevel) + '15' }
+                        ]}>
+                          <View 
+                            style={[
+                              styles.skillLevelDot,
+                              { backgroundColor: getSkillLevelColor(game.skillLevel) }
+                            ]} 
+                          />
+                          <Text style={[
+                            styles.skillLevelText,
+                            { color: getSkillLevelColor(game.skillLevel) }
+                          ]}>
+                            {game.skillLevel}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.locationInfo}>
+                        <Text style={styles.addressText}>{game.location.address}</Text>
+                        <Text style={styles.cityText}>{game.location.city}, {game.location.state}</Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    <View style={styles.gameFooter}>
+                      <View style={styles.spotsContainer}>
+                        <SpotsAvailability 
+                          gameId={game.id} 
+                          variant="card"
+                          showLoadingState={false}
+                        />
+                      </View>
+                      {isBooked ? (
+                        <TouchableOpacity
+                          style={styles.cancelButton}
+                          onPress={() => handleCancelRegistration(game.id)}
+                        >
+                          <Text style={styles.cancelText}>Cancel</Text>
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          style={[
+                            reservationStatus.buttonStyle,
+                            game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.disabledButton
+                          ]}
+                          onPress={() => handleGamePress(game.id)}
+                          disabled={game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS}
+                        >
+                          <Text style={[
+                            reservationStatus.textStyle,
+                            game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.disabledButtonText
+                          ]}>
+                            {game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS 
+                              ? 'Game Full' 
+                              : reservationStatus.buttonText
+                            }
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          ))
         ) : (
           <View style={styles.emptyState}>
             <IconSymbol name="gamecontroller.fill" size={40} color="#666666" style={styles.emptyStateIcon} />
@@ -970,5 +1057,35 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Styles for date sections
+  dateSection: {
+    marginBottom: 16,
+  },
+  dateTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 8,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    marginHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  dateTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333333',
+    marginRight: 8,
+  },
+  dateSubtitle: {
+    fontSize: 14,
+    color: '#666666',
+    fontWeight: '500',
   },
 });
