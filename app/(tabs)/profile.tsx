@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { FirstTimeProfileForm } from '@/components/profile/FirstTimeProfileForm';
 import { useRouter } from 'expo-router';
 import { MembershipManagementSection } from '@/components/membership/MembershipManagementSection';
-import { MembershipPlan } from '@/types/membership';
+import { MembershipPlan, MembershipTier } from '@/types/membership';
 import { ThemedText } from '@/components/ThemedText';
 
 interface GameHistory {
@@ -154,38 +154,76 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Profile Header */}
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.profileImageContainer}
-            onPress={handleImagePick}
-            accessibilityLabel="Change profile picture"
-          >
-            {user?.profileImage ? (
-              <Image 
-                source={getImageSource(user.profileImage)}
-                style={styles.profileImage}
-                key={refreshKey}
-              />
-            ) : (
-              <View style={styles.defaultAvatar}>
-                <IconSymbol name="person.fill" size={48} color="#FFFFFF" />
+        {/* Profile Header Card with Solid Background */}
+        <View style={styles.headerCard}>
+          <View style={styles.headerBackground}>
+            <TouchableOpacity 
+              style={styles.profileImageContainer}
+              onPress={handleImagePick}
+              accessibilityLabel="Change profile picture"
+            >
+              {user?.profileImage ? (
+                <Image 
+                  source={getImageSource(user.profileImage)}
+                  style={styles.profileImage}
+                  key={refreshKey}
+                />
+              ) : (
+                <View style={styles.defaultAvatar}>
+                  <IconSymbol name="person.fill" size={48} color="#4CAF50" />
+                </View>
+              )}
+              <View style={styles.editImageButton}>
+                <IconSymbol name="pencil" size={14} color="#FFFFFF" />
               </View>
-            )}
-            <View style={styles.editImageButton}>
-              <IconSymbol name="pencil" size={14} color="#FFFFFF" />
-            </View>
-          </TouchableOpacity>
-          <ThemedText variant="title" style={styles.name}>{user.name}</ThemedText>
-          <ThemedText variant="caption" style={styles.email}>{user.email}</ThemedText>
+            </TouchableOpacity>
+            <ThemedText variant="title" style={styles.name}>{user.name}</ThemedText>
+            <ThemedText variant="caption" style={styles.email}>{user.email}</ThemedText>
+          </View>
         </View>
 
-        {/* Skill Level Card */}
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => setIsProfileFormVisible(true)}
+          >
+            <View style={styles.actionIconContainer}>
+              <IconSymbol name="person.fill" size={24} color="#4CAF50" />
+            </View>
+            <ThemedText style={styles.actionText}>Edit Profile</ThemedText>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => setIsSkillModalVisible(true)}
+          >
+            <View style={styles.actionIconContainer}>
+              <IconSymbol name="trophy.fill" size={24} color="#4CAF50" />
+            </View>
+            <ThemedText style={styles.actionText}>Skill Level</ThemedText>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => console.log("Navigate to membership")}
+          >
+            <View style={styles.actionIconContainer}>
+              <IconSymbol name="star.fill" size={24} color="#4CAF50" />
+            </View>
+            <ThemedText style={styles.actionText}>Membership</ThemedText>
+          </TouchableOpacity>
+        </View>
+
+        {/* Skill Level Card - Redesigned */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <ThemedText variant="subtitle" style={styles.cardTitle}>Skill Level</ThemedText>
+            <View style={styles.cardTitleContainer}>
+              <IconSymbol name="trophy.fill" size={20} color="#4CAF50" style={styles.cardIcon} />
+              <ThemedText variant="subtitle" style={styles.cardTitle}>Skill Level</ThemedText>
+            </View>
             <Button 
               variant="outline" 
               size="small"
@@ -195,7 +233,11 @@ export default function ProfileScreen() {
             </Button>
           </View>
           <View style={styles.skillLevelContainer}>
-            <View style={styles.skillBadge}>
+            <View style={[
+              styles.skillBadge,
+              user.skillLevel === 'advanced' && styles.advancedBadge,
+              user.skillLevel === 'pro' && styles.proBadge
+            ]}>
               <ThemedText style={styles.skillLevelText}>
                 {user.skillLevel || 'Not set'}
               </ThemedText>
@@ -206,18 +248,27 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Membership Card */}
+        {/* Membership Card - Redesigned */}
         <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardTitleContainer}>
+              <IconSymbol name="star.fill" size={20} color="#4CAF50" style={styles.cardIcon} />
+              <ThemedText variant="subtitle" style={styles.cardTitle}>Membership</ThemedText>
+            </View>
+          </View>
           <MembershipManagementSection
             currentPlan={user?.membership}
             onUpdatePlan={updateMembership}
           />
         </View>
 
-        {/* Profile Information Card */}
+        {/* Profile Information Card - Redesigned */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <ThemedText variant="subtitle" style={styles.cardTitle}>Profile Information</ThemedText>
+            <View style={styles.cardTitleContainer}>
+              <IconSymbol name="person.fill" size={20} color="#4CAF50" style={styles.cardIcon} />
+              <ThemedText variant="subtitle" style={styles.cardTitle}>Profile Information</ThemedText>
+            </View>
             <Button 
               variant="outline" 
               size="small"
@@ -227,79 +278,35 @@ export default function ProfileScreen() {
             </Button>
           </View>
           <View style={styles.profileInfo}>
-            <View style={styles.infoRow}>
-              <ThemedText variant="caption" style={styles.infoLabel}>Phone</ThemedText>
-              <ThemedText style={styles.infoValue}>{user?.phoneNumber || 'Not set'}</ThemedText>
+            <View style={styles.infoItem}>
+              <IconSymbol name="person.fill" size={18} color="#666666" style={styles.infoIcon} />
+              <View style={styles.infoContent}>
+                <ThemedText variant="caption" style={styles.infoLabel}>Phone</ThemedText>
+                <ThemedText style={styles.infoValue}>{user?.phoneNumber || 'Not set'}</ThemedText>
+              </View>
             </View>
-            <View style={styles.divider} />
             
-            <View style={styles.infoRow}>
-              <ThemedText variant="caption" style={styles.infoLabel}>Date of Birth</ThemedText>
-              <ThemedText style={styles.infoValue}>{user?.dateOfBirth || 'Not set'}</ThemedText>
+            <View style={styles.infoItem}>
+              <IconSymbol name="calendar" size={18} color="#666666" style={styles.infoIcon} />
+              <View style={styles.infoContent}>
+                <ThemedText variant="caption" style={styles.infoLabel}>Date of Birth</ThemedText>
+                <ThemedText style={styles.infoValue}>{user?.dateOfBirth || 'Not set'}</ThemedText>
+              </View>
             </View>
-            <View style={styles.divider} />
             
-            <View style={styles.infoRow}>
-              <ThemedText variant="caption" style={styles.infoLabel}>Address</ThemedText>
-              <ThemedText style={styles.infoValue}>
-                {user?.address?.street || 'Not set'}
-              </ThemedText>
-            </View>
-            <View style={styles.divider} />
-            
-            <View style={styles.infoRow}>
-              <ThemedText variant="caption" style={styles.infoLabel}>City</ThemedText>
-              <ThemedText style={styles.infoValue}>
-                {user?.address?.city || 'Not set'}
-              </ThemedText>
-            </View>
-            <View style={styles.divider} />
-            
-            <View style={styles.infoRow}>
-              <ThemedText variant="caption" style={styles.infoLabel}>State</ThemedText>
-              <ThemedText style={styles.infoValue}>
-                {user?.address?.state || 'Not set'}
-              </ThemedText>
-            </View>
-            <View style={styles.divider} />
-            
-            <View style={styles.infoRow}>
-              <ThemedText variant="caption" style={styles.infoLabel}>ZIP Code</ThemedText>
-              <ThemedText style={styles.infoValue}>
-                {user?.address?.zipCode || 'Not set'}
-              </ThemedText>
+            <View style={styles.infoItem}>
+              <IconSymbol name="location.fill" size={18} color="#666666" style={styles.infoIcon} />
+              <View style={styles.infoContent}>
+                <ThemedText variant="caption" style={styles.infoLabel}>Address</ThemedText>
+                <ThemedText style={styles.infoValue}>
+                  {user?.address?.street ? `${user.address.street}, ${user.address.city || ''}, ${user.address.state || ''}` : 'Not set'}
+                </ThemedText>
+              </View>
             </View>
           </View>
         </View>
 
-        {/* Games Played Card */}
-        <View style={styles.card}>
-          <ThemedText variant="subtitle" style={styles.cardTitle}>Games History</ThemedText>
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <ThemedText style={styles.statNumber}>
-                {user.gamesPlayed?.length || 0}
-              </ThemedText>
-              <ThemedText variant="caption" style={styles.statLabel}>Total Games</ThemedText>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <ThemedText style={[styles.statNumber, styles.winText]}>
-                {user.gamesPlayed?.filter(game => game.result === 'win').length || 0}
-              </ThemedText>
-              <ThemedText variant="caption" style={styles.statLabel}>Wins</ThemedText>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <ThemedText style={[styles.statNumber, styles.lossText]}>
-                {user.gamesPlayed?.filter(game => game.result === 'loss').length || 0}
-              </ThemedText>
-              <ThemedText variant="caption" style={styles.statLabel}>Losses</ThemedText>
-            </View>
-          </View>
-        </View>
-
-        {/* Sign Out Button */}
+        {/* Sign Out Button - Redesigned */}
         <View style={styles.signOutContainer}>
           <Button 
             variant="outline" 
@@ -388,20 +395,106 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f5f7fa',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f7fa',
   },
   scrollView: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
   },
-  header: {
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 16,
+  headerCard: {
+    marginTop: 16,
+    borderRadius: 20,
+    overflow: 'hidden',
     marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 3,
+        },
+        shadowOpacity: 0.12,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  headerBackground: {
+    padding: 24,
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  profileImageContainer: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    position: 'relative',
+  },
+  defaultAvatar: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 55,
+    backgroundColor: '#F1F8E9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 55,
+  },
+  editImageButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#4CAF50',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  name: {
+    color: '#333333',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  email: {
+    color: '#666666',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  actionButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginHorizontal: 4,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -410,56 +503,26 @@ const styles = StyleSheet.create({
           height: 2,
         },
         shadowOpacity: 0.05,
-        shadowRadius: 3.84,
+        shadowRadius: 3,
       },
       android: {
         elevation: 2,
       },
     }),
   },
-  profileImageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#f0f0f0',
+  actionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F1F8E9',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
-    position: 'relative',
+    marginBottom: 8,
   },
-  defaultAvatar: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 50,
-    backgroundColor: '#4CAF50',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 50,
-  },
-  editImageButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#4CAF50',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#ffffff',
-  },
-  name: {
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  email: {
-    color: '#666666',
-    textAlign: 'center',
+  actionText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#333333',
   },
   card: {
     backgroundColor: '#fff',
@@ -473,8 +536,8 @@ const styles = StyleSheet.create({
           width: 0,
           height: 2,
         },
-        shadowOpacity: 0.05,
-        shadowRadius: 3.84,
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
       },
       android: {
         elevation: 2,
@@ -487,8 +550,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  cardTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cardIcon: {
+    marginRight: 8,
+  },
   cardTitle: {
     fontWeight: '600',
+    fontSize: 18,
+    color: '#666666',
   },
   skillLevelContainer: {
     backgroundColor: '#f8f9fa',
@@ -498,71 +570,50 @@ const styles = StyleSheet.create({
   skillBadge: {
     backgroundColor: '#E8F5E9',
     borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     alignSelf: 'flex-start',
     marginBottom: 8,
+  },
+  advancedBadge: {
+    backgroundColor: '#E1F5FE',
+  },
+  proBadge: {
+    backgroundColor: '#FFF3E0',
   },
   skillLevelText: {
     color: '#4CAF50',
     fontWeight: '600',
     fontSize: 16,
+    textTransform: 'capitalize',
   },
   skillLevelDescription: {
     color: '#666666',
+    lineHeight: 20,
   },
   profileInfo: {
     backgroundColor: '#f8f9fa',
     borderRadius: 12,
     padding: 16,
   },
-  infoRow: {
+  infoItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
+    marginBottom: 16,
+  },
+  infoIcon: {
+    marginRight: 12,
+    marginTop: 2,
+  },
+  infoContent: {
+    flex: 1,
   },
   infoLabel: {
     color: '#666666',
-  },
-  infoValue: {
-    fontWeight: '500',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#e0e0e0',
-    width: '100%',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    padding: 16,
-  },
-  statItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: '#e0e0e0',
-    marginHorizontal: 8,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
     marginBottom: 4,
   },
-  winText: {
-    color: '#4CAF50',
-  },
-  lossText: {
-    color: '#F44336',
-  },
-  statLabel: {
-    color: '#666666',
+  infoValue: {
+    color: '#333333',
+    fontWeight: '500',
   },
   signOutContainer: {
     marginTop: 8,
@@ -590,6 +641,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     flex: 1,
     textAlign: 'center',
+    color: '#666666',
   },
   closeButton: {
     padding: 8,
@@ -619,6 +671,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
+    color: '#666666',
   },
   skillDescription: {
     color: '#666666',
