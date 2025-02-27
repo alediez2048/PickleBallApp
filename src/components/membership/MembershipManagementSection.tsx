@@ -45,32 +45,22 @@ export function MembershipManagementSection({
           onPress={() => setShowPlanModal(true)}
           variant="outline"
           size="small"
+          style={styles.editButton}
         >
-          Change Plan
+          Edit
         </Button>
       </View>
 
       {currentPlan ? (
         <View style={styles.planCard}>
           <View style={styles.planHeader}>
-            <ThemedText variant="subtitle" style={styles.planName}>{currentPlan.name}</ThemedText>
+            <ThemedText variant="subtitle" style={styles.planName} color="#666666">{currentPlan.name}</ThemedText>
             <ThemedText style={styles.planPrice}>
               {formatPrice(currentPlan.price, currentPlan.interval)}
             </ThemedText>
           </View>
           
           <ThemedText variant="caption" style={styles.planDescription}>{currentPlan.description}</ThemedText>
-          
-          <View style={styles.divider} />
-          
-          <View style={styles.benefitsContainer}>
-            {currentPlan.benefits.map((benefit, index) => (
-              <View key={index} style={styles.benefitRow}>
-                <IconSymbol name="checkmark" size={16} color="#4CAF50" />
-                <ThemedText style={styles.benefitText}>{benefit}</ThemedText>
-              </View>
-            ))}
-          </View>
         </View>
       ) : (
         <View style={styles.emptyState}>
@@ -123,6 +113,10 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: '600',
   },
+  editButton: {
+    borderRadius: 30,
+    paddingHorizontal: 20,
+  },
   planCard: {
     backgroundColor: '#f8f9fa',
     borderRadius: 12,
@@ -136,6 +130,7 @@ const styles = StyleSheet.create({
   },
   planName: {
     fontWeight: '600',
+    color: '#666666',
   },
   planPrice: {
     fontSize: 20,
