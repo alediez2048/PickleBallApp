@@ -1,106 +1,164 @@
-# PicklePass Testing Documentation
+# Testing Guide for PickleBallApp
 
-## Overview
+This document outlines the testing approach and best practices for the PickleBallApp project.
 
-This document outlines the testing strategy for the PicklePass application. Our testing approach is comprehensive, covering multiple levels of testing to ensure the application's reliability and functionality.
+## Table of Contents
 
-## Testing Levels
+1. [Testing Infrastructure](#testing-infrastructure)
+2. [Custom Transformers](#custom-transformers)
+3. [Test File Structure](#test-file-structure)
+4. [Component Testing Examples](#component-testing-examples)
+5. [Mocking Strategies](#mocking-strategies)
+6. [Common Issues & Solutions](#common-issues--solutions)
+7. [Coverage Goals](#coverage-goals)
 
-### 1. Unit Testing
+## Testing Infrastructure
 
-Unit tests focus on testing individual components and functions in isolation.
+The project uses Jest with React Native Testing Library for component testing. The setup includes:
 
-#### Key Areas:
-- Components
-- Utility functions
-- Hooks
-- Context providers
-- API service functions
+- **Jest Configuration**: Found in `jest.config.js` in the project root
+- **Jest Setup File**: Found in `jest.setup.js` in the project root
+- **Custom Transformers**: Found in `jest/transformers/` directory
+- **Test Utilities**: Found in `src/utils/test-utils.tsx`
 
-#### Tools:
-- Jest
-- React Native Testing Library
-- Jest Native
+## Custom Transformers
 
-### 2. Integration Testing
+### CSS Interop Transformer
 
-Integration tests verify that different parts of the application work together correctly.
+We use a custom transformer for handling React Native CSS Interop modules to avoid issues with dependencies during testing. 
 
-#### Key Areas:
-- Navigation flows
-- Context interactions
-- API integration
-- Data persistence
-- Form submissions
+The transformer is located at `jest/transformers/cssInteropTransformer.js` and replaces any CSS interop imports with standardized mocks.
 
-### 3. End-to-End Testing
+#### How it works:
 
-E2E tests simulate real user interactions across the entire application.
+1. The transformer intercepts any imports from `react-native-css-interop` or `@expo/stylesheets`
+2. It replaces the import with a mock implementation that provides all necessary functions and objects
+3. The Jest configuration is set up to use this transformer for specific module patterns
 
-#### Key Areas:
-- User journeys
-- Authentication flows
-- Game booking process
-- Profile management
-- Payment processing
+#### Benefits:
 
-#### Tools:
-- Detox
+- No need to manually mock CSS interop modules in each test
+- Consistent behavior across all tests
+- Easier to maintain and update when the CSS interop library changes
+- Eliminates difficult-to-diagnose errors related to CSS interop functionality
 
-## Test Organization
+## Test File Structure
 
-Tests are organized following the same structure as the source code:
+Test files should follow this structure:
 
 ```
 src/
-  __tests__/        # Global test utilities and setup
   components/
-    __tests__/      # Component tests
-  contexts/
-    __tests__/      # Context tests
-  services/
-    __tests__/      # Service tests
-  utils/
-    __tests__/      # Utility tests
+    MyComponent/
+      MyComponent.tsx
+      __tests__/
+        MyComponent.test.tsx
+  hooks/
+    useMyHook/
+      useMyHook.ts
+      __tests__/
+        useMyHook.test.ts
 ```
 
-## Writing Tests
+## Component Testing Examples
 
-### Component Tests
+### Basic Component Test Example (PaymentMethodForm)
 
-```typescript
-import { render, fireEvent } from '@/utils/test-utils';
-import MyComponent from '../MyComponent';
+```tsx
+import React from 'react';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import { PaymentMethodForm } from '../PaymentMethodForm';
+import { render } from '@/utils/test-utils';
 
-describe('MyComponent', () => {
-  it('renders correctly', () => {
-    const { getByText } = render(<MyComponent />);
-    expect(getByText('Expected Text')).toBeTruthy();
+describe('PaymentMethodForm', () => {
+  // Mock dependencies directly that are used by the component
+  jest.mock('@/contexts/AuthContext', () => ({
+    useAuth: () => ({
+      user: {...},
+      updatePaymentMethods: jest.fn(),
+    }),
+  }));
+
+  it('renders correctly', async () => {
+    const { getByPlaceholderText } = render(<PaymentMethodForm />);
+    
+    await waitFor(() => {
+      expect(getByPlaceholderText('1234 5678 9012 3456')).toBeTruthy();
+    });
   });
+  
+  // Additional tests...
 });
 ```
 
-### Context Tests
+## Mocking Strategies
+
+### Direct Context Mocking
+
+When testing components that use contexts, prefer direct mocking of the hook functions over wrapping with providers:
 
 ```typescript
-import { renderHook } from '@testing-library/react-hooks';
-import { useMyContext } from '../MyContext';
+// GOOD - Mock the hook directly
+jest.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: {...},
+    signIn: jest.fn(),
+  }),
+}));
 
-describe('MyContext', () => {
-  it('provides expected values', () => {
-    const { result } = renderHook(() => useMyContext());
-    expect(result.current).toHaveProperty('expectedProperty');
-  });
-});
+// AVOID - Complex provider setups
+const wrapper = ({ children }) => (
+  <AuthProvider>
+    <UIProvider>
+      {children}
+    </UIProvider>
+  </AuthProvider>
+);
 ```
 
-## Test Coverage
+### Component Mocking
 
-We aim for the following coverage thresholds:
-- Statements: 70%
-- Branches: 70%
-- Functions: 70%
-- Lines: 70%
+For UI components that are used frequently, create standard mocks in `jest.setup.js`:
+
+```javascript
+jest.mock('@/components/ThemedText', () => ({
+  ThemedText: ({ children, ...props }) => ({
+    type: 'ThemedText',
+    props: { children, ...props },
+    $$typeof: Symbol.for('react.element'),
+  }),
+}));
+```
+
+## Common Issues & Solutions
+
+### CSS Interop Issues
+
+- **Problem**: Tests fail with errors related to `getColorScheme` or other CSS interop functions
+- **Solution**: Ensure the CSS Interop transformer is properly configured in `jest.config.js`
+
+### Context Value Access
+
+- **Problem**: Components can't access context values in tests
+- **Solution**: Mock the context hook directly rather than trying to provide context values
+
+### Async Rendering
+
+- **Problem**: Tests fail because components are still rendering
+- **Solution**: Use `waitFor` from React Native Testing Library to wait for components to finish rendering
+
+## Coverage Goals
+
+The project aims for 70% coverage across:
+- Branches
+- Functions
+- Lines
+- Statements
+
+Priority areas for testing:
+1. Core user flows (authentication, game booking, payment)
+2. Shared components used across multiple screens
+3. Business logic in hooks and services
 
 ## Running Tests
 
@@ -108,184 +166,11 @@ We aim for the following coverage thresholds:
 # Run all tests
 npm test
 
-# Run tests with coverage
+# Run a specific test file
+npm test -- src/components/payment/__tests__/PaymentMethodForm.test.tsx
+
+# Run tests with coverage report
 npm test -- --coverage
-
-# Run specific test file
-npm test -- path/to/test.test.ts
-
-# Run tests in watch mode
-npm test -- --watch
-```
-
-## Best Practices
-
-1. **Isolation**: Each test should be independent and not rely on the state of other tests.
-2. **Meaningful Assertions**: Test behavior, not implementation details.
-3. **Clear Naming**: Use descriptive test names that explain the expected behavior.
-4. **Setup and Teardown**: Use beforeEach/afterEach for common setup and cleanup.
-5. **Mock External Dependencies**: Use jest.mock() for external services and APIs.
-
-## Error Handling Testing
-
-Test both success and error scenarios:
-- Network errors
-- Validation errors
-- Authentication errors
-- Permission errors
-- Edge cases
-
-## Cross-Device Testing
-
-Test the application across different:
-- Screen sizes
-- OS versions (iOS/Android)
-- Device capabilities
-- Network conditions
-
-## CI/CD Integration
-
-Tests are run automatically on:
-- Pull requests
-- Merges to main branches
-- Release builds
-
-## Debugging Tests
-
-1. Use `console.log()` or `debug()` to inspect component output
-2. Use Jest's `--verbose` flag for detailed output
-3. Use snapshot testing for complex component structures
-4. Use Jest's debugging capabilities with VS Code
-
-## Maintenance
-
-1. Regular review and updates of test cases
-2. Removal of obsolete tests
-3. Update mocks and fixtures as needed
-4. Monitor and improve test performance
-
-## Resources
-
-- [Jest Documentation](https://jestjs.io/docs/getting-started)
-- [React Native Testing Library](https://callstack.github.io/react-native-testing-library/)
-- [Detox Documentation](https://wix.github.io/Detox/) 
-
-## Overview
-
-This document outlines the testing strategy for the PicklePass application. Our testing approach is comprehensive, covering multiple levels of testing to ensure the application's reliability and functionality.
-
-## Testing Levels
-
-### 1. Unit Testing
-
-Unit tests focus on testing individual components and functions in isolation.
-
-#### Key Areas:
-- Components
-- Utility functions
-- Hooks
-- Context providers
-- API service functions
-
-#### Tools:
-- Jest
-- React Native Testing Library
-- Jest Native
-
-### 2. Integration Testing
-
-Integration tests verify that different parts of the application work together correctly.
-
-#### Key Areas:
-- Navigation flows
-- Context interactions
-- API integration
-- Data persistence
-- Form submissions
-
-### 3. End-to-End Testing
-
-E2E tests simulate real user interactions across the entire application.
-
-#### Key Areas:
-- User journeys
-- Authentication flows
-- Game booking process
-- Profile management
-- Payment processing
-
-#### Tools:
-- Detox
-
-## Test Organization
-
-Tests are organized following the same structure as the source code:
-
-```
-src/
-  __tests__/        # Global test utilities and setup
-  components/
-    __tests__/      # Component tests
-  contexts/
-    __tests__/      # Context tests
-  services/
-    __tests__/      # Service tests
-  utils/
-    __tests__/      # Utility tests
-```
-
-## Writing Tests
-
-### Component Tests
-
-```typescript
-import { render, fireEvent } from '@/utils/test-utils';
-import MyComponent from '../MyComponent';
-
-describe('MyComponent', () => {
-  it('renders correctly', () => {
-    const { getByText } = render(<MyComponent />);
-    expect(getByText('Expected Text')).toBeTruthy();
-  });
-});
-```
-
-### Context Tests
-
-```typescript
-import { renderHook } from '@testing-library/react-hooks';
-import { useMyContext } from '../MyContext';
-
-describe('MyContext', () => {
-  it('provides expected values', () => {
-    const { result } = renderHook(() => useMyContext());
-    expect(result.current).toHaveProperty('expectedProperty');
-  });
-});
-```
-
-## Test Coverage
-
-We aim for the following coverage thresholds:
-- Statements: 70%
-- Branches: 70%
-- Functions: 70%
-- Lines: 70%
-
-## Running Tests
-
-```bash
-# Run all tests
-npm test
-
-# Run tests with coverage
-npm test -- --coverage
-
-# Run specific test file
-npm test -- path/to/test.test.ts
-
-# Run tests in watch mode
-npm test -- --watch
 ```
 
 ## Best Practices

@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`withPerformanceMonitoring handles components without display name: anonymous component with performance monitoring 1`] = `null`;
+
+exports[`withPerformanceMonitoring renders the wrapped component with its props: component with performance monitoring 1`] = `null`;

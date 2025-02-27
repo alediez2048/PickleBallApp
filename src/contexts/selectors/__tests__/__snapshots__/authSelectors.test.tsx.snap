@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Auth Selectors useAuthState returns correct auth state when authenticated: authenticated state 1`] = `null`;
+
+exports[`Auth Selectors useAuthState returns correct auth state when not authenticated: unauthenticated state 1`] = `null`;
+
+exports[`Auth Selectors useAuthState returns correct auth state while loading: loading state 1`] = `null`;
+
+exports[`Auth Selectors useSocialAuthState returns correct social auth state: google auth available 1`] = `null`;
+
+exports[`Auth Selectors useSocialAuthState returns false for both providers when not available: no social auth available 1`] = `null`;
+
+exports[`Auth Selectors useUser returns null when no user is authenticated: no user 1`] = `null`;
+
+exports[`Auth Selectors useUser returns the current user: authenticated user 1`] = `null`;
+
+exports[`Auth Selectors useUserProfile returns formatted user profile: authenticated user profile 1`] = `null`;
+
+exports[`Auth Selectors useUserProfile returns null values when no user is authenticated: empty user profile 1`] = `null`;

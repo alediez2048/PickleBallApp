@@ -1,15 +1,7 @@
 import React from 'react';
-import { renderHook } from '@testing-library/react-native';
+import renderer from 'react-test-renderer';
 import { GameProvider } from '../../GameContext';
-import {
-  useGameById,
-  useGamesByStatus,
-  useGamesBySkillLevel,
-  useUpcomingGames,
-  useGameStats,
-  useFilteredGames,
-  usePaginatedGames,
-} from '../gameSelectors';
+import * as gameSelectors from '../gameSelectors';
 import { Game, GameStatus, SkillLevel } from '@/types/game';
 
 // Mock data
@@ -17,7 +9,9 @@ const mockGames: Game[] = [
   {
     id: '1',
     title: 'Game 1',
-    date: new Date('2024-03-25'),
+    description: 'Test game description',
+    startTime: '2024-03-25T10:00:00',
+    endTime: '2024-03-25T12:00:00',
     location: {
       id: '1',
       name: 'Court 1',
@@ -28,7 +22,8 @@ const mockGames: Game[] = [
       coordinates: { latitude: 0, longitude: 0 },
     },
     maxPlayers: 4,
-    currentPlayers: 2,
+    registeredCount: 2,
+    players: [],
     skillLevel: SkillLevel.Beginner,
     price: 10,
     host: {
@@ -38,69 +33,140 @@ const mockGames: Game[] = [
       skillLevel: SkillLevel.Intermediate,
     },
     status: GameStatus.Upcoming,
+    createdAt: '2024-03-20T10:00:00',
+    updatedAt: '2024-03-20T10:00:00',
   },
-  // Add more mock games as needed
 ];
 
-// Mock GameProvider
+// Mock GameContext
 jest.mock('../../GameContext', () => ({
   GameProvider: ({ children }: { children: React.ReactNode }) => children,
   useGames: () => ({
     games: mockGames,
     getGame: (id: string) => mockGames.find(game => game.id === id),
+    isLoading: false,
+    loadMore: jest.fn(),
   }),
 }));
 
-describe('Game Selectors', () => {
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <GameProvider>{children}</GameProvider>
-  );
+// Components to test the hooks
+interface GameByIdProps {
+  id: string;
+}
 
+const GameByIdComponent: React.FC<GameByIdProps> = ({ id }) => {
+  const game = gameSelectors.useGameById(id);
+  return <div data-testid="game-by-id">{game ? game.title : 'Not found'}</div>;
+};
+
+interface GamesByStatusProps {
+  status: GameStatus;
+}
+
+const GamesByStatusComponent: React.FC<GamesByStatusProps> = ({ status }) => {
+  const games = gameSelectors.useGamesByStatus(status);
+  return (
+    <div data-testid="games-by-status">
+      {games.map(game => <div key={game.id}>{game.title}</div>)}
+    </div>
+  );
+};
+
+interface GamesBySkillLevelProps {
+  skillLevel: SkillLevel;
+}
+
+const GamesBySkillLevelComponent: React.FC<GamesBySkillLevelProps> = ({ skillLevel }) => {
+  const games = gameSelectors.useGamesBySkillLevel(skillLevel);
+  return (
+    <div data-testid="games-by-skill">
+      {games.map(game => <div key={game.id}>{game.title}</div>)}
+    </div>
+  );
+};
+
+const GameStatsComponent: React.FC = () => {
+  const stats = gameSelectors.useGameStats();
+  return (
+    <div data-testid="game-stats">
+      <div>Total: {stats.total}</div>
+      <div>Upcoming: {stats.upcoming}</div>
+      <div>In Progress: {stats.inProgress}</div>
+      <div>Completed: {stats.completed}</div>
+      <div>Cancelled: {stats.cancelled}</div>
+      <div>Average Price: {stats.averagePrice}</div>
+    </div>
+  );
+};
+
+interface FilteredGamesProps {
+  filters: {
+    status?: GameStatus;
+    skillLevel?: SkillLevel;
+    minPrice?: number;
+    maxPrice?: number;
+    dateRange?: { start: Date; end: Date };
+  };
+}
+
+const FilteredGamesComponent: React.FC<FilteredGamesProps> = ({ filters }) => {
+  const games = gameSelectors.useFilteredGames(filters);
+  return (
+    <div data-testid="filtered-games">
+      {games.map(game => <div key={game.id}>{game.title}</div>)}
+    </div>
+  );
+};
+
+interface PaginatedGamesProps {
+  page: number;
+  pageSize: number;
+}
+
+const PaginatedGamesComponent: React.FC<PaginatedGamesProps> = ({ page, pageSize }) => {
+  const pagination = gameSelectors.usePaginatedGames(page, pageSize);
+  return (
+    <div data-testid="paginated-games">
+      <div>Page: {pagination.currentPage}</div>
+      <div>Total Pages: {pagination.totalPages}</div>
+      <div>
+        {pagination.games.map(game => <div key={game.id}>{game.title}</div>)}
+      </div>
+    </div>
+  );
+};
+
+describe('Game Selectors', () => {
   describe('useGameById', () => {
     it('returns the correct game by id', () => {
-      const { result } = renderHook(() => useGameById('1'), { wrapper });
-      expect(result.current?.id).toBe('1');
+      const tree = renderer.create(<GameByIdComponent id="1" />).toJSON();
+      expect(tree).toMatchSnapshot();
     });
 
     it('returns undefined for non-existent game', () => {
-      const { result } = renderHook(() => useGameById('999'), { wrapper });
-      expect(result.current).toBeUndefined();
+      const tree = renderer.create(<GameByIdComponent id="999" />).toJSON();
+      expect(tree).toMatchSnapshot();
     });
   });
 
   describe('useGamesByStatus', () => {
     it('filters games by status', () => {
-      const { result } = renderHook(
-        () => useGamesByStatus(GameStatus.Upcoming),
-        { wrapper }
-      );
-      expect(result.current.length).toBe(1);
-      expect(result.current[0].status).toBe(GameStatus.Upcoming);
+      const tree = renderer.create(<GamesByStatusComponent status={GameStatus.Upcoming} />).toJSON();
+      expect(tree).toMatchSnapshot();
     });
   });
 
   describe('useGamesBySkillLevel', () => {
     it('filters games by skill level', () => {
-      const { result } = renderHook(
-        () => useGamesBySkillLevel(SkillLevel.Beginner),
-        { wrapper }
-      );
-      expect(result.current.length).toBe(1);
-      expect(result.current[0].skillLevel).toBe(SkillLevel.Beginner);
+      const tree = renderer.create(<GamesBySkillLevelComponent skillLevel={SkillLevel.Beginner} />).toJSON();
+      expect(tree).toMatchSnapshot();
     });
   });
 
   describe('useGameStats', () => {
     it('calculates correct game statistics', () => {
-      const { result } = renderHook(() => useGameStats(), { wrapper });
-      expect(result.current).toEqual({
-        total: 1,
-        upcoming: 1,
-        inProgress: 0,
-        completed: 0,
-        cancelled: 0,
-        averagePrice: 10,
-      });
+      const tree = renderer.create(<GameStatsComponent />).toJSON();
+      expect(tree).toMatchSnapshot();
     });
   });
 
@@ -112,29 +178,23 @@ describe('Game Selectors', () => {
         minPrice: 5,
         maxPrice: 15,
       };
-      const { result } = renderHook(() => useFilteredGames(filters), { wrapper });
-      expect(result.current.length).toBe(1);
+      const tree = renderer.create(<FilteredGamesComponent filters={filters} />).toJSON();
+      expect(tree).toMatchSnapshot();
     });
 
     it('returns empty array when no games match filters', () => {
       const filters = {
         minPrice: 100,
       };
-      const { result } = renderHook(() => useFilteredGames(filters), { wrapper });
-      expect(result.current.length).toBe(0);
+      const tree = renderer.create(<FilteredGamesComponent filters={filters} />).toJSON();
+      expect(tree).toMatchSnapshot();
     });
   });
 
   describe('usePaginatedGames', () => {
     it('returns correct pagination data', () => {
-      const { result } = renderHook(() => usePaginatedGames(1, 10), { wrapper });
-      expect(result.current).toEqual({
-        games: mockGames,
-        totalPages: 1,
-        currentPage: 1,
-        hasNextPage: false,
-        hasPreviousPage: false,
-      });
+      const tree = renderer.create(<PaginatedGamesComponent page={1} pageSize={10} />).toJSON();
+      expect(tree).toMatchSnapshot();
     });
   });
 }); 

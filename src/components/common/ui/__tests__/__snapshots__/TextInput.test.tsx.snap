@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<TextInput /> forwards refs correctly 1`] = `null`;
+
+exports[`<TextInput /> renders correctly when disabled 1`] = `null`;
+
+exports[`<TextInput /> renders correctly with basic props 1`] = `null`;
+
+exports[`<TextInput /> renders correctly with end icon 1`] = `null`;
+
+exports[`<TextInput /> renders correctly with error message 1`] = `null`;
+
+exports[`<TextInput /> renders correctly with helper text 1`] = `null`;
+
+exports[`<TextInput /> renders correctly with secure text entry 1`] = `null`;
+
+exports[`<TextInput /> renders correctly with start icon 1`] = `null`;
+
+exports[`<TextInput /> renders correctly with value 1`] = `null`;

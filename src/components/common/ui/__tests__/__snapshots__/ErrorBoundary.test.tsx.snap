@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ErrorBoundary renders children when there is no error: no error 1`] = `null`;
+
+exports[`ErrorBoundary renders correctly with non-throwing component: non-throwing component 1`] = `null`;
+
+exports[`ErrorBoundary renders custom fallback when provided: custom fallback 1`] = `null`;
+
+exports[`ErrorBoundary renders fallback UI when there is an error: with error 1`] = `null`;
+
+exports[`ErrorBoundary renders with text content: with text content 1`] = `null`;

@@ -5,8 +5,17 @@ module.exports = {
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)',
   ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  transform: {
+    // Use the custom transformer for CSS interop files
+    'node_modules/react-native-css-interop/.*': '<rootDir>/jest/transformers/cssInteropTransformer.js',
+    // Add handling for other modules that may cause issues
+    '.*\\.(js|jsx|ts|tsx)$': 'babel-jest',
+  },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@components/(.*)$': '<rootDir>/src/components/$1',
+    // Add a direct mock for specific problematic modules
+    'react-native-css-interop/src/runtime/native/appearance-observables': '<rootDir>/jest/transformers/cssInteropTransformer.js',
   },
   collectCoverage: true,
   collectCoverageFrom: [
@@ -15,6 +24,8 @@ module.exports = {
     '!src/**/types.ts',
     '!src/**/index.ts',
     '!src/**/*.stories.{js,jsx,ts,tsx}',
+    '!src/utils/mockData.ts',
+    '!**/__mocks__/**',
   ],
   coverageThreshold: {
     global: {
@@ -26,6 +37,6 @@ module.exports = {
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
-  testEnvironment: 'node',
+  testEnvironment: 'jsdom',
   verbose: true,
 }; 

@@ -36,6 +36,7 @@ interface UserProfile {
   };
   membership?: MembershipPlan;
   paymentMethods?: PaymentMethod[];
+  hasCompletedProfile?: boolean;
 }
 
 interface AuthState {
@@ -59,6 +60,7 @@ interface AuthContextType extends AuthState {
   updateFirstTimeProfile: (data: FirstTimeProfileData) => Promise<void>;
   updateMembership: (plan: MembershipPlan) => Promise<void>;
   updatePaymentMethods: (methods: PaymentMethod[]) => Promise<void>;
+  updatePaymentMethod?: (hasPaymentMethod: boolean) => Promise<void>;
   
   // Auth state
   isAuthenticated: boolean;
@@ -373,6 +375,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updatePaymentMethod = async (hasPaymentMethod: boolean) => {
+    try {
+      if (!state.user) {
+        throw new Error('No authenticated user');
+      }
+
+      // Update user with new payment method
+      const updatedUser = {
+        ...state.user,
+        paymentMethods: hasPaymentMethod ? [{ id: 'new_payment_method', last4: 'XXXX', brand: 'New', expiryMonth: '12', expiryYear: '2024', isDefault: true }] : []
+      };
+
+      // Store the updated user data
+      await storage.setItem('user', JSON.stringify(updatedUser));
+
+      // Update state
+      setState(prev => ({
+        ...prev,
+        user: updatedUser
+      }));
+
+      console.log('Payment method updated successfully:', hasPaymentMethod ? 'Added' : 'Removed');
+    } catch (error) {
+      console.error('Error updating payment method:', error);
+      throw error;
+    }
+  };
+
   const value = {
     ...state,
     signIn,
@@ -384,6 +414,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateFirstTimeProfile,
     updateMembership,
     updatePaymentMethods,
+    updatePaymentMethod,
     isAuthenticated: !!state.token,
   };
 

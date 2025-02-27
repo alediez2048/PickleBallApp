@@ -133,12 +133,68 @@
   },
 
   "testing": {
-    "unit": {
-      "framework": "Jest",
-      "library": "React Native Testing Library"
+    "framework": {
+      "unit": "Jest",
+      "ui": "react-test-renderer",
+      "utilities": "custom renderWithoutUnmounting.ts"
     },
-    "integration": "Detox",
-    "ui": "snapshot testing"
+    "coverage": {
+      "targets": {
+        "statements": "70%",
+        "branches": "70%",
+        "functions": "70%",
+        "lines": "70%"
+      }
+    },
+    "whenToTest": [
+      "new components must have accompanying snapshot tests",
+      "all custom hooks must have unit tests",
+      "context providers must have tests for key state changes",
+      "utility functions must have comprehensive unit tests",
+      "critical user flows must have integration tests",
+      "write tests before fixing bugs to prevent regressions"
+    ],
+    "fileStructure": [
+      "place test files in a __tests__ directory adjacent to the tested code",
+      "name test files with the pattern [ComponentName].test.tsx",
+      "group related tests using nested describe blocks",
+      "follow the AAA pattern (Arrange, Act, Assert) within test cases"
+    ],
+    "snapshotTesting": [
+      "use react-test-renderer, not React Native Testing Library",
+      "test components with different prop combinations",
+      "include descriptive snapshot names (e.g., .toMatchSnapshot('loading state'))",
+      "keep snapshots focused and minimal - test specific states rather than entire screens",
+      "review snapshot diffs carefully before accepting changes"
+    ],
+    "mocking": [
+      "mock dependencies directly with jest.mock() rather than using complex provider hierarchies",
+      "mock hooks at the module level when testing components that use them",
+      "create reusable mock factories for complex objects like Game or User",
+      "use our custom CSS Interop transformer for styling-related modules",
+      "prefer manual React element creation over JSX in complex mocks"
+    ],
+    "componentTesting": [
+      "test all components that maintain internal state",
+      "test all components that include conditional rendering",
+      "test all components that implement event handlers",
+      "test all components that communicate with contexts or hooks",
+      "test components in isolation from their dependencies",
+      "test all meaningful component states (loading, error, empty, populated)"
+    ],
+    "contextAndHookTesting": [
+      "test custom hooks with our test hook utility",
+      "verify context providers correctly maintain and update state",
+      "test context selectors independently",
+      "ensure hooks cleanup properly when component unmounts"
+    ],
+    "antiPatterns": [
+      "DO NOT mix snapshot tests with behavioral assertions in the same test",
+      "DO NOT create unnecessarily large snapshots of entire screens",
+      "DO NOT test implementation details, focus on behavior",
+      "DO NOT use complex wrapper hierarchies when simple mocks would suffice",
+      "DO NOT skip failing tests without documentation"
+    ]
   },
 
   "security": {

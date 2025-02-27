@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GameList renders correctly with empty list: empty list 1`] = `null`;
+
+exports[`GameList renders list of games: game list with items 1`] = `null`;
+
+exports[`GameList renders with header component: with header component 1`] = `null`;
+
+exports[`GameList renders with refresh and end reached handlers: with refresh and end reached handlers 1`] = `null`;
+
+exports[`GameList shows error state: error state 1`] = `null`;
+
+exports[`GameList shows loading state: loading state 1`] = `null`;

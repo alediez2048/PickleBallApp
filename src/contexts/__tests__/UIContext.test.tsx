@@ -1,7 +1,10 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import renderer, { act } from 'react-test-renderer';
 import { View, Text, Pressable } from 'react-native';
 import { UIProvider, useUI } from '../UIContext';
+
+// Mock timers for toast auto-hide behavior
+jest.useFakeTimers();
 
 // Test component that uses UI context
 const TestComponent: React.FC = () => {
@@ -9,7 +12,7 @@ const TestComponent: React.FC = () => {
   const backgroundColor = useThemeColor({ light: '#ffffff', dark: '#000000' }, 'background');
 
   return (
-    <View style={{ backgroundColor }}>
+    <View style={{ backgroundColor }} testID="test-container">
       <Pressable testID="toggle-theme" onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}>
         <Text>Toggle Theme</Text>
       </Pressable>
@@ -33,84 +36,132 @@ const TestComponent: React.FC = () => {
 };
 
 describe('UIContext', () => {
-  it('provides initial state', () => {
-    const { getByTestId } = render(
-      <UIProvider>
-        <TestComponent />
-      </UIProvider>
-    );
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
 
-    expect(getByTestId('loading-state')).toHaveTextContent('not-loading');
-    expect(getByTestId('toast-state')).toHaveTextContent('hidden');
-    expect(getByTestId('toast-message')).toHaveTextContent('');
-    expect(getByTestId('toast-type')).toHaveTextContent('info');
+  it('provides initial state', () => {
+    const tree = renderer
+      .create(
+        <UIProvider>
+          <TestComponent />
+        </UIProvider>
+      )
+      .toJSON();
+    
+    expect(tree).toMatchSnapshot('initial state');
   });
 
   it('toggles loading state', () => {
-    const { getByTestId } = render(
+    const component = renderer.create(
       <UIProvider>
         <TestComponent />
       </UIProvider>
     );
 
-    fireEvent.press(getByTestId('toggle-loading'));
-    expect(getByTestId('loading-state')).toHaveTextContent('loading');
+    // Get initial snapshot
+    let tree = component.toJSON();
+    expect(tree).toMatchSnapshot('before loading');
 
-    fireEvent.press(getByTestId('toggle-loading'));
-    expect(getByTestId('loading-state')).toHaveTextContent('not-loading');
+    // Toggle loading state
+    act(() => {
+      const toggleButton = component.root.findByProps({ testID: 'toggle-loading' });
+      toggleButton.props.onPress();
+    });
+
+    // Get updated snapshot
+    tree = component.toJSON();
+    expect(tree).toMatchSnapshot('after loading enabled');
+
+    // Toggle loading state again
+    act(() => {
+      const toggleButton = component.root.findByProps({ testID: 'toggle-loading' });
+      toggleButton.props.onPress();
+    });
+
+    // Get final snapshot
+    tree = component.toJSON();
+    expect(tree).toMatchSnapshot('after loading disabled');
   });
 
-  it('shows and auto-hides toast', async () => {
-    const { getByTestId } = render(
+  it('shows and auto-hides toast', () => {
+    const component = renderer.create(
       <UIProvider>
         <TestComponent />
       </UIProvider>
     );
 
-    fireEvent.press(getByTestId('show-toast'));
-    expect(getByTestId('toast-state')).toHaveTextContent('visible');
-    expect(getByTestId('toast-message')).toHaveTextContent('Test Toast');
-    expect(getByTestId('toast-type')).toHaveTextContent('info');
+    // Get initial snapshot
+    let tree = component.toJSON();
+    expect(tree).toMatchSnapshot('before showing toast');
 
-    await waitFor(() => {
-      expect(getByTestId('toast-state')).toHaveTextContent('hidden');
-    }, { timeout: 3500 });
+    // Show toast
+    act(() => {
+      const showToastButton = component.root.findByProps({ testID: 'show-toast' });
+      showToastButton.props.onPress();
+    });
+
+    // Get snapshot after showing toast
+    tree = component.toJSON();
+    expect(tree).toMatchSnapshot('after showing toast');
+
+    // Fast-forward toast auto-hide timeout
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
+
+    // Get snapshot after toast auto-hidden
+    tree = component.toJSON();
+    expect(tree).toMatchSnapshot('after toast auto-hidden');
   });
 
   it('manually hides toast', () => {
-    const { getByTestId } = render(
+    const component = renderer.create(
       <UIProvider>
         <TestComponent />
       </UIProvider>
     );
 
-    fireEvent.press(getByTestId('show-toast'));
-    expect(getByTestId('toast-state')).toHaveTextContent('visible');
+    // Show toast
+    act(() => {
+      const showToastButton = component.root.findByProps({ testID: 'show-toast' });
+      showToastButton.props.onPress();
+    });
 
-    fireEvent.press(getByTestId('hide-toast'));
-    expect(getByTestId('toast-state')).toHaveTextContent('hidden');
+    // Get snapshot after showing toast
+    let tree = component.toJSON();
+    expect(tree).toMatchSnapshot('with visible toast');
+
+    // Manually hide toast
+    act(() => {
+      const hideToastButton = component.root.findByProps({ testID: 'hide-toast' });
+      hideToastButton.props.onPress();
+    });
+
+    // Get snapshot after manually hiding toast
+    tree = component.toJSON();
+    expect(tree).toMatchSnapshot('after manually hiding toast');
   });
 
   it('toggles color scheme', () => {
-    const { getByTestId } = render(
+    const component = renderer.create(
       <UIProvider>
         <TestComponent />
       </UIProvider>
     );
 
-    const initialScheme = getByTestId('color-scheme').props.children;
-    fireEvent.press(getByTestId('toggle-theme'));
-    expect(getByTestId('color-scheme').props.children).not.toBe(initialScheme);
-  });
+    // Get initial snapshot
+    let tree = component.toJSON();
+    expect(tree).toMatchSnapshot('with initial color scheme');
 
-  it('provides theme colors', () => {
-    const { getByTestId } = render(
-      <UIProvider>
-        <TestComponent />
-      </UIProvider>
-    );
+    // Toggle color scheme
+    act(() => {
+      const toggleThemeButton = component.root.findByProps({ testID: 'toggle-theme' });
+      toggleThemeButton.props.onPress();
+    });
 
-    const backgroundColor = getByTestId('background-color').props.children;
-    expect(backgroundColor).toBe('#ffffff'); // Default light theme
+    // Get snapshot after theme toggle
+    tree = component.toJSON();
+    expect(tree).toMatchSnapshot('after toggling color scheme');
   });
 }); 

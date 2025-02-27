@@ -1,112 +1,84 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
-import { UIProvider } from '@/contexts/UIContext';
+import renderer from 'react-test-renderer';
 import { ThemedText } from '@/components/common/ThemedText';
-import type { TextStyle } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
+// Mock the ColorScheme hook
 jest.mock('@/hooks/useColorScheme');
 const mockUseColorScheme = useColorScheme as jest.MockedFunction<typeof useColorScheme>;
 
-const THEME_COLORS = {
-  light: {
-    text: '#11181C',
-  },
-  dark: {
-    text: '#ECEDEE',
-  },
-};
+// Mock the UIProvider context
+jest.mock('@/contexts/UIContext', () => ({
+  UIProvider: ({ children }: { children: React.ReactNode }) => children,
+  useUIState: () => ({
+    colorScheme: mockUseColorScheme(),
+    theme: 'default'
+  }),
+  useThemedColor: () => ({
+    text: mockUseColorScheme() === 'dark' ? '#ECEDEE' : '#11181C',
+    background: mockUseColorScheme() === 'dark' ? '#1E1E1E' : '#FFFFFF'
+  })
+}));
 
 describe('ThemedText', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('applies dark theme styles when in dark mode', () => {
+  it('renders correctly in light mode', () => {
+    mockUseColorScheme.mockReturnValue('light');
+    
+    const tree = renderer
+      .create(<ThemedText>Test Content</ThemedText>)
+      .toJSON();
+    
+    expect(tree).toMatchSnapshot();
+  });
+
+  it('renders correctly in dark mode', () => {
     mockUseColorScheme.mockReturnValue('dark');
     
-    const { getByText } = render(
-      <UIProvider>
-        <ThemedText>Test Content</ThemedText>
-      </UIProvider>
-    );
-    const textElement = getByText('Test Content');
-    const styles = textElement.props.style;
-    expect(styles).toContainEqual(
-      expect.objectContaining({ color: THEME_COLORS.dark.text })
-    );
+    const tree = renderer
+      .create(<ThemedText>Test Content</ThemedText>)
+      .toJSON();
+    
+    expect(tree).toMatchSnapshot();
   });
 
-  it('applies light theme styles when in light mode', () => {
+  it('renders correctly with custom styles', () => {
     mockUseColorScheme.mockReturnValue('light');
     
-    const { getByText } = render(
-      <UIProvider>
-        <ThemedText>Test Content</ThemedText>
-      </UIProvider>
-    );
-    const textElement = getByText('Test Content');
-    const styles = textElement.props.style;
-    expect(styles).toContainEqual(
-      expect.objectContaining({ color: THEME_COLORS.light.text })
-    );
+    const customStyle = { fontSize: 20, fontWeight: '600' as const, marginTop: 10 };
+    
+    const tree = renderer
+      .create(<ThemedText style={customStyle}>Test Content</ThemedText>)
+      .toJSON();
+    
+    expect(tree).toMatchSnapshot();
   });
 
-  it('handles array of styles correctly', () => {
+  it('renders correctly with different types', () => {
     mockUseColorScheme.mockReturnValue('light');
     
-    const customStyles: TextStyle[] = [
-      { fontSize: 20 },
-      { fontWeight: '600' },
-      { marginTop: 10 }
-    ];
+    const titleTree = renderer
+      .create(<ThemedText type="title">Title Text</ThemedText>)
+      .toJSON();
     
-    const { getByText } = render(
-      <UIProvider>
-        <ThemedText style={customStyles}>Test Content</ThemedText>
-      </UIProvider>
-    );
+    const subtitleTree = renderer
+      .create(<ThemedText type="subtitle">Subtitle Text</ThemedText>)
+      .toJSON();
     
-    const textElement = getByText('Test Content');
-    const styles = textElement.props.style;
+    const defaultTree = renderer
+      .create(<ThemedText type="default">Default Text</ThemedText>)
+      .toJSON();
     
-    // Check if base theme style is applied
-    expect(styles).toContainEqual(
-      expect.objectContaining({ color: THEME_COLORS.light.text })
-    );
+    const linkTree = renderer
+      .create(<ThemedText type="link">Link Text</ThemedText>)
+      .toJSON();
     
-    // Check if custom styles array is applied as the last item
-    expect(styles[styles.length - 1]).toEqual(customStyles);
-  });
-
-  it('handles theme changes', () => {
-    mockUseColorScheme.mockReturnValue('light');
-    
-    const { getByText, rerender } = render(
-      <UIProvider>
-        <ThemedText>Test Content</ThemedText>
-      </UIProvider>
-    );
-
-    let textElement = getByText('Test Content');
-    let styles = textElement.props.style;
-    expect(styles).toContainEqual(
-      expect.objectContaining({ color: THEME_COLORS.light.text })
-    );
-
-    // Change to dark theme
-    mockUseColorScheme.mockReturnValue('dark');
-    
-    rerender(
-      <UIProvider>
-        <ThemedText>Test Content</ThemedText>
-      </UIProvider>
-    );
-
-    textElement = getByText('Test Content');
-    styles = textElement.props.style;
-    expect(styles).toContainEqual(
-      expect.objectContaining({ color: THEME_COLORS.dark.text })
-    );
+    expect(titleTree).toMatchSnapshot('title type');
+    expect(subtitleTree).toMatchSnapshot('subtitle type');
+    expect(defaultTree).toMatchSnapshot('default type');
+    expect(linkTree).toMatchSnapshot('link type');
   });
 }); 

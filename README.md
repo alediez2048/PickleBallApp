@@ -1,15 +1,43 @@
-# PicklePass
+# PickleBall App
 
-PicklePass makes pickleball accessible, affordable, and organized by offering a streamlined mobile solution that connects players to structured, equipment-supported pickup games at public courts.
+A React Native app for booking pickleball games and managing player schedules.
 
 ## Features
 
-- User registration and profiles
-- Game discovery and booking
-- Real-time game coordination
-- Secure payment processing
+- Game discovery and reservation
+- Player profiles
+- Payment processing
+- Real-time game updates
 - Location-based court finding
 - Skill level matching
+
+## Testing
+
+We've implemented a robust testing strategy for the app. See the [TESTING.md](TESTING.md) file for details on our approach to testing React Native components.
+
+### Key Testing Files
+
+- Snapshot tests for components:
+  - `src/components/__tests__/SimpleGameRegistration.test.tsx`
+  - `src/components/__tests__/GameRegistration.test.tsx`
+  - `src/components/payment/__tests__/PaymentMethodForm.test.tsx`
+  - `src/components/payment/__tests__/PaymentMethodModal.test.tsx`
+
+- Testing utilities:
+  - `src/utils/testing/renderWithoutUnmounting.ts` - Utilities to prevent unmounted test renderer errors
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run specific component tests
+npx jest src/components/__tests__/SimpleGameRegistration.test.tsx
+
+# Update snapshots
+npx jest -u
+```
 
 ## Getting Started
 

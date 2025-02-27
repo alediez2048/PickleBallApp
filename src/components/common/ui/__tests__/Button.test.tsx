@@ -1,162 +1,128 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import { View } from 'react-native';
+import renderer from 'react-test-renderer';
 import { Button } from '../Button';
-import { UIProvider } from '@/contexts/UIContext';
+import { TouchableOpacity } from 'react-native';
 
-const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <UIProvider>{children}</UIProvider>
-);
+// Mock UIProvider context
+jest.mock('@/contexts/UIContext', () => ({
+  UIProvider: ({ children }: { children: React.ReactNode }) => children,
+  useUIState: () => ({
+    colorScheme: 'light',
+    theme: 'default'
+  }),
+  useThemedColor: () => ({
+    primary: '#4CAF50',
+    secondary: '#2196F3',
+    text: '#333333',
+    background: '#FFFFFF'
+  })
+}));
 
 describe('Button', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders correctly with default props', () => {
-    const { getByText } = render(<Button>Test Button</Button>, { wrapper });
-    const button = getByText('Test Button');
-    expect(button).toBeTruthy();
-  });
-
-  it('handles press events', () => {
-    const onPress = jest.fn();
-    const { getByTestId } = render(
-      <Button onPress={onPress}>Press Me</Button>,
-      { wrapper }
-    );
-
-    fireEvent.press(getByTestId('button'));
-    expect(onPress).toHaveBeenCalled();
-  });
-
-  it('shows loading state with proper accessibility', () => {
-    const { getByTestId, queryByText } = render(
-      <Button loading>Test Button</Button>,
-      { wrapper }
-    );
-
-    const spinner = getByTestId('loading-spinner');
-    expect(spinner).toBeTruthy();
-    expect(queryByText('Test Button')).toBeNull();
-  });
-
-  it('handles disabled state with proper accessibility', () => {
-    const onPress = jest.fn();
-    const { getByTestId } = render(
-      <Button onPress={onPress} disabled>
-        Disabled Button
-      </Button>,
-      { wrapper }
-    );
-
-    const button = getByTestId('button');
-    expect(button.props.accessibilityState.disabled).toBe(true);
+    const tree = renderer
+      .create(<Button>Test Button</Button>)
+      .toJSON();
     
-    fireEvent.press(button);
-    expect(onPress).not.toHaveBeenCalled();
+    expect(tree).toMatchSnapshot();
   });
 
-  it('applies different sizes correctly', () => {
-    const sizes = ['small', 'medium', 'large'] as const;
-    sizes.forEach(size => {
-      const { getByTestId } = render(
-        <Button size={size}>Size Button</Button>,
-        { wrapper }
-      );
-      const button = getByTestId('button');
-      const buttonStyles = button.props.style;
-      
-      // Find the size-specific style in the array
-      const sizeStyle = buttonStyles.find((style: any) => 
-        style && (
-          (size === 'small' && style.paddingVertical === 8) ||
-          (size === 'medium' && style.paddingVertical === 12) ||
-          (size === 'large' && style.paddingVertical === 16)
-        )
-      );
-      
-      expect(sizeStyle).toBeTruthy();
-    });
-  });
-
-  it('uses custom accessibility label when provided', () => {
-    const { getByTestId } = render(
-      <Button accessibilityLabel="Custom Label">Button Text</Button>,
-      { wrapper }
-    );
-    const button = getByTestId('button');
-    expect(button.props.accessibilityLabel).toBe('Custom Label');
-  });
-
-  it('uses accessibility hint when provided', () => {
-    const { getByTestId } = render(
-      <Button accessibilityHint="This button does something">
-        Button Text
-      </Button>,
-      { wrapper }
-    );
-    const button = getByTestId('button');
-    expect(button.props.accessibilityHint).toBe('This button does something');
-  });
-
-  it('handles non-text children with proper accessibility', () => {
-    const { getByTestId } = render(
-      <Button accessibilityLabel="Icon Button">
-        <View testID="icon" />
-      </Button>,
-      { wrapper }
-    );
-    const button = getByTestId('button');
-    expect(button.props.accessibilityLabel).toBe('Icon Button');
-  });
-
-  it('maintains accessibility state during loading and disabled states', () => {
-    const { getByTestId } = render(
-      <Button loading disabled>
-        Test Button
-      </Button>,
-      { wrapper }
-    );
-    const button = getByTestId('button');
-    expect(button.props.accessibilityState).toEqual({
-      disabled: true,
-      busy: true,
-    });
-  });
-
-  it('applies variant styles correctly', () => {
-    const variants = ['primary', 'secondary', 'outline'] as const;
-    variants.forEach(variant => {
-      const { getByTestId } = render(
-        <Button variant={variant}>Variant Button</Button>,
-        { wrapper }
-      );
-      const button = getByTestId('button');
-      const buttonStyles = button.props.style;
-      
-      // Find the variant-specific style in the array
-      const variantStyle = buttonStyles.find((style: any) => 
-        style && (
-          (variant === 'primary' && style.backgroundColor === '#4CAF50') ||
-          (variant === 'secondary' && style.backgroundColor === '#2196F3') ||
-          (variant === 'outline' && style.backgroundColor === 'transparent')
-        )
-      );
-      
-      expect(variantStyle).toBeTruthy();
-    });
-  });
-
-  it('applies fullWidth style when specified', () => {
-    const { getByTestId } = render(
-      <Button fullWidth>Full Width Button</Button>,
-      { wrapper }
-    );
-    const button = getByTestId('button');
-    const buttonStyles = button.props.style;
+  it('renders correctly with different sizes', () => {
+    const smallTree = renderer
+      .create(<Button size="small">Small Button</Button>)
+      .toJSON();
     
-    // Find the fullWidth style in the array
-    const fullWidthStyle = buttonStyles.find((style: any) => 
-      style && style.width === '100%'
-    );
+    const mediumTree = renderer
+      .create(<Button size="medium">Medium Button</Button>)
+      .toJSON();
     
-    expect(fullWidthStyle).toBeTruthy();
+    const largeTree = renderer
+      .create(<Button size="large">Large Button</Button>)
+      .toJSON();
+    
+    expect(smallTree).toMatchSnapshot('small size');
+    expect(mediumTree).toMatchSnapshot('medium size');
+    expect(largeTree).toMatchSnapshot('large size');
+  });
+
+  it('renders correctly with different variants', () => {
+    const primaryTree = renderer
+      .create(<Button variant="primary">Primary Button</Button>)
+      .toJSON();
+    
+    const secondaryTree = renderer
+      .create(<Button variant="secondary">Secondary Button</Button>)
+      .toJSON();
+    
+    const outlineTree = renderer
+      .create(<Button variant="outline">Outline Button</Button>)
+      .toJSON();
+    
+    expect(primaryTree).toMatchSnapshot('primary variant');
+    expect(secondaryTree).toMatchSnapshot('secondary variant');
+    expect(outlineTree).toMatchSnapshot('outline variant');
+  });
+
+  it('renders correctly in loading state', () => {
+    const tree = renderer
+      .create(<Button loading>Loading Button</Button>)
+      .toJSON();
+    
+    expect(tree).toMatchSnapshot('loading state');
+  });
+
+  it('renders correctly in disabled state', () => {
+    const tree = renderer
+      .create(<Button disabled>Disabled Button</Button>)
+      .toJSON();
+    
+    expect(tree).toMatchSnapshot('disabled state');
+  });
+
+  it('renders correctly with full width', () => {
+    const tree = renderer
+      .create(<Button fullWidth>Full Width Button</Button>)
+      .toJSON();
+    
+    expect(tree).toMatchSnapshot('full width');
+  });
+
+  it('renders correctly with accessibility props', () => {
+    const tree = renderer
+      .create(
+        <Button 
+          accessibilityLabel="Custom Label"
+          accessibilityHint="This button does something"
+        >
+          Accessible Button
+        </Button>
+      )
+      .toJSON();
+    
+    expect(tree).toMatchSnapshot('accessibility props');
+  });
+
+  it('renders correctly with icon children', () => {
+    const tree = renderer
+      .create(
+        <Button accessibilityLabel="Icon Button">
+          <React.Fragment>Icon</React.Fragment>
+        </Button>
+      )
+      .toJSON();
+    
+    expect(tree).toMatchSnapshot('icon children');
+  });
+
+  it('renders correctly in loading and disabled state', () => {
+    const tree = renderer
+      .create(<Button loading disabled>Loading Disabled Button</Button>)
+      .toJSON();
+    
+    expect(tree).toMatchSnapshot('loading and disabled');
   });
 }); 

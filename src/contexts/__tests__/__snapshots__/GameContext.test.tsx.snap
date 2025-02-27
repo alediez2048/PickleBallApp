@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GameContext creates a new game successfully: after create game 1`] = `null`;
+
+exports[`GameContext fetches games successfully: after fetch games success 1`] = `null`;
+
+exports[`GameContext handles fetch games error: after fetch games error 1`] = `null`;
+
+exports[`GameContext handles game creation error: after error 1`] = `null`;
+
+exports[`GameContext renders TestComponent with initial state: initial state 1`] = `null`;

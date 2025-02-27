@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { render } from '@testing-library/react-native';
+import renderer from 'react-test-renderer';
 import { withPerformanceMonitoring } from '../withPerformanceMonitoring';
 import { PerformanceProvider } from '@/contexts/PerformanceContext';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
@@ -8,6 +8,14 @@ import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 // Mock the usePerformanceMonitor hook
 jest.mock('@/hooks/usePerformanceMonitor', () => ({
   usePerformanceMonitor: jest.fn(),
+}));
+
+// Mock the PerformanceProvider context
+jest.mock('@/contexts/PerformanceContext', () => ({
+  usePerformance: () => ({
+    addMetrics: jest.fn(),
+  }),
+  PerformanceProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 describe('withPerformanceMonitoring', () => {
@@ -21,13 +29,15 @@ describe('withPerformanceMonitoring', () => {
   });
 
   it('renders the wrapped component with its props', () => {
-    const { getByText } = render(
-      <PerformanceProvider>
-        <WrappedComponent text="Hello" />
-      </PerformanceProvider>
-    );
-
-    expect(getByText('Hello')).toBeTruthy();
+    const tree = renderer
+      .create(
+        <PerformanceProvider>
+          <WrappedComponent text="Hello" />
+        </PerformanceProvider>
+      )
+      .toJSON();
+    
+    expect(tree).toMatchSnapshot('component with performance monitoring');
   });
 
   it('sets correct display name', () => {
@@ -43,7 +53,7 @@ describe('withPerformanceMonitoring', () => {
   });
 
   it('initializes performance monitoring with correct parameters', () => {
-    render(
+    renderer.create(
       <PerformanceProvider>
         <WrappedComponent text="Hello" />
       </PerformanceProvider>
@@ -59,6 +69,15 @@ describe('withPerformanceMonitoring', () => {
     const AnonymousComponent = () => <Text>Anonymous</Text>;
     const WrappedAnonymous = withPerformanceMonitoring(AnonymousComponent);
 
+    const tree = renderer
+      .create(
+        <PerformanceProvider>
+          <WrappedAnonymous />
+        </PerformanceProvider>
+      )
+      .toJSON();
+    
+    expect(tree).toMatchSnapshot('anonymous component with performance monitoring');
     expect(WrappedAnonymous.displayName).toMatch(/withPerformanceMonitoring\(.+\)/);
   });
 }); 

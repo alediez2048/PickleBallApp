@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook } from '@testing-library/react-native';
+import renderer from 'react-test-renderer';
 import { UIProvider } from '../../UIContext';
 import {
   useThemeMode,
@@ -40,50 +40,91 @@ jest.mock('../../UIContext', () => ({
   useUI: () => mockUIContext,
 }));
 
+// Create components to test each hook
+const ThemeModeComponent: React.FC = () => {
+  const themeMode = useThemeMode();
+  return (
+    <div data-testid="theme-mode">
+      <div>isDark: {themeMode.isDark ? 'true' : 'false'}</div>
+      <div>isLight: {themeMode.isLight ? 'true' : 'false'}</div>
+      <div>current: {themeMode.current}</div>
+    </div>
+  );
+};
+
+const LoadingStateComponent: React.FC = () => {
+  const loadingState = useLoadingState();
+  return (
+    <div data-testid="loading-state">
+      <div>isLoading: {loadingState.isLoading ? 'true' : 'false'}</div>
+      <div>isReady: {loadingState.isReady ? 'true' : 'false'}</div>
+    </div>
+  );
+};
+
+const ToastStateComponent: React.FC = () => {
+  const toastState = useToastState();
+  return (
+    <div data-testid="toast-state">
+      <div>visible: {toastState.visible ? 'true' : 'false'}</div>
+      <div>message: {toastState.message}</div>
+      <div>type: {toastState.type}</div>
+      <div>isSuccess: {toastState.isSuccess ? 'true' : 'false'}</div>
+      <div>isError: {toastState.isError ? 'true' : 'false'}</div>
+      <div>isInfo: {toastState.isInfo ? 'true' : 'false'}</div>
+    </div>
+  );
+};
+
+interface ThemedColorProps {
+  colorName: string;
+  lightColor?: string;
+  darkColor?: string;
+}
+
+const ThemedColorComponent: React.FC<ThemedColorProps> = ({ 
+  colorName, 
+  lightColor,
+  darkColor
+}) => {
+  const color = useThemedColor(colorName, lightColor, darkColor);
+  return (
+    <div data-testid="themed-color" style={{ color }}>
+      {color}
+    </div>
+  );
+};
+
 describe('UI Selectors', () => {
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <UIProvider>{children}</UIProvider>
+  const wrapper = (component: React.ReactElement) => (
+    <UIProvider>{component}</UIProvider>
   );
 
   describe('useThemeMode', () => {
     it('returns correct theme mode state for light theme', () => {
       mockUIContext.colorScheme = 'light';
-      const { result } = renderHook(() => useThemeMode(), { wrapper });
-      expect(result.current).toEqual({
-        isDark: false,
-        isLight: true,
-        current: 'light',
-      });
+      const tree = renderer.create(wrapper(<ThemeModeComponent />)).toJSON();
+      expect(tree).toMatchSnapshot('light theme');
     });
 
     it('returns correct theme mode state for dark theme', () => {
       mockUIContext.colorScheme = 'dark';
-      const { result } = renderHook(() => useThemeMode(), { wrapper });
-      expect(result.current).toEqual({
-        isDark: true,
-        isLight: false,
-        current: 'dark',
-      });
+      const tree = renderer.create(wrapper(<ThemeModeComponent />)).toJSON();
+      expect(tree).toMatchSnapshot('dark theme');
     });
   });
 
   describe('useLoadingState', () => {
     it('returns correct loading state when not loading', () => {
       mockUIContext.isLoading = false;
-      const { result } = renderHook(() => useLoadingState(), { wrapper });
-      expect(result.current).toEqual({
-        isLoading: false,
-        isReady: true,
-      });
+      const tree = renderer.create(wrapper(<LoadingStateComponent />)).toJSON();
+      expect(tree).toMatchSnapshot('not loading');
     });
 
     it('returns correct loading state when loading', () => {
       mockUIContext.isLoading = true;
-      const { result } = renderHook(() => useLoadingState(), { wrapper });
-      expect(result.current).toEqual({
-        isLoading: true,
-        isReady: false,
-      });
+      const tree = renderer.create(wrapper(<LoadingStateComponent />)).toJSON();
+      expect(tree).toMatchSnapshot('loading');
     });
   });
 
@@ -94,15 +135,8 @@ describe('UI Selectors', () => {
         message: '',
         type: 'info',
       };
-      const { result } = renderHook(() => useToastState(), { wrapper });
-      expect(result.current).toEqual({
-        visible: false,
-        message: '',
-        type: 'info',
-        isSuccess: false,
-        isError: false,
-        isInfo: true,
-      });
+      const tree = renderer.create(wrapper(<ToastStateComponent />)).toJSON();
+      expect(tree).toMatchSnapshot('hidden toast');
     });
 
     it('returns correct toast state for success toast', () => {
@@ -111,43 +145,33 @@ describe('UI Selectors', () => {
         message: 'Success message',
         type: 'success',
       };
-      const { result } = renderHook(() => useToastState(), { wrapper });
-      expect(result.current).toEqual({
-        visible: true,
-        message: 'Success message',
-        type: 'success',
-        isSuccess: true,
-        isError: false,
-        isInfo: false,
-      });
+      const tree = renderer.create(wrapper(<ToastStateComponent />)).toJSON();
+      expect(tree).toMatchSnapshot('success toast');
     });
   });
 
   describe('useThemedColor', () => {
     it('returns correct color for light theme', () => {
       mockUIContext.colorScheme = 'light';
-      const { result } = renderHook(
-        () => useThemedColor('background', '#ffffff', '#000000'),
-        { wrapper }
-      );
-      expect(result.current).toBe('#ffffff');
+      const tree = renderer.create(
+        wrapper(<ThemedColorComponent colorName="background" lightColor="#ffffff" darkColor="#000000" />)
+      ).toJSON();
+      expect(tree).toMatchSnapshot('light mode color');
     });
 
     it('returns correct color for dark theme', () => {
       mockUIContext.colorScheme = 'dark';
-      const { result } = renderHook(
-        () => useThemedColor('background', '#ffffff', '#000000'),
-        { wrapper }
-      );
-      expect(result.current).toBe('#000000');
+      const tree = renderer.create(
+        wrapper(<ThemedColorComponent colorName="background" lightColor="#ffffff" darkColor="#000000" />)
+      ).toJSON();
+      expect(tree).toMatchSnapshot('dark mode color');
     });
 
     it('returns default color when no custom colors provided', () => {
-      const { result } = renderHook(
-        () => useThemedColor('background'),
-        { wrapper }
-      );
-      expect(result.current).toBe('#000000');
+      const tree = renderer.create(
+        wrapper(<ThemedColorComponent colorName="background" />)
+      ).toJSON();
+      expect(tree).toMatchSnapshot('default themed color');
     });
   });
 }); 

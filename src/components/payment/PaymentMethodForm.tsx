@@ -20,7 +20,7 @@ interface PaymentMethodFormProps {
 }
 
 export function PaymentMethodForm({ onComplete, onCancel, isFirstTime = false }: PaymentMethodFormProps) {
-  const { updatePaymentMethod } = useAuth();
+  const { updatePaymentMethods, user } = useAuth();
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
@@ -62,10 +62,21 @@ export function PaymentMethodForm({ onComplete, onCancel, isFirstTime = false }:
 
     setIsLoading(true);
     try {
-      // TODO: Implement actual payment method saving
-      // For now, we'll simulate a delay and update the user's payment method status
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      await updatePaymentMethod(true);
+      const last4 = cardNumber.replace(/\s/g, '').slice(-4);
+      const [expiryMonth, expiryYear] = expiryDate.split('/');
+      
+      const newPaymentMethod = {
+        id: `pm_${Date.now()}`,
+        last4,
+        brand: getCardBrand(cardNumber),
+        expiryMonth,
+        expiryYear,
+        isDefault: true
+      };
+
+      // Update with the new payment method
+      await updatePaymentMethods([...(user?.paymentMethods || []), newPaymentMethod]);
+      
       onComplete();
     } catch (error) {
       Alert.alert(
@@ -90,6 +101,17 @@ export function PaymentMethodForm({ onComplete, onCancel, isFirstTime = false }:
       return `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}`;
     }
     return cleaned;
+  };
+
+  const getCardBrand = (cardNum: string): string => {
+    const cleanedNum = cardNum.replace(/\s/g, '');
+    
+    if (/^4/.test(cleanedNum)) return 'Visa';
+    if (/^5[1-5]/.test(cleanedNum)) return 'Mastercard';
+    if (/^3[47]/.test(cleanedNum)) return 'American Express';
+    if (/^6(?:011|5)/.test(cleanedNum)) return 'Discover';
+    
+    return 'Credit Card';
   };
 
   return (

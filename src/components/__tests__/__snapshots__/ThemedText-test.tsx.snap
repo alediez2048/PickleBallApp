@@ -1,24 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`renders correctly 1`] = `
-<Text
-  style={
-    [
-      {
-        "color": "#11181C",
-      },
-      {
-        "fontSize": 16,
-        "lineHeight": 24,
-      },
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-    ]
-  }
->
-  Snapshot test!
-</Text>
-`;
+exports[`ThemedText renders with additional props: with additional props 1`] = `null`;
+
+exports[`ThemedText renders with custom color: custom color 1`] = `null`;
+
+exports[`ThemedText renders with custom styles: custom styles 1`] = `null`;
+
+exports[`ThemedText renders with default props: default props 1`] = `null`;
+
+exports[`ThemedText renders with different types: defaultSemiBold type 1`] = `null`;
+
+exports[`ThemedText renders with different types: subtitle type 1`] = `null`;
+
+exports[`ThemedText renders with different types: title type 1`] = `null`;

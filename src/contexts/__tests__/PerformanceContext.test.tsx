@@ -1,10 +1,43 @@
 import React from 'react';
-import { renderHook, act } from '@testing-library/react-native';
+import { act } from 'react-test-renderer';
 import { PerformanceProvider, usePerformance } from '../PerformanceContext';
 import type { PerformanceMetrics } from '@/hooks/usePerformanceMonitor';
 
+// Helper to test hooks
+function testHook<T>(callback: () => T, Wrapper?: React.ComponentType<{children: React.ReactNode}>): { result: { current: T } } {
+  const container = {
+    result: { current: undefined as unknown as T }
+  };
+
+  function TestComponent() {
+    // @ts-ignore
+    container.result.current = callback();
+    return null;
+  }
+
+  if (Wrapper) {
+    // Execute the component with the provided wrapper
+    const WrappedComponent = () => {
+      const WrapperComponent = Wrapper;
+      return (
+        <WrapperComponent>
+          <TestComponent />
+        </WrapperComponent>
+      );
+    };
+    WrappedComponent();
+  } else {
+    // Execute the component without a wrapper
+    TestComponent();
+  }
+  
+  return {
+    result: container.result
+  };
+}
+
 describe('PerformanceContext', () => {
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
+  const TestWrapper = ({ children }: { children: React.ReactNode }) => (
     <PerformanceProvider>{children}</PerformanceProvider>
   );
 
@@ -16,12 +49,12 @@ describe('PerformanceContext', () => {
 
   it('throws error when used outside provider', () => {
     expect(() => {
-      renderHook(() => usePerformance());
+      testHook(() => usePerformance());
     }).toThrow('usePerformance must be used within a PerformanceProvider');
   });
 
   it('adds metrics for a component', () => {
-    const { result } = renderHook(() => usePerformance(), { wrapper });
+    const { result } = testHook(() => usePerformance(), TestWrapper);
 
     act(() => {
       result.current.addMetrics('TestComponent', mockMetrics);
@@ -31,7 +64,7 @@ describe('PerformanceContext', () => {
   });
 
   it('accumulates multiple metrics for the same component', () => {
-    const { result } = renderHook(() => usePerformance(), { wrapper });
+    const { result } = testHook(() => usePerformance(), TestWrapper);
 
     act(() => {
       result.current.addMetrics('TestComponent', mockMetrics);
@@ -46,7 +79,7 @@ describe('PerformanceContext', () => {
   });
 
   it('calculates average metrics correctly', () => {
-    const { result } = renderHook(() => usePerformance(), { wrapper });
+    const { result } = testHook(() => usePerformance(), TestWrapper);
 
     act(() => {
       result.current.addMetrics('TestComponent', mockMetrics);
@@ -66,12 +99,12 @@ describe('PerformanceContext', () => {
   });
 
   it('returns null for average metrics of non-existent component', () => {
-    const { result } = renderHook(() => usePerformance(), { wrapper });
+    const { result } = testHook(() => usePerformance(), TestWrapper);
     expect(result.current.getAverageMetrics('NonExistentComponent')).toBeNull();
   });
 
   it('clears metrics for a specific component', () => {
-    const { result } = renderHook(() => usePerformance(), { wrapper });
+    const { result } = testHook(() => usePerformance(), TestWrapper);
 
     act(() => {
       result.current.addMetrics('Component1', mockMetrics);
@@ -84,7 +117,7 @@ describe('PerformanceContext', () => {
   });
 
   it('clears all metrics', () => {
-    const { result } = renderHook(() => usePerformance(), { wrapper });
+    const { result } = testHook(() => usePerformance(), TestWrapper);
 
     act(() => {
       result.current.addMetrics('Component1', mockMetrics);
