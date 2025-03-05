@@ -1,7 +1,5 @@
 # React Native Testing Documentation
 
-> **Note**: For a complete reference guide to our testing infrastructure, see [TESTING_REFERENCE.md](TESTING_REFERENCE.md).
-
 ## Overview
 
 This document outlines the testing strategy we've adopted for the PickleBall App. After facing several challenges with React Native testing, we've developed a solid approach for component testing that avoids common pitfalls.

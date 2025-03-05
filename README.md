@@ -13,27 +13,7 @@ A React Native app for booking pickleball games and managing player schedules.
 
 ## Testing
 
-We've implemented a robust testing infrastructure for the app with comprehensive documentation:
-
-- **[TESTING.md](TESTING.md)**: Overview of our testing approach and challenges
-- **[TESTING_REFERENCE.md](TESTING_REFERENCE.md)**: Complete reference guide for our testing infrastructure
-- **[docs/COMPREHENSIVE_TEST_SETUP.md](docs/COMPREHENSIVE_TEST_SETUP.md)**: Detailed technical implementation guide
-- **[src/utils/testing/README.md](src/utils/testing/README.md)**: Documentation for custom testing utilities
-
-Our testing infrastructure includes:
-- Custom CSS Interop transformer for handling styling in tests
-- React test renderer implementation with snapshot testing
-- Comprehensive mocking strategies for components, contexts, and hooks
-- Type-safe testing utilities for React Native
-
-### Testing Documentation Quick Reference
-
-| Document | Purpose |
-|----------|---------|
-| TESTING.md | High-level overview and approach |
-| TESTING_REFERENCE.md | Complete reference for all testing aspects |
-| COMPREHENSIVE_TEST_SETUP.md | Technical implementation details |
-| src/utils/testing/README.md | Custom utilities documentation |
+We've implemented a robust testing strategy for the app. See the [TESTING.md](TESTING.md) file for details on our approach to testing React Native components.
 
 ### Key Testing Files
 
@@ -45,23 +25,12 @@ Our testing infrastructure includes:
 
 - Testing utilities:
   - `src/utils/testing/renderWithoutUnmounting.ts` - Utilities to prevent unmounted test renderer errors
-  - `jest/transformers/cssInteropTransformer.js` - Custom transformer for CSS-in-JS libraries
-
-### Current Testing Status
-
-- 158 total tests across 29 test suites
-- 125 passing tests (79% success rate)
-- 94 passing snapshots
-- Working toward 70% coverage targets
 
 ### Running Tests
 
 ```bash
 # Run all tests
 npm test
-
-# Run tests with coverage
-npm test -- --coverage
 
 # Run specific component tests
 npx jest src/components/__tests__/SimpleGameRegistration.test.tsx

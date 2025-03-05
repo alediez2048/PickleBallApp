@@ -408,6 +408,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     paddingHorizontal: 16,
+    paddingBottom: 80,
   },
   headerCard: {
     marginTop: 16,
@@ -617,7 +618,7 @@ const styles = StyleSheet.create({
   },
   signOutContainer: {
     marginTop: 8,
-    marginBottom: 24,
+    marginBottom: 80,
   },
   modalOverlay: {
     flex: 1,
