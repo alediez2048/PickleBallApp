@@ -397,13 +397,13 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: '#FFFFFF',
   },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f7fa',
+    backgroundColor: '#FFFFFF',
   },
   scrollView: {
     flex: 1,
