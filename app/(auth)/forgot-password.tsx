@@ -49,13 +49,15 @@ export default function ForgotPasswordScreen() {
         style={styles.keyboardView}
       >
         <View style={styles.content}>
-          {/* Back Button */}
-          <TouchableOpacity 
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <ThemedText style={styles.backButtonText}>← Back</ThemedText>
-          </TouchableOpacity>
+          {/* Header with Back Button */}
+          <View style={styles.header}>
+            <TouchableOpacity 
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
+              <ThemedText style={styles.backButtonText}>← Back</ThemedText>
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.formContainer}>
             {/* Title */}
@@ -133,11 +135,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
   },
+  header: {
+    height: 60,
+    justifyContent: 'center',
+    marginTop: 20,
+  },
   backButton: {
-    position: 'absolute',
-    top: 48,
-    left: 24,
-    zIndex: 10,
+    alignSelf: 'flex-start',
   },
   backButtonText: {
     color: '#6B7280',
@@ -146,7 +150,7 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     justifyContent: 'center',
-    marginTop: -80,
+    paddingTop: 20,
   },
   titleContainer: {
     marginBottom: 32,
