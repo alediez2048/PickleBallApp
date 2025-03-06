@@ -101,7 +101,7 @@ This is a legally binding agreement.`;
           </View>
 
           <ScrollView style={styles.contentScroll}>
-            <ThemedText variant="body" style={styles.content}>
+            <ThemedText variant="body" style={styles.content} color="#666666">
               {getContent()}
             </ThemedText>
           </ScrollView>
@@ -183,6 +183,7 @@ const styles = StyleSheet.create({
   },
   content: {
     lineHeight: 24,
+    color: '#666666',
   },
   footer: {
     flexDirection: 'row',
