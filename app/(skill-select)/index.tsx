@@ -155,7 +155,7 @@ export default function SkillSelectScreen() {
                     color={skill.color}
                     style={styles.skillIcon}
                   />
-                  <View>
+                  <View style={styles.textContainer}>
                     <Text style={styles.skillLabel}>{skill.label}</Text>
                     <Text style={styles.skillDescription} numberOfLines={expandedSkill === skill.value ? undefined : 2}>
                       {skill.description}
@@ -282,6 +282,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    paddingRight: 16,
   },
   skillIcon: {
     width: 40,
@@ -300,8 +301,16 @@ const styles = StyleSheet.create({
     color: '#666666',
     lineHeight: 20,
   },
+  textContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
   expandButton: {
     padding: 8,
+    marginLeft: 4,
+    minWidth: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   expandIcon: {
     transform: [{ rotate: '-90deg' }],
