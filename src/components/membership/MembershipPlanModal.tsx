@@ -54,12 +54,14 @@ interface MembershipPlanModalProps {
   visible: boolean;
   onClose: () => void;
   onSelectPlan: (plan: MembershipPlan) => void;
+  currentPlanId?: string;
 }
 
 export function MembershipPlanModal({
   visible,
   onClose,
   onSelectPlan,
+  currentPlanId,
 }: MembershipPlanModalProps) {
   return (
     <Modal
@@ -76,7 +78,7 @@ export function MembershipPlanModal({
             </TouchableOpacity>
             <Text style={styles.title}>Choose Your Plan</Text>
             <Text style={styles.subtitle}>
-              Select a membership plan to start playing
+              Select a membership plan that fits your needs
             </Text>
           </View>
 
@@ -84,9 +86,18 @@ export function MembershipPlanModal({
             {MEMBERSHIP_PLANS.map((plan) => (
               <TouchableOpacity
                 key={plan.id}
-                style={styles.planCard}
+                style={[
+                  styles.planCard,
+                  currentPlanId === plan.id && styles.currentPlanCard
+                ]}
                 onPress={() => onSelectPlan(plan)}
               >
+                {currentPlanId === plan.id && (
+                  <View style={styles.currentPlanBadge}>
+                    <Text style={styles.currentPlanBadgeText}>Current Plan</Text>
+                  </View>
+                )}
+                
                 <View style={styles.planHeader}>
                   <Text style={styles.planName}>{plan.name}</Text>
                   <View style={styles.priceContainer}>
@@ -102,23 +113,18 @@ export function MembershipPlanModal({
                 <View style={styles.benefitsContainer}>
                   {plan.benefits.map((benefit, index) => (
                     <View key={index} style={styles.benefitRow}>
-                      <IconSymbol
-                        name="checkmark"
-                        size={20}
-                        color="#4CAF50"
-                      />
+                      <IconSymbol name="checkmark" size={16} color="#4CAF50" style={styles.benefitIcon} />
                       <Text style={styles.benefitText}>{benefit}</Text>
                     </View>
                   ))}
                 </View>
 
                 <Button
-                  onPress={() => onSelectPlan(plan)}
+                  variant={currentPlanId === plan.id ? "outline" : "primary"}
                   style={styles.selectButton}
+                  onPress={() => onSelectPlan(plan)}
                 >
-                  <Text style={styles.selectButtonText}>
-                    Select {plan.name}
-                  </Text>
+                  {currentPlanId === plan.id ? 'Current Plan' : 'Select Plan'}
                 </Button>
               </TouchableOpacity>
             ))}
@@ -139,12 +145,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    marginTop: 60,
+    marginTop: Platform.OS === 'ios' ? 50 : 20,
+    overflow: 'hidden',
   },
   header: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: '#EEEEEE',
   },
   closeButton: {
     position: 'absolute',
@@ -155,45 +162,58 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#000000',
     marginBottom: 8,
+    color: '#333333',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
+    marginBottom: 8,
   },
   plansContainer: {
     padding: 20,
   },
   planCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8F9FA',
     borderRadius: 12,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    borderColor: '#EEEEEE',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  currentPlanCard: {
+    borderColor: '#4CAF50',
+    borderWidth: 2,
+    backgroundColor: '#F1F8E9',
+  },
+  currentPlanBadge: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    position: 'absolute',
+    top: -12,
+    right: 20,
+    zIndex: 1,
+  },
+  currentPlanBadgeText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   planHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 12,
   },
   planName: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#000000',
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 8,
   },
   priceContainer: {
     flexDirection: 'row',
@@ -202,17 +222,17 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#4CAF50',
   },
   interval: {
     fontSize: 16,
     color: '#666666',
-    marginLeft: 4,
   },
   planDescription: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666666',
     marginBottom: 16,
+    lineHeight: 22,
   },
   benefitsContainer: {
     marginBottom: 20,
@@ -220,19 +240,17 @@ const styles = StyleSheet.create({
   benefitRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
+  },
+  benefitIcon: {
+    marginRight: 10,
   },
   benefitText: {
-    marginLeft: 8,
     fontSize: 14,
     color: '#333333',
+    flex: 1,
   },
   selectButton: {
     width: '100%',
-  },
-  selectButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
   },
 }); 

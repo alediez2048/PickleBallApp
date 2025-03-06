@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -36,12 +36,26 @@ export function PaymentMethodModal({
   selectedPlan,
 }: PaymentMethodModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [form, setForm] = useState<PaymentFormData>({
     cardNumber: '',
     expiryDate: '',
     cvv: '',
     name: '',
   });
+
+  // Reset form and success state when modal becomes visible
+  useEffect(() => {
+    if (visible) {
+      setIsSuccess(false);
+      setForm({
+        cardNumber: '',
+        expiryDate: '',
+        cvv: '',
+        name: '',
+      });
+    }
+  }, [visible]);
 
   const handleSubmit = async () => {
     // Basic validation
@@ -50,49 +64,67 @@ export function PaymentMethodModal({
       return;
     }
 
-    if (!form.expiryDate.match(/^(0[1-9]|1[0-2])\/([0-9]{2})$/)) {
-      Alert.alert('Invalid Expiry Date', 'Please enter a valid date (MM/YY)');
+    if (!form.expiryDate.match(/^\d{2}\/\d{2}$/)) {
+      Alert.alert('Invalid Expiry Date', 'Please enter a valid expiry date (MM/YY)');
       return;
     }
 
     if (!form.cvv.match(/^\d{3,4}$/)) {
-      Alert.alert('Invalid CVV', 'Please enter a valid CVV');
+      Alert.alert('Invalid CVV', 'Please enter a valid CVV code');
       return;
     }
 
-    if (!form.name.trim()) {
-      Alert.alert('Invalid Name', 'Please enter the cardholder name');
+    if (form.name.trim().length < 3) {
+      Alert.alert('Invalid Name', 'Please enter the name on your card');
       return;
     }
 
     setIsLoading(true);
-    try {
-      // Here you would typically make an API call to your payment processor
-      // For now, we'll simulate a successful payment
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      onComplete();
-    } catch (error) {
-      Alert.alert(
-        'Payment Failed',
-        'There was an error processing your payment. Please try again.'
-      );
-    } finally {
+
+    // Simulate API call
+    setTimeout(() => {
       setIsLoading(false);
+      setIsSuccess(true);
+      
+      // Show success message and close after a delay
+      setTimeout(() => {
+        onComplete();
+      }, 1500);
+    }, 1500);
+  };
+
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = (matches && matches[0]) || '';
+    const parts = [];
+
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+
+    if (parts.length) {
+      return parts.join(' ');
+    } else {
+      return value;
     }
   };
 
-  const formatCardNumber = (text: string) => {
-    const cleaned = text.replace(/\s/g, '');
-    const groups = cleaned.match(/.{1,4}/g);
-    return groups ? groups.join(' ') : cleaned;
+  const handleCardNumberChange = (text: string) => {
+    const formatted = formatCardNumber(text);
+    setForm(prev => ({ ...prev, cardNumber: formatted }));
   };
 
-  const formatExpiryDate = (text: string) => {
-    const cleaned = text.replace(/\D/g, '');
-    if (cleaned.length >= 2) {
-      return cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4);
+  const handleExpiryDateChange = (text: string) => {
+    // Format as MM/YY
+    const cleaned = text.replace(/[^\d]/g, '');
+    let formatted = cleaned;
+    
+    if (cleaned.length > 2) {
+      formatted = `${cleaned.substring(0, 2)}/${cleaned.substring(2, 4)}`;
     }
-    return cleaned;
+    
+    setForm(prev => ({ ...prev, expiryDate: formatted }));
   };
 
   return (
@@ -108,91 +140,95 @@ export function PaymentMethodModal({
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <IconSymbol name="xmark" size={24} color="#666666" />
             </TouchableOpacity>
-            <Text style={styles.title}>Add Payment Method</Text>
+            <Text style={styles.title}>Payment Method</Text>
+            <Text style={styles.subtitle}>
+              {isSuccess 
+                ? 'Payment method added successfully!' 
+                : `Add a payment method for ${selectedPlan.name}`}
+            </Text>
           </View>
 
-          <ScrollView style={styles.formContainer}>
-            <View style={styles.planSummary}>
-              <Text style={styles.planName}>{selectedPlan.name}</Text>
-              <Text style={styles.planPrice}>
-                ${selectedPlan.price}
-                {selectedPlan.interval && <Text style={styles.interval}>/{selectedPlan.interval}</Text>}
+          {isSuccess ? (
+            <View style={styles.successContainer}>
+              <View style={styles.successIconContainer}>
+                <IconSymbol name="checkmark" size={40} color="#FFFFFF" />
+              </View>
+              <Text style={styles.successText}>Payment Method Added</Text>
+              <Text style={styles.successSubtext}>
+                Your subscription to {selectedPlan.name} has been activated.
               </Text>
             </View>
+          ) : (
+            <ScrollView style={styles.formContainer}>
+              <View style={styles.planSummary}>
+                <Text style={styles.planSummaryTitle}>Plan Summary</Text>
+                <View style={styles.planDetails}>
+                  <Text style={styles.planName}>{selectedPlan.name}</Text>
+                  <Text style={styles.planPrice}>
+                    ${selectedPlan.price}{selectedPlan.interval ? `/${selectedPlan.interval}` : ''}
+                  </Text>
+                </View>
+              </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Card Number</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="1234 5678 9012 3456"
-                value={form.cardNumber}
-                onChangeText={(text) => {
-                  const formatted = formatCardNumber(text);
-                  if (formatted.length <= 19) { // 16 digits + 3 spaces
-                    setForm(prev => ({ ...prev, cardNumber: formatted }));
-                  }
-                }}
-                keyboardType="numeric"
-                maxLength={19}
-              />
-            </View>
-
-            <View style={styles.row}>
-              <View style={[styles.inputGroup, { flex: 1, marginRight: 12 }]}>
-                <Text style={styles.label}>Expiry Date</Text>
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Card Number</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="MM/YY"
-                  value={form.expiryDate}
-                  onChangeText={(text) => {
-                    const formatted = formatExpiryDate(text);
-                    if (formatted.length <= 5) {
-                      setForm(prev => ({ ...prev, expiryDate: formatted }));
-                    }
-                  }}
-                  keyboardType="numeric"
-                  maxLength={5}
+                  placeholder="1234 5678 9012 3456"
+                  keyboardType="number-pad"
+                  value={form.cardNumber}
+                  onChangeText={handleCardNumberChange}
+                  maxLength={19} // 16 digits + 3 spaces
                 />
               </View>
 
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={styles.label}>CVV</Text>
+              <View style={styles.formRow}>
+                <View style={[styles.formGroup, styles.formGroupHalf]}>
+                  <Text style={styles.label}>Expiry Date</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="MM/YY"
+                    keyboardType="number-pad"
+                    value={form.expiryDate}
+                    onChangeText={handleExpiryDateChange}
+                    maxLength={5} // MM/YY
+                  />
+                </View>
+
+                <View style={[styles.formGroup, styles.formGroupHalf]}>
+                  <Text style={styles.label}>CVV</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="123"
+                    keyboardType="number-pad"
+                    value={form.cvv}
+                    onChangeText={(text) => setForm(prev => ({ ...prev, cvv: text }))}
+                    maxLength={4}
+                    secureTextEntry
+                  />
+                </View>
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Name on Card</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="123"
-                  value={form.cvv}
-                  onChangeText={(text) => {
-                    if (text.length <= 4) {
-                      setForm(prev => ({ ...prev, cvv: text.replace(/\D/g, '') }));
-                    }
-                  }}
-                  keyboardType="numeric"
-                  maxLength={4}
-                  secureTextEntry
+                  placeholder="John Doe"
+                  value={form.name}
+                  onChangeText={(text) => setForm(prev => ({ ...prev, name: text }))}
                 />
               </View>
-            </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Cardholder Name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="John Doe"
-                value={form.name}
-                onChangeText={(text) => setForm(prev => ({ ...prev, name: text }))}
-                autoCapitalize="words"
-              />
-            </View>
-
-            <Button
-              onPress={handleSubmit}
-              style={styles.submitButton}
-              loading={isLoading}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Processing...' : 'Add Payment Method'}
-            </Button>
-          </ScrollView>
+              <Button
+                onPress={handleSubmit}
+                variant="primary"
+                style={styles.submitButton}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Processing...' : 'Add Payment Method'}
+              </Button>
+            </ScrollView>
+          )}
         </View>
       </SafeAreaView>
     </Modal>
@@ -228,14 +264,29 @@ const styles = StyleSheet.create({
     color: '#000000',
     marginBottom: 8,
   },
+  subtitle: {
+    fontSize: 16,
+    color: '#666666',
+  },
   formContainer: {
     padding: 20,
   },
   planSummary: {
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
     padding: 16,
-    borderRadius: 12,
     marginBottom: 24,
+  },
+  planSummaryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#333333',
+  },
+  planDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   planName: {
     fontSize: 18,
@@ -248,11 +299,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000000',
   },
-  interval: {
-    fontSize: 16,
-    color: '#666666',
-  },
-  inputGroup: {
+  formGroup: {
     marginBottom: 16,
   },
   label: {
@@ -269,11 +316,40 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000000',
   },
-  row: {
+  formRow: {
     flexDirection: 'row',
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  formGroupHalf: {
+    flex: 1,
   },
   submitButton: {
     marginTop: 24,
+  },
+  successContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  successIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#4CAF50',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  successText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 8,
+  },
+  successSubtext: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
   },
 }); 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Image, Modal, Alert, Platform, SafeAreaView, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useUserProfile } from '@/contexts/selectors/authSelectors';
@@ -74,8 +74,58 @@ export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
   const [isSkillModalVisible, setIsSkillModalVisible] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<MembershipPlan | undefined>({
+    id: 'monthly',
+    name: 'Monthly Membership',
+    price: 50,
+    interval: 'month',
+    description: 'Best value for regular players',
+    benefits: [
+      'Unlimited game access',
+      'Priority booking',
+      'Member-only events',
+      'Exclusive discounts',
+      'Cancel anytime',
+    ],
+  });
   const upcomingGames = useUpcomingGames();
   const router = useRouter();
+
+  useEffect(() => {
+    if (user?.membership) {
+      setCurrentPlan(user.membership);
+    }
+  }, [user?.membership]);
+
+  const handleUpdateMembership = async (plan: MembershipPlan) => {
+    try {
+      setIsLoading(true);
+      
+      // Log the current plan before update
+      console.log('Current plan before update:', currentPlan);
+      
+      // Update the plan in the backend
+      await updateMembership(plan);
+      
+      // Update the local state
+      setCurrentPlan(plan);
+      
+      // Log the new plan after update
+      console.log('New plan after update:', plan);
+      
+      // Show success message
+      Alert.alert(
+        'Membership Updated',
+        `Your membership has been successfully updated to the ${plan.name} plan.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Error updating membership:', error);
+      Alert.alert('Error', 'Failed to update membership. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleImagePick = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -257,8 +307,9 @@ export default function ProfileScreen() {
             </View>
           </View>
           <MembershipManagementSection
-            currentPlan={user?.membership}
-            onUpdatePlan={updateMembership}
+            key={currentPlan?.id || 'no-plan'}
+            currentPlan={currentPlan}
+            onUpdatePlan={handleUpdateMembership}
           />
         </View>
 
