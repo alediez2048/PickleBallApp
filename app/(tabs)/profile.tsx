@@ -74,27 +74,12 @@ export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
   const [isSkillModalVisible, setIsSkillModalVisible] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState<MembershipPlan | undefined>({
-    id: 'monthly',
-    name: 'Monthly Membership',
-    price: 50,
-    interval: 'month',
-    description: 'Best value for regular players',
-    benefits: [
-      'Unlimited game access',
-      'Priority booking',
-      'Member-only events',
-      'Exclusive discounts',
-      'Cancel anytime',
-    ],
-  });
+  const [currentPlan, setCurrentPlan] = useState<MembershipPlan | undefined>(user?.membership);
   const upcomingGames = useUpcomingGames();
   const router = useRouter();
 
   useEffect(() => {
-    if (user?.membership) {
-      setCurrentPlan(user.membership);
-    }
+    setCurrentPlan(user?.membership);
   }, [user?.membership]);
 
   const handleUpdateMembership = async (plan: MembershipPlan) => {
