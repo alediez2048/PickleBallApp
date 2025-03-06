@@ -447,13 +447,25 @@ class MockApi {
       console.debug('[MockApi] Created updated user object');
 
       // Process all fields from UpdateProfileData that exist in MockUser
-      const allowedFields = ['skillLevel', 'profileImage', 'displayName', 'phoneNumber', 'dateOfBirth', 'address', 'hasCompletedProfile'] as const;
+      const allowedFields = ['skillLevel', 'profileImage', 'displayName', 'phoneNumber', 'dateOfBirth', 'hasCompletedProfile'] as const;
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined && allowedFields.includes(key as typeof allowedFields[number])) {
           console.debug(`[MockApi] Updating field: ${key}`, { value });
           (updatedUser as any)[key] = value;
         }
       });
+
+      // Handle address separately to map between different field names
+      if (data.address) {
+        console.debug('[MockApi] Updating address', { address: data.address });
+        updatedUser.address = {
+          address: data.address.address,
+          city: data.address.city,
+          state: data.address.state,
+          zipCode: data.address.zipCode,
+          country: data.address.country
+        };
+      }
 
       // Check for skill level change specifically
       if (data.skillLevel !== undefined && data.skillLevel !== user.skillLevel) {

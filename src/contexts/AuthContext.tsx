@@ -33,6 +33,7 @@ interface UserProfile {
     city?: string;
     state?: string;
     zipCode?: string;
+    country?: string;
   };
   membership?: MembershipPlan;
   paymentMethods?: PaymentMethod[];
@@ -241,7 +242,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No authenticated user');
       }
 
-      const { user: updatedUser } = await mockApi.updateProfile(state.user.email, updates as UpdateProfileData);
+      // Map UserProfile to UpdateProfileData
+      const profileUpdates: UpdateProfileData = { ...updates } as any;
+      
+      // Handle address mapping if it exists
+      if (updates.address) {
+        profileUpdates.address = {
+          address: updates.address.street || '',
+          city: updates.address.city || '',
+          state: updates.address.state || '',
+          zipCode: updates.address.zipCode || '',
+          country: updates.address.country || 'United States'
+        };
+      }
+
+      const { user: updatedUser } = await mockApi.updateProfile(state.user.email, profileUpdates);
       
       // Store the updated user data
       await storage.setItem('user', JSON.stringify(updatedUser));
@@ -282,7 +297,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         displayName: data.displayName,
         phoneNumber: data.phoneNumber,
         dateOfBirth: data.dateOfBirth,
-        address: data.address,
+        address: {
+          address: data.address.address,
+          city: data.address.city,
+          state: data.address.state,
+          zipCode: data.address.zipCode,
+          country: data.address.country
+        },
         hasCompletedProfile: true
       };
 

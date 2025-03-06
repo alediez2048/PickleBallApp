@@ -106,7 +106,31 @@ export function FirstTimeProfileForm({
 
   useEffect(() => {
     console.log('[Profile] First time profile form mounted');
-  }, []);
+    
+    // Initialize form with user data if available
+    if (user) {
+      setForm(prevForm => ({
+        ...prevForm,
+        displayName: user.name || '',
+        phoneNumber: user.phoneNumber || '',
+        dateOfBirth: user.dateOfBirth || '',
+        address: user.address?.street || '',
+        city: user.address?.city || '',
+        state: user.address?.state || '',
+        zipCode: user.address?.zipCode || '',
+        country: 'United States',
+      }));
+      
+      if (user.skillLevel) {
+        const skillLevelEnum = Object.values(SkillLevel).find(
+          level => level.toLowerCase() === user.skillLevel?.toLowerCase()
+        );
+        if (skillLevelEnum) {
+          setSelectedSkill(skillLevelEnum);
+        }
+      }
+    }
+  }, [user]);
 
   const onLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -162,6 +186,7 @@ export function FirstTimeProfileForm({
           zipCode: form.zipCode.trim(),
           country: form.country
         },
+        skillLevel: selectedSkill,
         playingExperience: form.playingExperience.toString(),
         preferredPlayStyle: form.preferredPlayStyle,
         membershipTier: 'free',
