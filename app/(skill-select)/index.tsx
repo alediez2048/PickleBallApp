@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 24,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingTop: Platform.OS === 'ios' ? 80 : 60,
     backgroundColor: '#FFFFFF',
   },
   title: {
@@ -239,9 +239,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    paddingTop: 10,
   },
   skillList: {
     padding: 16,
+    paddingTop: 8,
     gap: 16,
   },
   skillCard: {
