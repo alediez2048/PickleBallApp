@@ -260,9 +260,15 @@ export function FirstTimeProfileForm({
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
+        style={styles.keyboardAvoidingView}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
-        <ScrollView style={styles.scrollView}>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={true}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.content}>
             <ThemedText variant="title" style={styles.title}>
               Complete Your Profile
@@ -482,13 +488,20 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#FFFFFF',
   },
+  keyboardAvoidingView: {
+    flex: 1,
+    width: '100%',
+  },
   scrollView: {
     flex: 1,
     width: '100%',
   },
+  scrollViewContent: {
+    flexGrow: 1,
+    paddingBottom: 40,
+  },
   content: {
     padding: 24,
-    paddingBottom: 40,
   },
   title: {
     fontSize: 24,
