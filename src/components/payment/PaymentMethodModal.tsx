@@ -14,6 +14,16 @@ import {
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Button } from '@/components/common/ui/Button';
 import { MembershipPlan } from '@/types/membership';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface PaymentMethod {
+  id: string;
+  last4: string;
+  brand: string;
+  expiryMonth: string;
+  expiryYear: string;
+  isDefault: boolean;
+}
 
 interface PaymentMethodModalProps {
   visible: boolean;
@@ -35,6 +45,7 @@ export function PaymentMethodModal({
   onComplete,
   selectedPlan,
 }: PaymentMethodModalProps) {
+  const { updatePaymentMethods, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [form, setForm] = useState<PaymentFormData>({
@@ -43,6 +54,16 @@ export function PaymentMethodModal({
     cvv: '',
     name: '',
   });
+
+  // Debug logging
+  useEffect(() => {
+    if (visible) {
+      console.log('PaymentMethodModal - Modal opened');
+      console.log('PaymentMethodModal - Selected plan:', selectedPlan);
+      console.log('PaymentMethodModal - User:', user);
+      console.log('PaymentMethodModal - User payment methods:', user?.paymentMethods);
+    }
+  }, [visible, selectedPlan, user]);
 
   // Reset form and success state when modal becomes visible
   useEffect(() => {
@@ -58,6 +79,8 @@ export function PaymentMethodModal({
   }, [visible]);
 
   const handleSubmit = async () => {
+    console.log('PaymentMethodModal - Submit button clicked');
+    
     // Basic validation
     if (!form.cardNumber.replace(/\s/g, '').match(/^\d{16}$/)) {
       Alert.alert('Invalid Card Number', 'Please enter a valid 16-digit card number');
@@ -80,17 +103,72 @@ export function PaymentMethodModal({
     }
 
     setIsLoading(true);
+    console.log('PaymentMethodModal - Validation passed, processing payment');
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Create a new payment method object
+      const newPaymentMethod: PaymentMethod = {
+        id: `payment-${Date.now()}`,
+        last4: form.cardNumber.slice(-4),
+        brand: getCardBrand(form.cardNumber),
+        expiryMonth: form.expiryDate.split('/')[0],
+        expiryYear: form.expiryDate.split('/')[1],
+        isDefault: true
+      };
+
+      console.log('PaymentMethodModal - Created new payment method:', newPaymentMethod);
+
+      // Update existing payment methods to non-default
+      const existingMethods = user?.paymentMethods || [];
+      console.log('PaymentMethodModal - Existing payment methods:', existingMethods);
+      
+      const updatedExistingMethods = existingMethods.map(method => ({
+        ...method,
+        isDefault: false
+      }));
+
+      // Add the new payment method
+      const allMethods = [...updatedExistingMethods, newPaymentMethod];
+      console.log('PaymentMethodModal - All payment methods to save:', allMethods);
+      
+      // Save the payment methods to the user's profile
+      await updatePaymentMethods(allMethods);
+
+      console.log('PaymentMethodModal - Payment methods updated successfully');
+
+      // Show success state
       setIsLoading(false);
       setIsSuccess(true);
       
-      // Show success message and close after a delay
+      // Show success message
+      Alert.alert(
+        'Payment Method Added',
+        `Your ${newPaymentMethod.brand} card ending in ${newPaymentMethod.last4} has been successfully added.`,
+        [{ text: 'OK' }]
+      );
+      
+      // Close after a delay
       setTimeout(() => {
+        console.log('PaymentMethodModal - Calling onComplete callback');
         onComplete();
-      }, 1500);
-    }, 1500);
+      }, 1000);
+    } catch (error) {
+      console.error('PaymentMethodModal - Error saving payment method:', error);
+      setIsLoading(false);
+      Alert.alert('Error', 'Failed to save payment method. Please try again.');
+    }
+  };
+
+  // Helper function to determine card brand based on first digits
+  const getCardBrand = (cardNumber: string): string => {
+    const cleanNumber = cardNumber.replace(/\s+/g, '');
+    
+    if (/^4/.test(cleanNumber)) return 'Visa';
+    if (/^5[1-5]/.test(cleanNumber)) return 'Mastercard';
+    if (/^3[47]/.test(cleanNumber)) return 'Amex';
+    if (/^6(?:011|5)/.test(cleanNumber)) return 'Discover';
+    
+    return 'Card';
   };
 
   const formatCardNumber = (value: string) => {

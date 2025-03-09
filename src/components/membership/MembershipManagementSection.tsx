@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Button } from '@/components/common/ui/Button';
@@ -21,8 +21,17 @@ export function MembershipManagementSection({
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   
-  // Mock payment method for testing
+  // Debug logging
+  useEffect(() => {
+    console.log('MembershipManagementSection - Component mounted');
+    console.log('MembershipManagementSection - currentPlan:', currentPlan);
+    console.log('MembershipManagementSection - user:', user);
+    console.log('MembershipManagementSection - user.paymentMethods:', user?.paymentMethods);
+  }, [currentPlan, user, refreshKey]);
+  
+  // Mock payment method for testing - only used if no real payment methods exist
   const mockPaymentMethod = {
     id: 'mock-payment-1',
     last4: '4242',
@@ -32,11 +41,17 @@ export function MembershipManagementSection({
     isDefault: true
   };
   
-  // Check if user has a payment method
-  const hasPaymentMethod = true; // For testing
+  // Check if user has a payment method - use real data if available
+  const hasPaymentMethod = user?.paymentMethods && user.paymentMethods.length > 0;
   
-  // Get default payment method if available
-  const defaultPaymentMethod = mockPaymentMethod; // For testing
+  // Get default payment method if available - use real data if available
+  const defaultPaymentMethod = user?.paymentMethods?.find(method => method.isDefault);
+  
+  // Debug logging for payment methods
+  useEffect(() => {
+    console.log('MembershipManagementSection - hasPaymentMethod:', hasPaymentMethod);
+    console.log('MembershipManagementSection - defaultPaymentMethod:', defaultPaymentMethod);
+  }, [hasPaymentMethod, defaultPaymentMethod, refreshKey]);
 
   const handlePlanSelect = (plan: MembershipPlan) => {
     setSelectedPlan(plan);
@@ -105,8 +120,14 @@ export function MembershipManagementSection({
   };
 
   const handlePaymentComplete = () => {
+    console.log('MembershipManagementSection - Payment complete called');
     setShowPaymentModal(false);
+    
+    // Force a refresh to ensure we display the latest payment method
+    setRefreshKey(prev => prev + 1);
+    
     if (selectedPlan) {
+      console.log('MembershipManagementSection - Updating plan after payment:', selectedPlan);
       onUpdatePlan(selectedPlan);
     }
   };
@@ -141,23 +162,8 @@ export function MembershipManagementSection({
         <Button 
           variant="outline"
           onPress={() => {
-            Alert.alert(
-              'Update Payment Method',
-              'Do you want to update your payment method?',
-              [
-                {
-                  text: 'Cancel',
-                  style: 'cancel',
-                },
-                {
-                  text: 'Update',
-                  onPress: () => {
-                    setSelectedPlan(currentPlan);
-                    setShowPaymentModal(true);
-                  },
-                },
-              ]
-            );
+            setSelectedPlan(currentPlan);
+            setShowPaymentModal(true);
           }}
           style={[styles.actionButton, styles.actionButtonHalf]}
         >
@@ -176,6 +182,9 @@ export function MembershipManagementSection({
               <ThemedText variant="subtitle" style={styles.planName}>
                 {currentPlan.name}
               </ThemedText>
+              <View style={styles.activeBadge}>
+                <ThemedText style={styles.activeBadgeText}>Active</ThemedText>
+              </View>
             </View>
             <ThemedText style={styles.planPrice}>
               {formatPrice(currentPlan.price, currentPlan.interval)}
@@ -189,7 +198,8 @@ export function MembershipManagementSection({
           <View style={styles.divider} />
           
           <View style={styles.benefitsContainer}>
-            {currentPlan.benefits.slice(0, 3).map((benefit, index) => (
+            <ThemedText style={styles.benefitsSectionTitle}>Plan Benefits:</ThemedText>
+            {currentPlan.benefits.map((benefit, index) => (
               <View key={index} style={styles.benefitRow}>
                 <IconSymbol name="checkmark" size={16} color="#4CAF50" />
                 <ThemedText style={styles.benefitText}>{benefit}</ThemedText>
@@ -201,6 +211,7 @@ export function MembershipManagementSection({
             <>
               <View style={styles.divider} />
               <View style={styles.paymentMethodContainer}>
+                <ThemedText style={styles.paymentSectionTitle}>Payment Method:</ThemedText>
                 <View style={styles.paymentMethodRow}>
                   <IconSymbol 
                     name="creditcard.fill" 
@@ -289,12 +300,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexShrink: 1,
     marginRight: 8,
+    gap: 8,
   },
   planName: {
     fontWeight: '600',
     color: '#666666',
     fontSize: 18,
     flexShrink: 1,
+  },
+  activeBadge: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  activeBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '500',
   },
   planPrice: {
     fontSize: 20,
@@ -315,6 +338,11 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 12,
   },
+  benefitsSectionTitle: {
+    fontWeight: '600',
+    color: '#333333',
+    marginBottom: 8,
+  },
   benefitRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -330,6 +358,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     borderRadius: 8,
     padding: 12,
+  },
+  paymentSectionTitle: {
+    fontWeight: '600',
+    color: '#333333',
+    marginBottom: 8,
   },
   paymentMethodRow: {
     flexDirection: 'row',

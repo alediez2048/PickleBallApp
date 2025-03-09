@@ -21,6 +21,15 @@ interface GameHistory {
   opponent: string;
 }
 
+interface PaymentMethod {
+  id: string;
+  last4: string;
+  brand: string;
+  expiryMonth: string;
+  expiryYear: string;
+  isDefault: boolean;
+}
+
 interface UserProfile {
   id?: string;
   email?: string;
@@ -42,6 +51,8 @@ interface UserProfile {
     zipCode?: string;
   };
   membership?: MembershipPlan;
+  paymentMethods?: PaymentMethod[];
+  hasCompletedProfile?: boolean;
 }
 
 const SKILL_LEVELS = [
@@ -74,11 +85,25 @@ export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
   const [isSkillModalVisible, setIsSkillModalVisible] = useState(false);
+  
+  // Use the user's actual membership plan, which will be undefined for new users
   const [currentPlan, setCurrentPlan] = useState<MembershipPlan | undefined>(user?.membership);
+  
   const upcomingGames = useUpcomingGames();
   const router = useRouter();
 
+  // Debug logging
   useEffect(() => {
+    console.log('ProfileScreen - Component mounted or refreshed');
+    console.log('ProfileScreen - User:', user);
+    console.log('ProfileScreen - User membership:', user?.membership);
+    console.log('ProfileScreen - User payment methods:', user?.paymentMethods || []);
+    console.log('ProfileScreen - Current plan state:', currentPlan);
+  }, [user, currentPlan, refreshKey]);
+
+  // Update currentPlan when user changes
+  useEffect(() => {
+    console.log('ProfileScreen - User membership changed:', user?.membership);
     setCurrentPlan(user?.membership);
   }, [user?.membership]);
 
@@ -87,7 +112,8 @@ export default function ProfileScreen() {
       setIsLoading(true);
       
       // Log the current plan before update
-      console.log('Current plan before update:', currentPlan);
+      console.log('ProfileScreen - Current plan before update:', currentPlan);
+      console.log('ProfileScreen - New plan to set:', plan);
       
       // Update the plan in the backend
       await updateMembership(plan);
@@ -95,8 +121,12 @@ export default function ProfileScreen() {
       // Update the local state
       setCurrentPlan(plan);
       
+      // Force a refresh
+      setRefreshKey(prev => prev + 1);
+      
       // Log the new plan after update
-      console.log('New plan after update:', plan);
+      console.log('ProfileScreen - Current plan after update:', plan);
+      console.log('ProfileScreen - User after update:', user);
       
       // Show success message
       Alert.alert(
@@ -105,7 +135,7 @@ export default function ProfileScreen() {
         [{ text: 'OK' }]
       );
     } catch (error) {
-      console.error('Error updating membership:', error);
+      console.error('ProfileScreen - Error updating membership:', error);
       Alert.alert('Error', 'Failed to update membership. Please try again.');
     } finally {
       setIsLoading(false);

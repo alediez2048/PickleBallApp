@@ -18,7 +18,7 @@ import { MembershipPlan } from '@/types/membership';
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { signOut, user } = useAuth();
+  const { signOut, user, updateMembership } = useAuth();
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
@@ -207,9 +207,17 @@ export default function GameDetailsScreen() {
   const handlePaymentComplete = async () => {
     setShowPaymentModal(false);
     try {
+      // Update the user's membership plan with the selected plan
+      if (selectedPlan) {
+        console.log('Game booking - Updating membership plan:', selectedPlan);
+        await updateMembership(selectedPlan);
+        console.log('Game booking - Membership plan updated successfully');
+      }
+      
       // After payment is complete, show the booking modal to complete the reservation
       setIsBookingModalVisible(true);
     } catch (error) {
+      console.error('Game booking - Error updating membership:', error);
       Alert.alert('Error', 'Failed to complete booking. Please try again.');
     }
   };
