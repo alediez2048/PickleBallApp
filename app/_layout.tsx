@@ -9,6 +9,8 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { GameProvider } from '@/contexts/GameContext';
 import { UIProvider } from '@/contexts/UIContext';
 import { BookedGamesProvider } from '@/contexts/BookedGamesContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider as SupabaseAuthProvider } from '../context/AuthContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -81,6 +83,9 @@ function RootLayoutNav() {
   return <Slot />;
 }
 
+// Create a client
+const queryClient = new QueryClient();
+
 // Root layout wraps the app with necessary providers
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -95,20 +100,24 @@ export default function RootLayout() {
   }, [colorScheme]);
 
   return (
-    <AuthProvider>
-      <UIProvider>
-        <GameProvider>
-          <BookedGamesProvider>
-            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-              <View style={styles.container}>
-                <RootLayoutNav />
-                <StatusBar style="dark" />
-              </View>
-            </ThemeProvider>
-          </BookedGamesProvider>
-        </GameProvider>
-      </UIProvider>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <SupabaseAuthProvider>
+        <AuthProvider>
+          <UIProvider>
+            <GameProvider>
+              <BookedGamesProvider>
+                <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                  <View style={styles.container}>
+                    <RootLayoutNav />
+                    <StatusBar style="dark" />
+                  </View>
+                </ThemeProvider>
+              </BookedGamesProvider>
+            </GameProvider>
+          </UIProvider>
+        </AuthProvider>
+      </SupabaseAuthProvider>
+    </QueryClientProvider>
   );
 }
 
