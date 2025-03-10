@@ -53,14 +53,26 @@ export default function LoginScreen() {
 
           {/* Buttons Container */}
           <View style={styles.buttonContainer}>
-            {/* Email Button */}
+            {/* Email Login Button */}
             <Button
               variant="primary"
-              size="large"
-              fullWidth
-              onPress={() => router.push('/(auth)/email-login')}
+              onPress={() => router.push('/email-login')}
+              style={styles.emailButton}
             >
-              Sign in with Email
+              <ThemedText variant="body" style={styles.buttonText}>
+                Continue with Email
+              </ThemedText>
+            </Button>
+
+            {/* Supabase Test Button */}
+            <Button
+              variant="secondary"
+              onPress={() => router.push('/supabase-test')}
+              style={styles.supabaseButton}
+            >
+              <ThemedText variant="body" style={styles.buttonText}>
+                Supabase Test
+              </ThemedText>
             </Button>
 
             {/* Register Button */}
@@ -223,5 +235,14 @@ const styles = StyleSheet.create({
   signInLink: {
     color: '#4CAF50',
     fontWeight: '600',
+  },
+  emailButton: {
+    // Add appropriate styles for the email button
+  },
+  supabaseButton: {
+    // Add appropriate styles for the Supabase test button
+  },
+  buttonText: {
+    // Add appropriate styles for the button text
   },
 }); 

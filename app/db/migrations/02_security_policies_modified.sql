@@ -1,9 +1,33 @@
 -- Enable Row Level Security on all tables
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.courts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.games ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.game_participants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.courts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.bookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.games ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.game_participants ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies to avoid conflicts
+DROP POLICY IF EXISTS "Users can view all profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
+
+DROP POLICY IF EXISTS "Anyone can view courts" ON public.courts;
+DROP POLICY IF EXISTS "Only admins can insert courts" ON public.courts;
+DROP POLICY IF EXISTS "Only admins can update courts" ON public.courts;
+DROP POLICY IF EXISTS "Only admins can delete courts" ON public.courts;
+
+DROP POLICY IF EXISTS "Users can view all bookings" ON public.bookings;
+DROP POLICY IF EXISTS "Users can create their own bookings" ON public.bookings;
+DROP POLICY IF EXISTS "Users can update their own bookings" ON public.bookings;
+DROP POLICY IF EXISTS "Users can delete their own bookings" ON public.bookings;
+
+DROP POLICY IF EXISTS "Anyone can view games" ON public.games;
+DROP POLICY IF EXISTS "Users can create games for their bookings" ON public.games;
+DROP POLICY IF EXISTS "Users can update their own games" ON public.games;
+DROP POLICY IF EXISTS "Users can delete their own games" ON public.games;
+
+DROP POLICY IF EXISTS "Anyone can view game participants" ON public.game_participants;
+DROP POLICY IF EXISTS "Users can join games" ON public.game_participants;
+DROP POLICY IF EXISTS "Users can leave games they joined" ON public.game_participants;
 
 -- Profiles policies
 CREATE POLICY "Users can view all profiles"
@@ -100,6 +124,14 @@ CREATE POLICY "Users can leave games they joined"
   ON public.game_participants FOR DELETE
   USING (auth.uid() = user_id);
 
--- Create admin role
-CREATE ROLE admin;
+-- Create admin role if it doesn't exist
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'admin') THEN
+    CREATE ROLE admin;
+  END IF;
+END
+$$;
+
+-- Grant privileges
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO admin; 

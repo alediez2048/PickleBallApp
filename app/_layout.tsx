@@ -10,7 +10,7 @@ import { GameProvider } from '@/contexts/GameContext';
 import { UIProvider } from '@/contexts/UIContext';
 import { BookedGamesProvider } from '@/contexts/BookedGamesContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider as SupabaseAuthProvider } from '../context/AuthContext';
+import { AuthProvider as SupabaseAuthProvider } from './context/AuthContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -29,6 +29,7 @@ function RootLayoutNav() {
     const inSkillGroup = segments[0] === '(skill-select)';
     const inProfileSetup = segments[0] === '(profile-setup)';
     const inMainApp = segments[0] === '(tabs)';
+    const isSupabaseTest = segments[0] === 'supabase-test';
 
     console.log('[Navigation Debug]', {
       currentSegment: segments[0],
@@ -38,8 +39,14 @@ function RootLayoutNav() {
       inAuthGroup,
       inSkillGroup,
       inProfileSetup,
-      inMainApp
+      inMainApp,
+      isSupabaseTest
     });
+
+    // Skip redirection for Supabase test screen
+    if (isSupabaseTest) {
+      return;
+    }
 
     // Determine the target route based on current state
     let targetRoute: '/(auth)/login' | '/(profile-setup)' | '/(skill-select)' | '/(tabs)' | null = null;

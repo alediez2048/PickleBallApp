@@ -191,4 +191,21 @@ export function useLeaveGame() {
       queryClient.invalidateQueries({ queryKey: ['games'] });
     },
   });
+}
+
+// Mutation hook for creating a court
+export function useCreateCourt() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (courtData: Parameters<typeof courtService.createCourt>[0]) => {
+      const { court, error } = await courtService.createCourt(courtData);
+      if (error) throw error;
+      return court;
+    },
+    onSuccess: () => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['courts'] });
+    },
+  });
 } 
