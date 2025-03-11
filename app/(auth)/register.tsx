@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth as useExistingAuth } from '@/contexts/AuthContext';
+import { useAuth as useSupabaseAuth } from '../context/AuthContext';
 import { Button } from '@/components/common/ui/Button';
 import { LoadingSpinner } from '@/components/common/ui/LoadingSpinner';
 import { validateRegisterForm } from '@/utils/validation';
 import { ThemedText } from '@/components/ThemedText';
+import * as authService from '../services/auth';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
@@ -13,7 +15,8 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
+  const existingAuth = useExistingAuth();
+  const supabaseAuth = useSupabaseAuth();
 
   const handleRegister = async () => {
     try {
@@ -29,7 +32,50 @@ export default function RegisterScreen() {
       }
 
       setIsLoading(true);
-      await signUp(email, password, name);
+      
+      // Use Supabase authentication
+      const { error } = await supabaseAuth.signUp(email, password);
+      
+      if (error) {
+        if (error.message.includes('already registered')) {
+          setErrors({ email: 'Email is already registered' });
+        } else {
+          setErrors({ form: error.message });
+        }
+        return;
+      }
+      
+      // If successful, also update the user profile with their name
+      try {
+        // Get the current user
+        const { user } = await authService.getCurrentUser();
+        
+        if (user) {
+          // Update the user profile with their name
+          await authService.upsertProfile({
+            id: user.id,
+            full_name: name
+          });
+        }
+        
+        // Also sign up with the existing auth system
+        // This is temporary until we fully migrate to Supabase
+        try {
+          await existingAuth.signUp(email, password, name);
+        } catch (err) {
+          // If the existing auth fails, we can still proceed with Supabase auth
+          console.warn('Existing auth failed, but Supabase auth succeeded');
+        }
+        
+        // Show success message
+        alert('Registration successful! Please check your email to confirm your account.');
+        
+        // Navigate back to login
+        router.push('/(auth)/login');
+      } catch (err) {
+        console.error('Error updating profile:', err);
+        setErrors({ form: 'Registration successful, but failed to update profile.' });
+      }
     } catch (err) {
       if (err instanceof Error && err.message === 'Email already registered') {
         setErrors({ email: 'Email is already registered' });

@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import safeAsyncStorage from '../utils/asyncStorageHelper';
 
 // Get environment variables from Expo's Constants
 const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || '';
@@ -25,7 +26,7 @@ const ExpoSecureStoreAdapter = {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: Platform.OS === 'web' 
-      ? AsyncStorage 
+      ? safeAsyncStorage 
       : ExpoSecureStoreAdapter,
     autoRefreshToken: true,
     persistSession: true,

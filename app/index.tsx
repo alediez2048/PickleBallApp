@@ -11,13 +11,6 @@ export default function Index() {
       
       <TouchableOpacity 
         style={styles.button}
-        onPress={() => router.push('/supabase-test')}
-      >
-        <Text style={styles.buttonText}>Supabase Test</Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity 
-        style={styles.button}
         onPress={() => router.push('/(auth)/login')}
       >
         <Text style={styles.buttonText}>Go to Login</Text>

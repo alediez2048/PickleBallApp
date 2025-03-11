@@ -64,17 +64,6 @@ export default function LoginScreen() {
               </ThemedText>
             </Button>
 
-            {/* Supabase Test Button */}
-            <Button
-              variant="secondary"
-              onPress={() => router.push('/supabase-test')}
-              style={styles.supabaseButton}
-            >
-              <ThemedText variant="body" style={styles.buttonText}>
-                Supabase Test
-              </ThemedText>
-            </Button>
-
             {/* Register Button */}
             <Button
               variant="outline"
@@ -238,9 +227,6 @@ const styles = StyleSheet.create({
   },
   emailButton: {
     // Add appropriate styles for the email button
-  },
-  supabaseButton: {
-    // Add appropriate styles for the Supabase test button
   },
   buttonText: {
     // Add appropriate styles for the button text

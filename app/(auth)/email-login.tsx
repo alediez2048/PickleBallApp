@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth as useExistingAuth } from '@/contexts/AuthContext';
+import { useAuth as useSupabaseAuth } from '../context/AuthContext';
 import { Button } from '@/components/common/ui/Button';
 import { LoadingSpinner } from '@/components/common/ui/LoadingSpinner';
 import { validateLoginForm } from '@/utils/validation';
@@ -12,7 +13,8 @@ export default function EmailLoginScreen() {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useAuth();
+  const existingAuth = useExistingAuth();
+  const supabaseAuth = useSupabaseAuth();
 
   const handleLogin = async () => {
     try {
@@ -28,7 +30,24 @@ export default function EmailLoginScreen() {
       }
 
       setIsLoading(true);
-      await signIn(email, password);
+      
+      // Use Supabase authentication
+      const { error } = await supabaseAuth.signIn(email, password);
+      
+      if (error) {
+        setErrors({ form: error.message });
+        return;
+      }
+      
+      // If successful, also sign in with the existing auth system
+      // This is temporary until we fully migrate to Supabase
+      try {
+        await existingAuth.signIn(email, password);
+      } catch (err) {
+        // If the existing auth fails, we can still proceed with Supabase auth
+        console.warn('Existing auth failed, but Supabase auth succeeded');
+      }
+      
       // Navigation will be handled by the root layout
     } catch (err) {
       setErrors({ form: 'Invalid email or password' });
