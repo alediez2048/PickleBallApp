@@ -177,7 +177,7 @@ export default function GameDetailsScreen() {
   };
 
   const handleBookButtonPress = () => {
-    // Check if game is full
+    // Check if game is full first (prioritize this)
     if (game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS || isGameFull || (totalPlayers >= game.maxPlayers)) {
       Alert.alert(
         'Game Full',

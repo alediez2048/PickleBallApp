@@ -311,19 +311,21 @@ export default function ExploreScreen() {
     const game = MOCK_GAMES[gameId];
     if (!game) return;
 
-    if (!isSkillLevelMatch(game.skillLevel)) {
+    // Check if game is full FIRST (prioritize this alert)
+    if (game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS || gameFullStatuses[game.id]) {
       Alert.alert(
-        'Skill Level Mismatch',
-        `This game is for ${game.skillLevel} players. Please find a game that matches your skill level (${user?.skillLevel || 'Not Set'}).`,
+        'Game Full',
+        'This game is currently full. Please select a different game with available spots.',
         [{ text: 'OK' }]
       );
       return;
     }
     
-    if (game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS || gameFullStatuses[game.id]) {
+    // Then check skill level mismatch
+    if (!isSkillLevelMatch(game.skillLevel)) {
       Alert.alert(
-        'Game Full',
-        'This game is currently full. Please select a different game with available spots.',
+        'Skill Level Mismatch',
+        `This game is for ${game.skillLevel} players. Please find a game that matches your skill level (${user?.skillLevel || 'Not Set'}).`,
         [{ text: 'OK' }]
       );
       return;
