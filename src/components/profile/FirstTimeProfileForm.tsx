@@ -21,6 +21,10 @@ import { validateProfile } from '@/utils/validation/profileValidation';
 import { TermsModal } from './TermsModal';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { FirstTimeProfileData } from '@/services/mockApi';
+import { DatePicker } from '@/components/common/ui/DatePicker';
+import { Picker } from '@/components/common/ui/Picker';
+import { US_STATES } from '@/data/states';
+import { COUNTRIES } from '@/data/countries';
 
 interface FirstTimeProfileFormProps {
   onComplete: () => void;
@@ -66,7 +70,6 @@ interface FormData {
   state: string;
   zipCode: string;
   country: string;
-  playingExperience: number;
   preferredPlayStyle: PlayStyle[];
   waiverAccepted: boolean;
   termsAccepted: boolean;
@@ -88,8 +91,7 @@ export function FirstTimeProfileForm({
     city: '',
     state: '',
     zipCode: '',
-    country: 'United States',
-    playingExperience: 0,
+    country: 'US', // Default to US
     preferredPlayStyle: [],
     waiverAccepted: false,
     termsAccepted: false,
@@ -118,7 +120,7 @@ export function FirstTimeProfileForm({
         city: user.address?.city || '',
         state: user.address?.state || '',
         zipCode: user.address?.zipCode || '',
-        country: 'United States',
+        country: 'US', // Default to US
       }));
       
       if (user.skillLevel) {
@@ -187,7 +189,7 @@ export function FirstTimeProfileForm({
           country: form.country
         },
         skillLevel: selectedSkill,
-        playingExperience: form.playingExperience.toString(),
+        playingExperience: "0", // We're removing this field from the UI
         preferredPlayStyle: form.preferredPlayStyle,
         membershipTier: 'free',
         preferences: {
@@ -290,13 +292,13 @@ export function FirstTimeProfileForm({
                 editable={!isSubmitting}
               />
 
-              <TextInput
+              <DatePicker
                 label="Date of Birth"
                 value={form.dateOfBirth}
                 onChangeText={(text) => setForm(prev => ({ ...prev, dateOfBirth: text }))}
                 error={errors.dateOfBirth}
-                placeholder="YYYY-MM-DD"
                 editable={!isSubmitting}
+                maximumDate={new Date()} // Can't select future dates
               />
 
               <TextInput
@@ -318,12 +320,14 @@ export function FirstTimeProfileForm({
                   />
                 </View>
                 <View style={styles.halfWidth}>
-                  <TextInput
+                  <Picker
                     label="State"
                     value={form.state}
-                    onChangeText={(text) => setForm(prev => ({ ...prev, state: text }))}
+                    onValueChange={(value) => setForm(prev => ({ ...prev, state: value }))}
+                    items={US_STATES}
                     error={errors.state}
                     editable={!isSubmitting}
+                    placeholder="Select State"
                   />
                 </View>
               </View>
@@ -340,35 +344,12 @@ export function FirstTimeProfileForm({
                   />
                 </View>
                 <View style={styles.halfWidth}>
-                  <TextInput
+                  <Picker
                     label="Country"
                     value={form.country}
-                    onChangeText={(text) => setForm(prev => ({ ...prev, country: text }))}
+                    onValueChange={(value) => setForm(prev => ({ ...prev, country: value }))}
+                    items={COUNTRIES}
                     error={errors.country}
-                    editable={!isSubmitting}
-                  />
-                </View>
-              </View>
-
-              {/* Skill Level Selection */}
-              <View style={styles.section}>
-                <ThemedText variant="subtitle" style={styles.sectionTitle}>
-                  Playing Experience
-                </ThemedText>
-                
-                <View style={styles.experienceContainer}>
-                  <ThemedText variant="body">Playing Experience</ThemedText>
-                  <TextInput
-                    label="Months of Experience"
-                    value={form.playingExperience.toString()}
-                    onChangeText={(text) => 
-                      setForm(prev => ({ 
-                        ...prev, 
-                        playingExperience: parseInt(text) || 0 
-                      }))
-                    }
-                    keyboardType="numeric"
-                    error={errors.playingExperience}
                     editable={!isSubmitting}
                   />
                 </View>
@@ -526,9 +507,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 18,
     fontWeight: '600',
-  },
-  experienceContainer: {
-    marginBottom: 24,
   },
   playStyleContainer: {
     marginBottom: 24,
