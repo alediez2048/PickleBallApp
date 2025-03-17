@@ -31,6 +31,7 @@ export default function GameDetailsScreen() {
   const [showMembershipModal, setShowMembershipModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
+  const [isGameFull, setIsGameFull] = useState(false);
 
   // Get the correct game based on the ID
   const game = MOCK_GAMES[id as keyof typeof MOCK_GAMES];
@@ -176,6 +177,16 @@ export default function GameDetailsScreen() {
   };
 
   const handleBookButtonPress = () => {
+    // Check if game is full
+    if (game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS || isGameFull || (totalPlayers >= game.maxPlayers)) {
+      Alert.alert(
+        'Game Full',
+        'This game is currently full. Please select a different game with available spots.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
     // Check if user has completed their profile
     console.debug('[GameDetails] Platform:', Platform.OS);
     console.debug('[GameDetails] Book button pressed');
@@ -264,6 +275,7 @@ export default function GameDetailsScreen() {
             <SpotsAvailability 
               gameId={game.id} 
               variant="detail"
+              onGameFullStatusChange={setIsGameFull}
             />
           </View>
         </View>
@@ -309,17 +321,17 @@ export default function GameDetailsScreen() {
           <TouchableOpacity
             style={[
               styles.reserveButton,
-              game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.disabledButton
+              (game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS || isGameFull || (totalPlayers >= game.maxPlayers)) && styles.disabledButton
             ]}
             onPress={handleBookButtonPress}
             activeOpacity={0.7}
-            disabled={game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS}
+            disabled={game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS || isGameFull || (totalPlayers >= game.maxPlayers)}
           >
             <Text style={[
               styles.reserveText,
-              game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.disabledButtonText
+              (game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS || isGameFull || (totalPlayers >= game.maxPlayers)) && styles.disabledButtonText
             ]}>
-              {game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS 
+              {(game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS || isGameFull || (totalPlayers >= game.maxPlayers))
                 ? 'Game Full' 
                 : 'Book'
               }

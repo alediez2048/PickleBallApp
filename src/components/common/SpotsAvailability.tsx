@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useGameRegistration } from '@/hooks/useGameRegistration';
 
@@ -6,12 +6,14 @@ interface SpotsAvailabilityProps {
   gameId: string;
   variant?: 'card' | 'detail';
   showLoadingState?: boolean;
+  onGameFullStatusChange?: (isFull: boolean) => void;
 }
 
 export function SpotsAvailability({ 
   gameId, 
   variant = 'card',
-  showLoadingState = true 
+  showLoadingState = true,
+  onGameFullStatusChange
 }: SpotsAvailabilityProps) {
   const { 
     isLoading, 
@@ -20,6 +22,26 @@ export function SpotsAvailability({
     spotsLeft, 
     formatSpotsMessage 
   } = useGameRegistration(gameId);
+  
+  // Use a ref to track previous isFull value to avoid unnecessary updates
+  const prevIsFullRef = useRef<boolean | undefined>(undefined);
+
+  // Report game full status back to parent component only when it changes
+  useEffect(() => {
+    // Only call the callback if:
+    // 1. We have a callback
+    // 2. We're not loading or have an error
+    // 3. It's the first time (prevIsFullRef.current is undefined) OR the value has changed
+    if (
+      onGameFullStatusChange && 
+      !isLoading && 
+      !error && 
+      (prevIsFullRef.current === undefined || prevIsFullRef.current !== isFull)
+    ) {
+      prevIsFullRef.current = isFull;
+      onGameFullStatusChange(isFull);
+    }
+  }, [onGameFullStatusChange, isFull, isLoading, error]);
 
   if (!showLoadingState && isLoading) {
     return null;

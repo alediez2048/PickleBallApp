@@ -29,6 +29,7 @@ export default function ExploreScreen() {
   const [selectedGame, setSelectedGame] = useState<typeof MOCK_GAMES[keyof typeof MOCK_GAMES] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const statusCache = React.useRef<Map<string, number>>(new Map());
+  const [gameFullStatuses, setGameFullStatuses] = useState<Record<string, boolean>>({});
 
   const isGameBooked = React.useCallback((gameId: string) => {
     return upcomingGames.some(
@@ -318,6 +319,15 @@ export default function ExploreScreen() {
       );
       return;
     }
+    
+    if (game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS || gameFullStatuses[game.id]) {
+      Alert.alert(
+        'Game Full',
+        'This game is currently full. Please select a different game with available spots.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
 
     router.push({
       pathname: '/game/[id]',
@@ -424,7 +434,8 @@ export default function ExploreScreen() {
                     key={`explore-${game.id}`}
                     style={[
                       styles.gameCard,
-                      !isSkillLevelMatch(game.skillLevel) && styles.mismatchedGameCard
+                      !isSkillLevelMatch(game.skillLevel) && styles.mismatchedGameCard,
+                      game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.mismatchedGameCard
                     ]}
                   >
                     <TouchableOpacity
@@ -470,6 +481,12 @@ export default function ExploreScreen() {
                           gameId={game.id} 
                           variant="card"
                           showLoadingState={false}
+                          onGameFullStatusChange={(isFull) => {
+                            setGameFullStatuses(prev => ({
+                              ...prev,
+                              [game.id]: isFull
+                            }));
+                          }}
                         />
                       </View>
                       {isBooked ? (
@@ -483,16 +500,16 @@ export default function ExploreScreen() {
                         <TouchableOpacity
                           style={[
                             reservationStatus.buttonStyle,
-                            game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.disabledButton
+                            (game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS || gameFullStatuses[game.id] || reservationStatus.buttonText === 'Game Full') && styles.disabledButton
                           ]}
                           onPress={() => handleGamePress(game.id)}
-                          disabled={game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS}
+                          disabled={game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS || gameFullStatuses[game.id] || reservationStatus.buttonText === 'Game Full'}
                         >
                           <Text style={[
                             reservationStatus.textStyle,
-                            game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS && styles.disabledButtonText
+                            (game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS || gameFullStatuses[game.id] || reservationStatus.buttonText === 'Game Full') && styles.disabledButtonText
                           ]}>
-                            {game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS 
+                            {(game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS || gameFullStatuses[game.id] || reservationStatus.buttonText === 'Game Full')
                               ? 'Game Full' 
                               : reservationStatus.buttonText
                             }
