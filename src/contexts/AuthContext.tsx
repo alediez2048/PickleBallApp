@@ -5,6 +5,9 @@ import { storage } from '@/services/storage';
 import { socialAuth } from '@/services/socialAuth';
 import { Alert, Platform } from 'react-native';
 import { MembershipPlan } from '@/types/membership';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { supabase } from '@/config/supabase';
+import { User } from '@supabase/supabase-js';
 
 interface PaymentMethod {
   id: string;
@@ -69,228 +72,211 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper to map Supabase profile to app's UserProfile format
+const mapSupabaseProfileToUserProfile = (supabaseUser: User | null, profile: any): UserProfile | null => {
+  if (!supabaseUser) return null;
+  
+  return {
+    id: supabaseUser.id,
+    email: supabaseUser.email || undefined,
+    name: profile?.name || supabaseUser.user_metadata?.name,
+    isVerified: supabaseUser.email_confirmed_at ? true : false,
+    skillLevel: profile?.skill_level,
+    profileImage: profile?.profile_image_url,
+    phoneNumber: profile?.phone_number,
+    dateOfBirth: profile?.date_of_birth,
+    // We'll need to fetch address separately if needed
+    hasCompletedProfile: profile?.has_completed_profile || false,
+    // We'll need to fetch these separately if needed
+    // membership: ...,
+    // paymentMethods: ...,
+  };
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  // Use the Supabase auth hook
+  const {
+    user: supabaseUser,
+    session,
+    profile: supabaseProfile,
+    isLoading: supabaseLoading,
+    error: supabaseError,
+    signIn: supabaseSignIn,
+    signUp: supabaseSignUp,
+    signOut: supabaseSignOut,
+    signInWithProvider,
+    resetPassword,
+    updatePassword,
+    refreshProfile
+  } = useSupabaseAuth();
+  
   const [state, setState] = useState<AuthState>({
     user: null,
     token: null,
     isLoading: true,
   });
 
+  // Map Supabase user and profile to our app's user format whenever they change
   useEffect(() => {
-    // Load token and user data from storage on app start
-    loadStoredAuth();
-  }, []);
-
-  useEffect(() => {
-    // Only navigate when auth state changes, not on every loading state change
-    if (!state.isLoading && state.token === null) {
-      router.replace('/login');
+    if (supabaseLoading) {
+      setState(prev => ({ ...prev, isLoading: true }));
+      return;
     }
-  }, [state.token]);
+    
+    const mappedUser = mapSupabaseProfileToUserProfile(supabaseUser, supabaseProfile);
+    const token = session?.access_token || null;
+    
+    setState({
+      user: mappedUser,
+      token,
+      isLoading: false,
+    });
+    
+  }, [supabaseUser, supabaseProfile, session, supabaseLoading]);
 
-  const loadStoredAuth = async () => {
+  // Log any Supabase errors
+  useEffect(() => {
+    if (supabaseError) {
+      console.error('Supabase auth error:', supabaseError);
+    }
+  }, [supabaseError]);
+
+  // ----- Auth Methods -----
+
+  const signIn = useCallback(async (email: string, password: string) => {
     try {
-      console.log('Loading stored auth data...');
-      const [token, userString] = await Promise.all([
-        storage.getItem('auth_token'),
-        storage.getItem('user'),
-      ]);
-
-      console.log('Stored auth data:', { token, userString });
-
-      if (token && userString) {
-        const user = JSON.parse(userString);
-        setState({ token, user, isLoading: false });
-      } else {
-        setState({ token: null, user: null, isLoading: false });
+      const { user, error } = await supabaseSignIn(email, password);
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (!user) {
+        throw new Error('Unknown error during sign in');
       }
     } catch (error) {
-      console.error('Error loading auth data:', error);
-      setState({ token: null, user: null, isLoading: false });
-    }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    try {
-      console.log('Signing in...', { email });
-      setState(prev => ({ ...prev, isLoading: true }));
-      
-      const { token, user } = await mockApi.login({ email, password });
-      console.log('Sign in successful:', { token, user });
-
-      await Promise.all([
-        storage.setItem('auth_token', token),
-        storage.setItem('user', JSON.stringify(user)),
-      ]);
-      console.log('Auth data stored');
-
-      setState({ token, user, isLoading: false });
-    } catch (error) {
       console.error('Sign in error:', error);
-      setState(prev => ({ ...prev, isLoading: false }));
       throw error;
     }
-  };
+  }, [supabaseSignIn]);
 
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = useCallback(async (email: string, password: string, name: string) => {
     try {
-      console.log('[Auth] Starting registration process', { email, name });
-      setState(prev => ({ ...prev, isLoading: true }));
+      const { user, error } = await supabaseSignUp(email, password, name);
       
-      const { token, user } = await mockApi.register({ email, password, name });
-      console.log('[Auth] Registration successful', { userId: user.id });
-
-      // Store the auth data
-      await Promise.all([
-        storage.setItem('auth_token', token),
-        storage.setItem('user', JSON.stringify(user)),
-      ]);
-      console.log('[Auth] User data stored in local storage');
-
-      // Update the state with the new user data
-      setState({ token, user, isLoading: false });
-      console.log('[Auth] Registration complete - user state updated');
+      if (error) {
+        throw error;
+      }
+      
+      if (!user) {
+        throw new Error('Unknown error during sign up');
+      }
+      
+      // Show confirmation message
+      Alert.alert(
+        'Email Verification',
+        'We have sent you an email with a verification link. Please check your email to complete the sign up process.',
+        [{ text: 'OK' }]
+      );
     } catch (error) {
-      console.error('[Auth] Registration failed:', error);
-      setState(prev => ({ ...prev, isLoading: false }));
+      console.error('Sign up error:', error);
       throw error;
     }
-  };
+  }, [supabaseSignUp]);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     try {
-      console.log('Signing out...');
-      setState(prev => ({ ...prev, isLoading: true }));
+      const { error } = await supabaseSignOut();
       
-      await Promise.all([
-        storage.removeItem('auth_token'),
-        storage.removeItem('user'),
-      ]);
-      console.log('Auth data removed');
-
-      setState({ token: null, user: null, isLoading: false });
+      if (error) {
+        throw error;
+      }
     } catch (error) {
       console.error('Sign out error:', error);
-      setState(prev => ({ ...prev, isLoading: false }));
       throw error;
     }
-  };
+  }, [supabaseSignOut]);
 
-  const handleSocialAuthSuccess = async (
-    provider: 'google' | 'facebook',
-    token: string,
-    user: { id: string; email: string; name: string; photoUrl?: string }
-  ) => {
+  // ----- Social Auth Methods -----
+
+  const signInWithGoogle = useCallback(async () => {
     try {
-      const response = await mockApi.socialAuth({ token, provider, user });
+      const { error } = await signInWithProvider('google');
       
-      await Promise.all([
-        storage.setItem('auth_token', response.token),
-        storage.setItem('user', JSON.stringify(response.user)),
-      ]);
-
-      setState({
-        token: response.token,
-        user: response.user,
-        isLoading: false,
-      });
-    } catch (error) {
-      console.error(`${provider} auth error:`, error);
-      Alert.alert('Error', `Failed to authenticate with ${provider}`);
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true }));
-      const result = await socialAuth.signInWithGoogle();
-      
-      if (result.type === 'success' && result.token && result.user) {
-        await handleSocialAuthSuccess('google', result.token, result.user);
-      } else {
-        throw new Error(result.message || 'Google sign in failed');
+      if (error) {
+        throw error;
       }
     } catch (error) {
       console.error('Google sign in error:', error);
-      Alert.alert('Error', 'Failed to sign in with Google');
-      setState(prev => ({ ...prev, isLoading: false }));
+      throw error;
     }
-  };
+  }, [signInWithProvider]);
 
-  const signInWithFacebook = async () => {
+  const signInWithFacebook = useCallback(async () => {
     try {
-      setState(prev => ({ ...prev, isLoading: true }));
-      const result = await socialAuth.signInWithFacebook();
+      const { error } = await signInWithProvider('facebook');
       
-      if (result.type === 'success' && result.token && result.user) {
-        await handleSocialAuthSuccess('facebook', result.token, result.user);
-      } else {
-        throw new Error(result.message || 'Facebook sign in failed');
+      if (error) {
+        throw error;
       }
     } catch (error) {
       console.error('Facebook sign in error:', error);
-      Alert.alert('Error', 'Failed to sign in with Facebook');
-      setState(prev => ({ ...prev, isLoading: false }));
+      throw error;
     }
-  };
+  }, [signInWithProvider]);
 
-  const updateProfile = async (updates: Partial<UserProfile>) => {
+  // ----- Profile Methods -----
+  // For now, we'll use a mix of Supabase for auth and mockApi for profile management
+  // Later, we'll migrate these to use Supabase fully
+
+  const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
+    if (!state.user?.id) {
+      throw new Error('User not authenticated');
+    }
+    
     try {
-      setState(prev => ({ ...prev, isLoading: true }));
+      // For now, we'll continue using mockApi for profile updates
+      // In the future, we'll replace this with Supabase updates
       
-      if (!state.user?.email) {
-        throw new Error('No authenticated user');
-      }
-
-      // Map UserProfile to UpdateProfileData
-      const profileUpdates: UpdateProfileData = { ...updates } as any;
-      
-      // Handle address mapping if it exists
-      if (updates.address) {
-        profileUpdates.address = {
+      // Map UserProfile to UpdateProfileData format expected by mockApi
+      const profileUpdates: UpdateProfileData = { 
+        ...updates,
+        // Handle address mapping if it exists
+        address: updates.address ? {
           address: updates.address.street || '',
           city: updates.address.city || '',
           state: updates.address.state || '',
           zipCode: updates.address.zipCode || '',
           country: updates.address.country || 'United States'
-        };
-      }
-
-      const { user: updatedUser } = await mockApi.updateProfile(state.user.email, profileUpdates);
+        } : undefined
+      } as UpdateProfileData;
       
-      // Store the updated user data
-      await storage.setItem('user', JSON.stringify(updatedUser));
+      const { user: updatedUser } = await mockApi.updateProfile(state.user.email || '', profileUpdates);
       
       setState(prev => ({
         ...prev,
-        user: updatedUser,
-        isLoading: false
+        user: {
+          ...prev.user,
+          ...updatedUser
+        } as UserProfile
       }));
-
-      console.log('Profile updated successfully:', updatedUser);
+      
+      // If we updated the profile image, we might need to refresh the Supabase profile
+      if (updates.profileImage) {
+        refreshProfile();
+      }
     } catch (error) {
-      console.error('Profile update error:', error);
-      setState(prev => ({ ...prev, isLoading: false }));
+      console.error('Update profile error:', error);
       throw error;
     }
-  };
+  }, [state.user, refreshProfile]);
 
-  const updateFirstTimeProfile = async (data: FirstTimeProfileData) => {
+  const updateFirstTimeProfile = useCallback(async (data: FirstTimeProfileData) => {
+    if (!state.user?.id) {
+      throw new Error('User not authenticated');
+    }
+    
     try {
-      console.debug('[AuthContext] Starting first time profile update', {
-        platform: Platform.OS,
-        hasUser: !!state.user,
-        userEmail: state.user?.email,
-        data
-      });
-
-      setState(prev => ({ ...prev, isLoading: true }));
-      
-      if (!state.user?.email) {
-        console.error('[AuthContext] No authenticated user found');
-        throw new Error('No authenticated user');
-      }
-
       // Map FirstTimeProfileData to UpdateProfileData
       const profileData: UpdateProfileData = {
         skillLevel: data.skillLevel,
@@ -306,123 +292,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         hasCompletedProfile: true
       };
-
-      console.debug('[AuthContext] Calling mockApi.updateProfile', {
-        email: state.user.email,
-        profileData
-      });
-
-      const { user: updatedUser } = await mockApi.updateProfile(state.user.email, profileData);
       
-      console.debug('[AuthContext] Profile update API call successful', { updatedUser });
-
-      // After successful profile update, update the stored user data
-      const userWithProfile = {
-        ...updatedUser,
-        hasCompletedProfile: true
-      };
+      const { user: updatedUser } = await mockApi.updateProfile(state.user.email || '', profileData);
       
-      console.debug('[AuthContext] Storing updated user data');
-      await storage.setItem('user', JSON.stringify(userWithProfile));
-      
-      console.debug('[AuthContext] Updating state with new user data');
       setState(prev => ({
         ...prev,
-        user: userWithProfile,
-        isLoading: false
+        user: {
+          ...prev.user,
+          ...updatedUser,
+          hasCompletedProfile: true
+        } as UserProfile
       }));
-
-      console.debug('[AuthContext] First time profile update completed successfully');
+      
+      // Refresh the Supabase profile
+      refreshProfile();
     } catch (error) {
-      console.error('[AuthContext] Profile update error:', error);
-      setState(prev => ({ ...prev, isLoading: false }));
+      console.error('Update first time profile error:', error);
       throw error;
     }
-  };
+  }, [state.user, refreshProfile]);
 
-  const updateMembership = async (plan: MembershipPlan) => {
+  const updateMembership = useCallback(async (plan: MembershipPlan) => {
+    if (!state.user?.id) {
+      throw new Error('User not authenticated');
+    }
+    
     try {
-      if (!state.user) {
-        throw new Error('No authenticated user');
-      }
-
-      // Update user with new membership plan
-      const updatedUser = {
-        ...state.user,
-        membership: plan
-      };
-
-      // Store the updated user data
-      await storage.setItem('user', JSON.stringify(updatedUser));
-
-      // Update state
+      // Update user with new membership plan directly in state
+      // Later we'll implement this in Supabase
+      
       setState(prev => ({
         ...prev,
-        user: updatedUser
+        user: {
+          ...prev.user,
+          membership: plan
+        } as UserProfile
       }));
-
+      
       console.log('Membership updated successfully:', plan);
     } catch (error) {
-      console.error('Error updating membership:', error);
+      console.error('Update membership error:', error);
       throw error;
     }
-  };
+  }, [state.user]);
 
-  const updatePaymentMethods = async (methods: PaymentMethod[]) => {
+  const updatePaymentMethods = useCallback(async (methods: PaymentMethod[]) => {
+    if (!state.user?.id) {
+      throw new Error('User not authenticated');
+    }
+    
     try {
-      if (!state.user) {
-        throw new Error('No authenticated user');
-      }
-
-      // Update user with new payment methods
-      const updatedUser = {
-        ...state.user,
-        paymentMethods: methods
-      };
-
-      // Store the updated user data
-      await storage.setItem('user', JSON.stringify(updatedUser));
-
-      // Update state
+      // Update user with new payment methods directly in state
+      // Later we'll implement this in Supabase
+      
       setState(prev => ({
         ...prev,
-        user: updatedUser
+        user: {
+          ...prev.user,
+          paymentMethods: methods
+        } as UserProfile
       }));
-
+      
       console.log('Payment methods updated successfully:', methods);
     } catch (error) {
-      console.error('Error updating payment methods:', error);
+      console.error('Update payment methods error:', error);
       throw error;
     }
-  };
-
-  const updatePaymentMethod = async (hasPaymentMethod: boolean) => {
-    try {
-      if (!state.user) {
-        throw new Error('No authenticated user');
-      }
-
-      // Update user with new payment method
-      const updatedUser = {
-        ...state.user,
-        paymentMethods: hasPaymentMethod ? [{ id: 'new_payment_method', last4: 'XXXX', brand: 'New', expiryMonth: '12', expiryYear: '2024', isDefault: true }] : []
-      };
-
-      // Store the updated user data
-      await storage.setItem('user', JSON.stringify(updatedUser));
-
-      // Update state
-      setState(prev => ({
-        ...prev,
-        user: updatedUser
-      }));
-
-      console.log('Payment method updated successfully:', hasPaymentMethod ? 'Added' : 'Removed');
-    } catch (error) {
-      console.error('Error updating payment method:', error);
-      throw error;
-    }
-  };
+  }, [state.user]);
 
   const value = {
     ...state,
@@ -435,17 +371,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateFirstTimeProfile,
     updateMembership,
     updatePaymentMethods,
-    updatePaymentMethod,
-    isAuthenticated: !!state.token,
+    isAuthenticated: !!state.user && !!state.token,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}; 
