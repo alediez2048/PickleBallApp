@@ -8,6 +8,9 @@ import { MembershipPlan } from '@/types/membership';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { supabase } from '@/config/supabase';
 import { User } from '@supabase/supabase-js';
+import * as authService from '@/services/api/supabase/auth';
+import * as storageApi from '@/services/api/supabase/storage';
+import { DBProfile } from '@/services/api/supabase/schema';
 
 interface PaymentMethod {
   id: string;
@@ -65,6 +68,9 @@ interface AuthContextType extends AuthState {
   updateMembership: (plan: MembershipPlan) => Promise<void>;
   updatePaymentMethods: (methods: PaymentMethod[]) => Promise<void>;
   updatePaymentMethod?: (hasPaymentMethod: boolean) => Promise<void>;
+  
+  // Session management
+  refreshSession: () => Promise<void>;
   
   // Auth state
   isAuthenticated: boolean;
@@ -143,6 +149,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ----- Auth Methods -----
 
+  // In the AuthProvider component, define refreshSession method first
+  const refreshSession = useCallback(async () => {
+    try {
+      console.log('[AuthContext] Attempting to refresh session');
+      // Get current session from Supabase
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('[AuthContext] Error refreshing session:', error);
+        throw error;
+      }
+      
+      if (data?.session) {
+        console.log('[AuthContext] Session refreshed successfully');
+        // Refresh profile data - this will trigger the useEffect that updates state
+        refreshProfile();
+      } else {
+        console.warn('[AuthContext] No session found during refresh');
+      }
+    } catch (error) {
+      console.error('[AuthContext] Session refresh error:', error);
+      throw error;
+    }
+  }, [refreshProfile]);
+
+  // Add a method to check for email signup redirects on app start (for web)
+  const checkEmailSignupRedirect = useCallback(async () => {
+    if (Platform.OS !== 'web') return;
+    
+    try {
+      console.log('[AuthContext] Checking for email signup redirect on web');
+      
+      // Get the URL parameters
+      const url = window.location.href;
+      if (url.includes('#access_token=') || url.includes('type=signup') || url.includes('type=recovery')) {
+        console.log('[AuthContext] Detected auth parameters in URL');
+        
+        // Let Supabase handle the auth params
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('[AuthContext] Error processing auth redirect:', error);
+          return;
+        }
+        
+        if (data?.session) {
+          console.log('[AuthContext] Successfully authenticated from URL parameters');
+          await refreshProfile();
+        }
+      }
+    } catch (error) {
+      console.error('[AuthContext] Error checking email signup redirect:', error);
+    }
+  }, [refreshProfile]);
+
+  // Call the check on component mount for web platform
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      checkEmailSignupRedirect();
+    }
+  }, [checkEmailSignupRedirect]);
+
   const signIn = useCallback(async (email: string, password: string) => {
     try {
       const { user, error } = await supabaseSignIn(email, password);
@@ -172,6 +240,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Unknown error during sign up');
       }
       
+      console.log('[AuthContext] Sign up successful, checking confirmation method:', user.identities);
+      
+      // In the web version, after signup, the user may need to be confirmed
+      // We should show a message but also check if we have an active session already
+      if (Platform.OS === 'web') {
+        console.log('[AuthContext] Web signup - checking for active session');
+        // If we have an active session, the user was auto-confirmed
+        const { data } = await supabase.auth.getSession();
+        
+        if (data?.session) {
+          console.log('[AuthContext] Web signup - active session found, user confirmed');
+          // We have a session, refresh profile
+          await refreshSession();
+          return;
+        }
+      }
+      
       // Show confirmation message
       Alert.alert(
         'Email Verification',
@@ -182,7 +267,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Sign up error:', error);
       throw error;
     }
-  }, [supabaseSignUp]);
+  }, [supabaseSignUp, refreshSession]);
 
   const signOut = useCallback(async () => {
     try {
@@ -226,50 +311,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [signInWithProvider]);
 
   // ----- Profile Methods -----
-  // For now, we'll use a mix of Supabase for auth and mockApi for profile management
-  // Later, we'll migrate these to use Supabase fully
-
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
     if (!state.user?.id) {
       throw new Error('User not authenticated');
     }
     
     try {
-      // For now, we'll continue using mockApi for profile updates
-      // In the future, we'll replace this with Supabase updates
-      
-      // Map UserProfile to UpdateProfileData format expected by mockApi
-      const profileUpdates: UpdateProfileData = { 
-        ...updates,
-        // Handle address mapping if it exists
-        address: updates.address ? {
-          address: updates.address.street || '',
-          city: updates.address.city || '',
-          state: updates.address.state || '',
-          zipCode: updates.address.zipCode || '',
-          country: updates.address.country || 'United States'
-        } : undefined
-      } as UpdateProfileData;
-      
-      const { user: updatedUser } = await mockApi.updateProfile(state.user.email || '', profileUpdates);
-      
-      setState(prev => ({
-        ...prev,
-        user: {
-          ...prev.user,
-          ...updatedUser
-        } as UserProfile
-      }));
-      
-      // If we updated the profile image, we might need to refresh the Supabase profile
-      if (updates.profileImage) {
-        refreshProfile();
+      // Map UserProfile updates to DBProfile format
+      const profileUpdates: Partial<DBProfile> = {
+        name: updates.name,
+        display_name: updates.name, // Use name as display_name if not provided
+        skill_level: updates.skillLevel,
+        phone_number: updates.phoneNumber,
+        date_of_birth: updates.dateOfBirth,
+        profile_image_url: typeof updates.profileImage === 'string' ? updates.profileImage : undefined,
+        has_completed_profile: updates.hasCompletedProfile,
+        updated_at: new Date().toISOString()
+      };
+
+      // If there's a profile image update, handle it first
+      if (updates.profileImage && typeof updates.profileImage === 'object' && 'uri' in updates.profileImage) {
+        const { uri, base64 } = updates.profileImage as { uri: string; base64: string };
+        const imageUrl = await storageApi.uploadProfileImage(state.user.id, { uri, base64, timestamp: Date.now() });
+        if (imageUrl) {
+          profileUpdates.profile_image_url = imageUrl;
+        }
       }
+      
+      const { profile, error } = await authService.updateProfile(state.user.id, profileUpdates);
+      
+      if (error) throw error;
+      
+      if (profile) {
+        setState(prev => ({
+          ...prev,
+          user: mapSupabaseProfileToUserProfile(supabaseUser, profile)
+        }));
+      }
+      
+      // Refresh the profile to ensure we have the latest data
+      refreshProfile();
     } catch (error) {
       console.error('Update profile error:', error);
       throw error;
     }
-  }, [state.user, refreshProfile]);
+  }, [state.user, supabaseUser, refreshProfile]);
 
   const updateFirstTimeProfile = useCallback(async (data: FirstTimeProfileData) => {
     if (!state.user?.id) {
@@ -277,40 +363,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     try {
-      // Map FirstTimeProfileData to UpdateProfileData
-      const profileData: UpdateProfileData = {
-        skillLevel: data.skillLevel,
-        displayName: data.displayName,
-        phoneNumber: data.phoneNumber,
-        dateOfBirth: data.dateOfBirth,
-        address: {
-          address: data.address.address,
-          city: data.address.city,
-          state: data.address.state,
-          zipCode: data.address.zipCode,
-          country: data.address.country
-        },
-        hasCompletedProfile: true
-      };
+      // Ensure required fields are present
+      if (!data.skillLevel) {
+        throw new Error('Skill level is required for first-time profile setup');
+      }
+
+      // Map FirstTimeProfileData to DBProfile format
+      const profileData = {
+        name: state.user.name || '',
+        display_name: data.displayName,
+        phone_number: data.phoneNumber,
+        date_of_birth: data.dateOfBirth,
+        skill_level: data.skillLevel,
+        has_completed_profile: true,
+        waiver_accepted: data.waiverAccepted,
+        waiver_signed_at: data.waiverSignedAt || new Date().toISOString(),
+        terms_accepted: data.termsAccepted,
+        terms_accepted_at: data.termsAcceptedAt,
+        privacy_policy_accepted: data.privacyPolicyAccepted,
+        privacy_policy_accepted_at: data.privacyPolicyAcceptedAt
+      } as const; // Use const assertion to ensure type inference
       
-      const { user: updatedUser } = await mockApi.updateProfile(state.user.email || '', profileData);
+      const { profile, error } = await authService.updateFirstTimeProfile(state.user.id, profileData);
       
-      setState(prev => ({
-        ...prev,
-        user: {
-          ...prev.user,
-          ...updatedUser,
-          hasCompletedProfile: true
-        } as UserProfile
-      }));
+      if (error) throw error;
       
-      // Refresh the Supabase profile
+      if (profile) {
+        setState(prev => ({
+          ...prev,
+          user: mapSupabaseProfileToUserProfile(supabaseUser, profile)
+        }));
+      }
+      
+      // Refresh the profile to ensure we have the latest data
       refreshProfile();
     } catch (error) {
       console.error('Update first time profile error:', error);
       throw error;
     }
-  }, [state.user, refreshProfile]);
+  }, [state.user, supabaseUser, refreshProfile]);
 
   const updateMembership = useCallback(async (plan: MembershipPlan) => {
     if (!state.user?.id) {
@@ -371,6 +462,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateFirstTimeProfile,
     updateMembership,
     updatePaymentMethods,
+    refreshSession,
     isAuthenticated: !!state.user && !!state.token,
   };
 

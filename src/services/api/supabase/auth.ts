@@ -376,6 +376,94 @@ export const getUserProfile = async (userId: string): Promise<{ profile: DBProfi
   }
 };
 
+/**
+ * Update a user's profile
+ */
+export const updateProfile = async (
+  userId: string,
+  updates: Partial<DBProfile>
+): Promise<{ profile: DBProfile | null; error: Error | null }> => {
+  try {
+    // Initialize Supabase if not already done
+    await initializeSupabase();
+    
+    // Update the profile
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single();
+    
+    if (error) {
+      throw error;
+    }
+    
+    return {
+      profile: data as DBProfile,
+      error: null
+    };
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return {
+      profile: null,
+      error: handleSupabaseError(error)
+    };
+  }
+};
+
+/**
+ * Update first-time profile setup
+ */
+export const updateFirstTimeProfile = async (
+  userId: string,
+  data: {
+    name: string;
+    display_name: string;
+    phone_number: string;
+    date_of_birth: string;
+    skill_level: string;
+    has_completed_profile: boolean;
+    waiver_accepted: boolean;
+    waiver_signed_at: string;
+    terms_accepted: boolean;
+    terms_accepted_at: string;
+    privacy_policy_accepted: boolean;
+    privacy_policy_accepted_at: string;
+  }
+): Promise<{ profile: DBProfile | null; error: Error | null }> => {
+  try {
+    // Initialize Supabase if not already done
+    await initializeSupabase();
+    
+    // Update the profile with first-time setup data
+    const { data: updatedProfile, error } = await supabase
+      .from('profiles')
+      .update({
+        ...data,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+      .select()
+      .single();
+    
+    if (error) {
+      throw error;
+    }
+    
+    return {
+      profile: updatedProfile as DBProfile,
+      error: null
+    };
+  } catch (error) {
+    console.error('First-time profile update error:', error);
+    return {
+      profile: null,
+      error: handleSupabaseError(error)
+    };
+  }
+};
+
 // Type for auth state change 
 export type AuthChangeCallback = (event: string, session: Session | null) => void;
 
@@ -417,6 +505,8 @@ export default {
   getSession,
   getCurrentUser,
   getUserProfile,
+  updateProfile,
+  updateFirstTimeProfile,
   onAuthStateChange,
   onProfileChange
 }; 

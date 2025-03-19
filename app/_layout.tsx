@@ -20,27 +20,58 @@ function RootLayoutNav() {
   const router = useRouter();
   const lastNavigationRef = useRef('');
 
+  // Enhanced web-specific debug logging
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      console.log('[Navigation Debug - Web]', {
+        isLoading,
+        isAuthenticated,
+        currentSegment: segments[0],
+        completeSegments: segments,
+        userExists: !!user,
+        userEmail: user?.email,
+        userSkill: user?.skillLevel,
+        userProfile: user?.hasCompletedProfile,
+      });
+    }
+  }, [isLoading, isAuthenticated, segments, user]);
+
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
-    const inSkillGroup = segments[0] === '(skill-select)';
-    const inProfileSetup = segments[0] === '(profile-setup)';
-    const inMainApp = segments[0] === '(tabs)';
+    // Fix type safety by checking against strings
+    const segment = segments[0] as string;
+    const nextSegment = segments[1] as string | undefined;
+    
+    const inAuthGroup = segment === '(auth)';
+    const inSkillGroup = segment === '(skill-select)';
+    const inProfileSetup = segment === '(profile-setup)';
+    const inMainApp = segment === '(tabs)';
+    const inAuthCallback = segment === 'auth' && nextSegment === 'callback';
 
+    // Enhanced debugging
     console.log('[Navigation Debug]', {
-      currentSegment: segments[0],
+      currentSegment: segment,
+      secondSegment: nextSegment,
       isAuthenticated,
       hasSkillLevel: user?.skillLevel,
       hasCompletedProfile: user?.hasCompletedProfile,
       inAuthGroup,
       inSkillGroup,
       inProfileSetup,
-      inMainApp
+      inMainApp,
+      inAuthCallback,
+      platformOS: Platform.OS
     });
 
+    // Don't redirect during auth callback processing
+    if (inAuthCallback) {
+      console.log('[Navigation] In auth callback flow, skipping navigation logic');
+      return;
+    }
+
     // Determine the target route based on current state
-    let targetRoute: '/(auth)/login' | '/(profile-setup)' | '/(skill-select)' | '/(tabs)' | null = null;
+    let targetRoute = '';
 
     if (!isAuthenticated) {
       // If not authenticated, always go to login unless already in auth group
@@ -65,7 +96,7 @@ function RootLayoutNav() {
     // Only navigate if we have a target and it's different from our last navigation
     if (targetRoute && targetRoute !== lastNavigationRef.current) {
       console.log('[Navigation] Redirecting:', {
-        from: segments.join('/'),
+        from: Array.from(segments).join('/'),
         to: targetRoute,
         auth: isAuthenticated,
         profile: user?.hasCompletedProfile,
@@ -74,7 +105,8 @@ function RootLayoutNav() {
       });
       
       lastNavigationRef.current = targetRoute;
-      router.replace(targetRoute);
+      // Fix the router navigation by using a type assertion
+      router.replace(targetRoute as any);
     }
   }, [isAuthenticated, segments, isLoading, user?.skillLevel, user?.hasCompletedProfile]);
 
