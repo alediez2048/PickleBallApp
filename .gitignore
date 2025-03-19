@@ -43,3 +43,12 @@ app-example
 
 # test coverage
 coverage/
+
+# IDE and editor files
+cursor/
+
+# Logs
+app_output.log
+
+# Temporary files
+index.js
