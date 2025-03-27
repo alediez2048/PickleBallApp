@@ -2,6 +2,12 @@
   "name": "pickleballapp",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "private": true,
+  "description": "A Pickleball application built with React Native and Expo.",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "start": "expo start",
     "start:quiet": "node ./scripts/start-quiet.js",
@@ -73,6 +79,5 @@
     "jest-expo": "~52.0.5",
     "react-test-renderer": "18.3.1",
     "typescript": "^5.7.3"
-  },
-  "private": true
+  }
 }
