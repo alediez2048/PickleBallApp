@@ -1,7 +1,7 @@
-import { storage } from './storage';
-import { MOCK_GAMES } from '@/utils/mockData';
-import { Game } from '@/types/game';
-import { Platform } from 'react-native';
+import { storage } from "./storage";
+import { MOCK_GAMES } from "@/utils/mockData";
+import { Game } from "@/types/game";
+import { Platform } from "react-native";
 
 // Simulated network delay
 const NETWORK_DELAY = 1000;
@@ -9,7 +9,8 @@ const PROFILE_UPDATE_DELAY = 300; // Faster delay for profile updates
 
 // Mock token generation
 const generateToken = (userId: string) => `mock-token-${userId}-${Date.now()}`;
-const generateVerificationToken = () => Math.random().toString(36).substring(2, 15);
+const generateVerificationToken = () =>
+  Math.random().toString(36).substring(2, 15);
 
 export interface LoginCredentials {
   email: string;
@@ -28,11 +29,13 @@ export interface AuthResponse {
     name: string;
     emailVerified: boolean;
     skillLevel?: string;
-    profileImage?: string | {
-      uri: string;
-      base64: string;
-      timestamp: number;
-    };
+    profileImage?:
+      | string
+      | {
+          uri: string;
+          base64: string;
+          timestamp: number;
+        };
   };
 }
 
@@ -42,7 +45,7 @@ export interface PasswordResetRequest {
 
 export interface SocialAuthCredentials {
   token: string;
-  provider: 'google' | 'facebook' | 'apple';
+  provider: "google" | "facebook" | "apple";
   user: {
     id: string;
     email: string;
@@ -53,11 +56,13 @@ export interface SocialAuthCredentials {
 
 export interface UpdateProfileData {
   skillLevel?: string;
-  profileImage?: string | {
-    uri: string;
-    base64: string;
-    timestamp: number;
-  };
+  profileImage?:
+    | string
+    | {
+        uri: string;
+        base64: string;
+        timestamp: number;
+      };
   displayName?: string;
   phoneNumber?: string;
   dateOfBirth?: string;
@@ -84,16 +89,18 @@ interface BookedGame {
   };
   skillRating: number;
   price: number;
-  status: 'upcoming' | 'completed' | 'cancelled';
+  status: "upcoming" | "completed" | "cancelled";
   userId?: string;
   userInfo?: {
     name: string;
     email: string;
-    profileImage?: string | {
-      uri: string;
-      base64: string;
-      timestamp: number;
-    };
+    profileImage?:
+      | string
+      | {
+          uri: string;
+          base64: string;
+          timestamp: number;
+        };
     skillLevel?: string;
   };
 }
@@ -106,11 +113,13 @@ interface MockUser {
   emailVerified: boolean;
   verificationToken: string | null;
   skillLevel?: string;
-  profileImage?: string | {
-    uri: string;
-    base64: string;
-    timestamp: number;
-  };
+  profileImage?:
+    | string
+    | {
+        uri: string;
+        base64: string;
+        timestamp: number;
+      };
   displayName?: string;
   phoneNumber?: string;
   dateOfBirth?: string;
@@ -130,7 +139,7 @@ interface MockUser {
 interface GameHistory {
   id: string;
   date: string;
-  result: 'win' | 'loss';
+  result: "win" | "loss";
   score: string;
   opponent: string;
 }
@@ -165,10 +174,10 @@ export interface FirstTimeProfileData {
 }
 
 const STORAGE_KEYS = {
-  MOCK_USERS: 'mock_users_data',
-  GAMES_HISTORY: 'games_history_data',
-  BOOKED_GAMES: 'booked_games_data',
-  GLOBAL_GAME_BOOKINGS: 'global_game_bookings_data'
+  MOCK_USERS: "mock_users_data",
+  GAMES_HISTORY: "games_history_data",
+  BOOKED_GAMES: "booked_games_data",
+  GLOBAL_GAME_BOOKINGS: "global_game_bookings_data",
 };
 
 class MockApi {
@@ -193,32 +202,34 @@ class MockApi {
       // Add test user only if no users exist
       if (this.MOCK_USERS.size === 0) {
         const testUser: MockUser = {
-          id: '1',
-          email: 'test@example.com',
-          name: 'Test User',
-          password: 'password123',
+          id: "1",
+          email: "test@example.com",
+          name: "Test User",
+          password: "password123",
           emailVerified: true,
           verificationToken: null,
-          skillLevel: 'Intermediate',
+          skillLevel: "Intermediate",
           profileImage: undefined,
           gamesPlayed: [
             {
-              id: '1',
-              date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-              result: 'win',
-              score: '11-9',
-              opponent: 'John Doe'
-            }
+              id: "1",
+              date: new Date(
+                Date.now() - 7 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+              result: "win",
+              score: "11-9",
+              opponent: "John Doe",
+            },
           ],
           bookedGames: [],
-          hasPaymentMethod: false
+          hasPaymentMethod: false,
         };
-        
+
         this.MOCK_USERS.set(testUser.email, testUser);
         await this.saveMockUsers();
       }
     } catch (error) {
-      console.error('MockApi: Error loading users:', error);
+      console.error("MockApi: Error loading users:", error);
       throw error;
     }
   }
@@ -226,40 +237,48 @@ class MockApi {
   private async saveMockUsers() {
     try {
       const usersArray = Array.from(this.MOCK_USERS.entries());
-      await storage.setItem(STORAGE_KEYS.MOCK_USERS, JSON.stringify(usersArray));
+      await storage.setItem(
+        STORAGE_KEYS.MOCK_USERS,
+        JSON.stringify(usersArray)
+      );
     } catch (error) {
-      console.error('MockApi: Error saving users:', error);
+      console.error("MockApi: Error saving users:", error);
       throw error;
     }
   }
 
   private async loadGlobalBookings() {
     try {
-      const storedBookings = await storage.getItem(STORAGE_KEYS.GLOBAL_GAME_BOOKINGS);
+      const storedBookings = await storage.getItem(
+        STORAGE_KEYS.GLOBAL_GAME_BOOKINGS
+      );
       if (storedBookings) {
         this.GLOBAL_GAME_BOOKINGS = new Map(JSON.parse(storedBookings));
       }
     } catch (error) {
-      console.error('MockApi: Error loading global bookings:', error);
+      console.error("MockApi: Error loading global bookings:", error);
     }
   }
 
   private async saveGlobalBookings() {
     try {
       const bookingsArray = Array.from(this.GLOBAL_GAME_BOOKINGS.entries());
-      await storage.setItem(STORAGE_KEYS.GLOBAL_GAME_BOOKINGS, JSON.stringify(bookingsArray));
+      await storage.setItem(
+        STORAGE_KEYS.GLOBAL_GAME_BOOKINGS,
+        JSON.stringify(bookingsArray)
+      );
     } catch (error) {
-      console.error('MockApi: Error saving global bookings:', error);
+      console.error("MockApi: Error saving global bookings:", error);
     }
   }
 
   async login({ email, password }: LoginCredentials): Promise<AuthResponse> {
-    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+    await new Promise((resolve) => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
 
     if (!user || user.password !== password) {
-      throw new Error('Invalid credentials');
+      throw new Error("Invalid credentials");
     }
 
     const { password: _, verificationToken: __, ...userWithoutPassword } = user;
@@ -270,21 +289,27 @@ class MockApi {
     return response;
   }
 
-  async register({ email, password, name }: RegisterCredentials): Promise<AuthResponse> {
-    console.log('[MockApi] Starting registration', { email });
-    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+  async register({
+    email,
+    password,
+    name,
+  }: RegisterCredentials): Promise<AuthResponse> {
+    console.log("[MockApi] Starting registration", { email });
+    await new Promise((resolve) => setTimeout(resolve, NETWORK_DELAY));
 
     // Basic domain validation
-    const domain = email.split('@')[1];
-    const blockedDomains = ['test.com', 'fake.com'];
+    const domain = email.split("@")[1];
+    const blockedDomains = ["test.com", "fake.com"];
     if (blockedDomains.includes(domain.toLowerCase())) {
-      console.error('[MockApi] Registration failed - invalid domain', { domain });
-      throw new Error('Please use a valid email address');
+      console.error("[MockApi] Registration failed - invalid domain", {
+        domain,
+      });
+      throw new Error("Please use a valid email address");
     }
 
     if (this.MOCK_USERS.has(email)) {
-      console.error('[MockApi] Registration failed - email exists', { email });
-      throw new Error('Email already registered');
+      console.error("[MockApi] Registration failed - email exists", { email });
+      throw new Error("Email already registered");
     }
 
     const newUser: MockUser = {
@@ -296,19 +321,23 @@ class MockApi {
       verificationToken: null,
       bookedGames: [],
       gamesPlayed: [],
-      hasPaymentMethod: false
+      hasPaymentMethod: false,
     };
 
     // Save the new user to the map
     this.MOCK_USERS.set(email, newUser);
-    console.log('[MockApi] Created new user', { userId: newUser.id });
-    
+    console.log("[MockApi] Created new user", { userId: newUser.id });
+
     // Save to storage immediately
     await this.saveMockUsers();
-    console.log('[MockApi] Saved user to storage');
+    console.log("[MockApi] Saved user to storage");
 
-    const { password: _, verificationToken: __, ...userWithoutPassword } = newUser;
-    console.log('[MockApi] Registration complete');
+    const {
+      password: _,
+      verificationToken: __,
+      ...userWithoutPassword
+    } = newUser;
+    console.log("[MockApi] Registration complete");
     return {
       token: generateToken(newUser.id),
       user: userWithoutPassword,
@@ -316,11 +345,11 @@ class MockApi {
   }
 
   async verifyEmail(email: string, token: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+    await new Promise((resolve) => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
     if (!user || user.verificationToken !== token) {
-      throw new Error('Invalid verification token');
+      throw new Error("Invalid verification token");
     }
 
     user.emailVerified = true;
@@ -329,15 +358,15 @@ class MockApi {
   }
 
   async resendVerificationEmail(email: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+    await new Promise((resolve) => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
     if (user.emailVerified) {
-      throw new Error('Email already verified');
+      throw new Error("Email already verified");
     }
 
     const newVerificationToken = generateVerificationToken();
@@ -348,7 +377,7 @@ class MockApi {
   }
 
   async requestPasswordReset({ email }: PasswordResetRequest): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+    await new Promise((resolve) => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
     if (!user) {
@@ -362,12 +391,16 @@ class MockApi {
     // 3. Send an email with the reset link
   }
 
-  async resetPassword(email: string, token: string, newPassword: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+  async resetPassword(
+    email: string,
+    token: string,
+    newPassword: string
+  ): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
     if (!user) {
-      throw new Error('Invalid reset request');
+      throw new Error("Invalid reset request");
     }
 
     // In a real implementation, this would:
@@ -378,11 +411,17 @@ class MockApi {
     this.MOCK_USERS.set(email, user);
   }
 
-  async socialAuth({ token, provider, user }: SocialAuthCredentials): Promise<AuthResponse> {
-    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+  async socialAuth({
+    token,
+    provider,
+    user,
+  }: SocialAuthCredentials): Promise<AuthResponse> {
+    await new Promise((resolve) => setTimeout(resolve, NETWORK_DELAY));
 
     // Check if user already exists
-    const existingUser = Array.from(this.MOCK_USERS.values()).find(u => u.email === user.email);
+    const existingUser = Array.from(this.MOCK_USERS.values()).find(
+      (u) => u.email === user.email
+    );
 
     if (existingUser) {
       // Update existing user with social info
@@ -393,7 +432,11 @@ class MockApi {
       };
       this.MOCK_USERS.set(existingUser.email, updatedUser);
 
-      const { password: _, verificationToken: __, ...userWithoutPassword } = updatedUser;
+      const {
+        password: _,
+        verificationToken: __,
+        ...userWithoutPassword
+      } = updatedUser;
       return {
         token: generateToken(existingUser.id),
         user: userWithoutPassword,
@@ -405,51 +448,68 @@ class MockApi {
       id: (this.MOCK_USERS.size + 1).toString(),
       email: user.email,
       name: user.name,
-      password: '', // Social auth users don't have passwords
+      password: "", // Social auth users don't have passwords
       emailVerified: true, // Social logins are considered verified
       verificationToken: null,
-      hasPaymentMethod: false
+      hasPaymentMethod: false,
     };
 
     this.MOCK_USERS.set(newUser.email, newUser);
 
-    const { password: _, verificationToken: __, ...userWithoutPassword } = newUser;
+    const {
+      password: _,
+      verificationToken: __,
+      ...userWithoutPassword
+    } = newUser;
     return {
       token: generateToken(newUser.id),
       user: userWithoutPassword,
     };
   }
 
-  async updateProfile(email: string, data: UpdateProfileData): Promise<{ user: Omit<MockUser, 'password' | 'verificationToken'> }> {
-    console.debug('[MockApi] Starting profile update', {
+  async updateProfile(
+    email: string,
+    data: UpdateProfileData
+  ): Promise<{ user: Omit<MockUser, "password" | "verificationToken"> }> {
+    console.debug("[MockApi] Starting profile update", {
       platform: Platform.OS,
       email,
-      data: JSON.stringify(data, null, 2)
+      data: JSON.stringify(data, null, 2),
     });
-    
+
     try {
       // Load latest user data from storage
       await this.loadMockUsers();
-      console.debug('[MockApi] Loaded mock users from storage');
-      
+      console.debug("[MockApi] Loaded mock users from storage");
+
       const user = this.MOCK_USERS.get(email);
       if (!user) {
-        console.error('[MockApi] User not found for email:', email);
-        throw new Error('User not found');
+        console.error("[MockApi] User not found for email:", email);
+        throw new Error("User not found");
       }
-      console.debug('[MockApi] Found existing user:', {
+      console.debug("[MockApi] Found existing user:", {
         id: user.id,
         email: user.email,
-        currentSkillLevel: user.skillLevel
+        currentSkillLevel: user.skillLevel,
       });
 
       let updatedUser = { ...user };
-      console.debug('[MockApi] Created updated user object');
+      console.debug("[MockApi] Created updated user object");
 
       // Process all fields from UpdateProfileData that exist in MockUser
-      const allowedFields = ['skillLevel', 'profileImage', 'displayName', 'phoneNumber', 'dateOfBirth', 'hasCompletedProfile'] as const;
+      const allowedFields = [
+        "skillLevel",
+        "profileImage",
+        "displayName",
+        "phoneNumber",
+        "dateOfBirth",
+        "hasCompletedProfile",
+      ] as const;
       Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && allowedFields.includes(key as typeof allowedFields[number])) {
+        if (
+          value !== undefined &&
+          allowedFields.includes(key as (typeof allowedFields)[number])
+        ) {
           console.debug(`[MockApi] Updating field: ${key}`, { value });
           (updatedUser as any)[key] = value;
         }
@@ -457,92 +517,107 @@ class MockApi {
 
       // Handle address separately to map between different field names
       if (data.address) {
-        console.debug('[MockApi] Updating address', { address: data.address });
+        console.debug("[MockApi] Updating address", { address: data.address });
         updatedUser.address = {
           address: data.address.address,
           city: data.address.city,
           state: data.address.state,
           zipCode: data.address.zipCode,
-          country: data.address.country
+          country: data.address.country,
         };
       }
 
       // Check for skill level change specifically
-      if (data.skillLevel !== undefined && data.skillLevel !== user.skillLevel) {
-        console.debug('[MockApi] Attempting to update skill level', {
+      if (
+        data.skillLevel !== undefined &&
+        data.skillLevel !== user.skillLevel
+      ) {
+        console.debug("[MockApi] Attempting to update skill level", {
           current: user.skillLevel,
-          new: data.skillLevel
+          new: data.skillLevel,
         });
-        
+
         // Check for active bookings
-        const activeBookings = user.bookedGames?.filter(
-          booking => booking.status === 'upcoming'
-        ) || [];
+        const activeBookings =
+          user.bookedGames?.filter(
+            (booking) => booking.status === "upcoming"
+          ) || [];
 
         if (activeBookings.length > 0) {
-          console.error('[MockApi] Cannot change skill level with active bookings');
-          throw new Error('Cannot change skill level while you have upcoming games. Please complete or cancel your existing games first.');
+          console.error(
+            "[MockApi] Cannot change skill level with active bookings"
+          );
+          throw new Error(
+            "Cannot change skill level while you have upcoming games. Please complete or cancel your existing games first."
+          );
         }
 
         updatedUser.skillLevel = data.skillLevel;
-        console.debug('[MockApi] Skill level updated successfully');
+        console.debug("[MockApi] Skill level updated successfully");
       }
 
       // Handle profile image update
       if (data.profileImage) {
-        console.debug('[MockApi] Updating profile image');
-        if (typeof data.profileImage === 'string') {
+        console.debug("[MockApi] Updating profile image");
+        if (typeof data.profileImage === "string") {
           updatedUser.profileImage = data.profileImage;
         } else {
           updatedUser.profileImage = {
             uri: data.profileImage.uri,
             base64: data.profileImage.base64,
-            timestamp: data.profileImage.timestamp
+            timestamp: data.profileImage.timestamp,
           };
         }
-        console.debug('[MockApi] Profile image updated successfully');
+        console.debug("[MockApi] Profile image updated successfully");
       }
 
       // Update user in the map
       this.MOCK_USERS.set(email, updatedUser);
-      console.debug('[MockApi] Updated user in MOCK_USERS map');
-      
+      console.debug("[MockApi] Updated user in MOCK_USERS map");
+
       // Save changes immediately
       await this.saveMockUsers();
-      console.debug('[MockApi] Saved changes to storage');
+      console.debug("[MockApi] Saved changes to storage");
 
-      const { password: _, verificationToken: __, ...userWithoutPassword } = updatedUser;
-      console.debug('[MockApi] Profile update completed successfully', {
+      const {
+        password: _,
+        verificationToken: __,
+        ...userWithoutPassword
+      } = updatedUser;
+      console.debug("[MockApi] Profile update completed successfully", {
         updatedFields: Object.keys(data),
-        hasCompletedProfile: updatedUser.hasCompletedProfile
+        hasCompletedProfile: updatedUser.hasCompletedProfile,
       });
 
       return { user: userWithoutPassword };
     } catch (error) {
-      console.error('[MockApi] Error updating profile:', error);
+      console.error("[MockApi] Error updating profile:", error);
       throw error;
     }
   }
 
   async getGameHistory(email: string): Promise<GameHistory[]> {
-    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+    await new Promise((resolve) => setTimeout(resolve, NETWORK_DELAY));
     const user = this.MOCK_USERS.get(email);
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
     return user.gamesPlayed || [];
   }
 
-  async addGameToHistory(email: string, game: Omit<GameHistory, 'id'>): Promise<GameHistory> {
-    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+  async addGameToHistory(
+    email: string,
+    game: Omit<GameHistory, "id">
+  ): Promise<GameHistory> {
+    await new Promise((resolve) => setTimeout(resolve, NETWORK_DELAY));
     const user = this.MOCK_USERS.get(email);
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
     const newGame: GameHistory = {
       id: Date.now().toString(),
-      ...game
+      ...game,
     };
 
     if (!user.gamesPlayed) {
@@ -554,11 +629,11 @@ class MockApi {
   }
 
   async getBookedGames(email: string): Promise<BookedGame[]> {
-    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+    await new Promise((resolve) => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
     return user.bookedGames || [];
@@ -566,81 +641,96 @@ class MockApi {
 
   async getGameBookings(gameId: string): Promise<number> {
     try {
-      console.log('Getting bookings for game:', gameId);
-      
+      console.log("Getting bookings for game:", gameId);
+
       if (!gameId) {
-        console.error('Invalid gameId provided to getGameBookings');
+        console.error("Invalid gameId provided to getGameBookings");
         return 0;
       }
 
       // Get base game details
       const gameDetails = MOCK_GAMES[gameId];
       if (!gameDetails) {
-        console.error('Game not found:', gameId);
+        console.error("Game not found:", gameId);
         return 0;
       }
 
       // Get active bookings
       const bookings = this.GLOBAL_GAME_BOOKINGS.get(gameId) || [];
-      console.log('Found global bookings:', bookings);
-      
+      console.log("Found global bookings:", bookings);
+
       let activeBookingsCount = 0;
 
       // Count active bookings across all users
       for (const [email, user] of this.MOCK_USERS) {
         const userBookings = user.bookedGames || [];
-        const activeUserBookings = userBookings.filter(booking => 
-          booking.gameId === gameId && 
-          booking.status === 'upcoming'
+        const activeUserBookings = userBookings.filter(
+          (booking) =>
+            booking.gameId === gameId && booking.status === "upcoming"
         );
-        
+
         activeBookingsCount += activeUserBookings.length;
-        
+
         if (activeUserBookings.length > 0) {
-          console.log(`Found ${activeUserBookings.length} active bookings for user ${email}`);
+          console.log(
+            `Found ${activeUserBookings.length} active bookings for user ${email}`
+          );
         }
       }
 
-      console.log('Total active bookings:', activeBookingsCount);
+      console.log("Total active bookings:", activeBookingsCount);
       return activeBookingsCount;
     } catch (error) {
-      console.error('Error in getGameBookings:', error);
+      console.error("Error in getGameBookings:", error);
       return 0;
     }
   }
 
-  async bookGame(email: string, game: Omit<BookedGame, 'status'>): Promise<BookedGame> {
-    console.log('MockApi: Attempting to book game:', game.gameId);
-    console.log('User email:', email);
-    
-    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+  async bookGame(
+    email: string,
+    game: Omit<BookedGame, "status">
+  ): Promise<BookedGame> {
+    console.log("MockApi: Attempting to book game:", game.gameId);
+    console.log("User email:", email);
+
+    await new Promise((resolve) => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
     // Get the full game details from MOCK_GAMES
-    const gameDetails = Object.values(MOCK_GAMES).find((g: Game) => g.id === game.gameId);
+    const gameDetails = Object.values(MOCK_GAMES).find(
+      (g: Game) => g.id === game.gameId
+    );
     if (!gameDetails) {
-      throw new Error('Game not found');
+      throw new Error("Game not found");
     }
 
-    console.log('Game details:', {
+    console.log("Game details:", {
       gameSkillLevel: gameDetails.skillLevel,
-      userSkillLevel: user.skillLevel
+      userSkillLevel: user.skillLevel,
     });
 
     // Check if game is full
     const currentBookings = await this.getGameBookings(game.gameId);
-    if (currentBookings + gameDetails.players.length >= gameDetails.maxPlayers) {
-      throw new Error('This game is already full');
+    if (
+      currentBookings + gameDetails.players.length >=
+      gameDetails.maxPlayers
+    ) {
+      throw new Error("This game is already full");
     }
 
     // Check skill level compatibility
-    if (user.skillLevel && gameDetails.skillLevel && 
-        user.skillLevel.toLowerCase() !== gameDetails.skillLevel.toLowerCase()) {
-      throw new Error(`This game requires ${gameDetails.skillLevel} skill level`);
+    if (
+      user.skillLevel &&
+      gameDetails.skillLevel &&
+      user.skillLevel.toLowerCase() !== gameDetails.skillLevel.toLowerCase()
+    ) {
+      throw new Error(
+        `This game requires ${gameDetails.skillLevel} skill level`
+      );
     }
 
     if (!user.bookedGames) {
@@ -649,16 +739,17 @@ class MockApi {
 
     // Check if user has any active booking for this game
     const existingBooking = user.bookedGames.find(
-      bookedGame => bookedGame.gameId === game.gameId && bookedGame.status === 'upcoming'
+      (bookedGame) =>
+        bookedGame.gameId === game.gameId && bookedGame.status === "upcoming"
     );
 
     if (existingBooking) {
-      throw new Error('You have already booked this game');
+      throw new Error("You have already booked this game");
     }
 
     // Get current global bookings for this game
     const gameBookings = this.GLOBAL_GAME_BOOKINGS.get(game.gameId) || [];
-    
+
     // Generate a new booking ID that includes both game ID and timestamp
     const bookingId = `${game.gameId}_${Date.now()}`;
 
@@ -666,14 +757,14 @@ class MockApi {
     const bookedGame: BookedGame = {
       ...game,
       id: bookingId,
-      status: 'upcoming',
+      status: "upcoming",
       userId: user.id,
       userInfo: {
         name: user.name,
         email: user.email,
         profileImage: user.profileImage,
-        skillLevel: user.skillLevel
-      }
+        skillLevel: user.skillLevel,
+      },
     };
 
     // First update global bookings
@@ -683,83 +774,86 @@ class MockApi {
     // Then update user's bookings
     user.bookedGames = [bookedGame, ...user.bookedGames];
     await this.saveMockUsers();
-    
-    console.log('MockApi: Game booked successfully:', game.gameId);
+
+    console.log("MockApi: Game booked successfully:", game.gameId);
     return bookedGame;
   }
 
   async cancelBooking(email: string, gameId: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, NETWORK_DELAY));
+    await new Promise((resolve) => setTimeout(resolve, NETWORK_DELAY));
 
     const user = this.MOCK_USERS.get(email);
     if (!user || !user.bookedGames) {
-      throw new Error('User or booking not found');
+      throw new Error("User or booking not found");
     }
 
-    const booking = user.bookedGames.find(game => game.id === gameId);
+    const booking = user.bookedGames.find((game) => game.id === gameId);
     if (!booking) {
-      throw new Error('Booking not found');
+      throw new Error("Booking not found");
     }
 
     // Update user's booking status
-    booking.status = 'cancelled';
+    booking.status = "cancelled";
 
     // Update global bookings
     const gameBookings = this.GLOBAL_GAME_BOOKINGS.get(booking.gameId) || [];
-    const updatedBookings = gameBookings.filter(id => id !== gameId);
+    const updatedBookings = gameBookings.filter((id) => id !== gameId);
     this.GLOBAL_GAME_BOOKINGS.set(booking.gameId, updatedBookings);
 
     // Save both user and global booking data
-    await Promise.all([
-      this.saveMockUsers(),
-      this.saveGlobalBookings()
-    ]);
+    await Promise.all([this.saveMockUsers(), this.saveGlobalBookings()]);
   }
 
   async clearBookedGames(email: string): Promise<void> {
     const user = this.MOCK_USERS.get(email);
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
     // Get all game IDs from user's bookings
-    const gameIds = new Set(user.bookedGames?.map(booking => booking.gameId) || []);
+    const gameIds = new Set(
+      user.bookedGames?.map((booking) => booking.gameId) || []
+    );
 
     // Update global bookings for each affected game
     for (const gameId of gameIds) {
       const gameBookings = this.GLOBAL_GAME_BOOKINGS.get(gameId) || [];
-      const updatedBookings = gameBookings.filter(bookingId => 
-        !user.bookedGames?.some(booking => booking.id === bookingId)
+      const updatedBookings = gameBookings.filter(
+        (bookingId) =>
+          !user.bookedGames?.some((booking) => booking.id === bookingId)
       );
       this.GLOBAL_GAME_BOOKINGS.set(gameId, updatedBookings);
     }
 
     user.bookedGames = [];
-    await Promise.all([
-      this.saveMockUsers(),
-      this.saveGlobalBookings()
-    ]);
+    await Promise.all([this.saveMockUsers(), this.saveGlobalBookings()]);
   }
 
-  async getRegisteredPlayers(gameId: string): Promise<Array<{
-    id: string;
-    name: string;
-    email: string;
-    profileImage?: string | { uri: string; base64: string; timestamp: number; };
-    skillLevel?: string;
-  }>> {
+  async getRegisteredPlayers(gameId: string): Promise<
+    Array<{
+      id: string;
+      name: string;
+      email: string;
+      profileImage?:
+        | string
+        | { uri: string; base64: string; timestamp: number };
+      skillLevel?: string;
+    }>
+  > {
     const registeredPlayers: Array<{
       id: string;
       name: string;
       email: string;
-      profileImage?: string | { uri: string; base64: string; timestamp: number; };
+      profileImage?:
+        | string
+        | { uri: string; base64: string; timestamp: number };
       skillLevel?: string;
     }> = [];
 
     // Iterate through all users to find bookings for this game
     for (const user of this.MOCK_USERS.values()) {
       const booking = user.bookedGames?.find(
-        game => game.gameId === gameId && game.status === 'upcoming'
+        (game) => game.gameId === gameId && game.status === "upcoming"
       );
 
       if (booking) {
@@ -768,7 +862,7 @@ class MockApi {
           name: user.name,
           email: user.email,
           profileImage: user.profileImage,
-          skillLevel: user.skillLevel
+          skillLevel: user.skillLevel,
         });
       }
     }
@@ -777,4 +871,4 @@ class MockApi {
   }
 }
 
-export const mockApi = new MockApi(); 
+export const mockApi = new MockApi();

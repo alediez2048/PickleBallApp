@@ -1,30 +1,33 @@
-import { SkillLevel } from './game';
+import { SkillLevel } from "./game";
 
 export const ProfileVisibility = {
-  Public: 'public',
-  Private: 'private',
-  FriendsOnly: 'friends-only'
+  Public: "public",
+  Private: "private",
+  FriendsOnly: "friends-only",
 } as const;
 
-export type ProfileVisibilityType = typeof ProfileVisibility[keyof typeof ProfileVisibility];
+export type ProfileVisibilityType =
+  (typeof ProfileVisibility)[keyof typeof ProfileVisibility];
 
 export const MembershipTier = {
-  Free: 'free',
-  Basic: 'basic',
-  Premium: 'premium',
-  Pro: 'pro'
+  Free: "free",
+  Basic: "basic",
+  Premium: "premium",
+  Pro: "pro",
 } as const;
 
-export type MembershipTierType = typeof MembershipTier[keyof typeof MembershipTier];
+export type MembershipTierType =
+  (typeof MembershipTier)[keyof typeof MembershipTier];
 
 export const ProfileStatus = {
-  Incomplete: 'incomplete',
-  Active: 'active',
-  Suspended: 'suspended',
-  Deleted: 'deleted'
+  Incomplete: "incomplete",
+  Active: "active",
+  Suspended: "suspended",
+  Deleted: "deleted",
 } as const;
 
-export type ProfileStatusType = typeof ProfileStatus[keyof typeof ProfileStatus];
+export type ProfileStatusType =
+  (typeof ProfileStatus)[keyof typeof ProfileStatus];
 
 export interface Profile {
   id: string;
@@ -36,7 +39,7 @@ export interface Profile {
   phoneNumber: string;
   email: string;
   dateOfBirth: string;
-  
+
   // Location
   location: {
     address: string;
@@ -45,26 +48,26 @@ export interface Profile {
     zipCode: string;
     country: string;
   };
-  
+
   // Game Related
   skillLevel: SkillLevel;
   playingExperience: number; // in months
-  preferredPlayStyle?: 'singles' | 'doubles' | 'both';
+  preferredPlayStyle?: "singles" | "doubles" | "both";
   availability?: {
     weekdays?: boolean;
     weekends?: boolean;
     preferredTimes?: string[];
   };
-  
+
   // Profile Settings
   avatarUrl?: string;
   visibility: ProfileVisibilityType;
-  
+
   // Membership
   membershipTier: MembershipTierType;
   membershipStartDate?: string;
   membershipEndDate?: string;
-  
+
   // Stats
   stats?: {
     gamesPlayed: number;
@@ -72,7 +75,7 @@ export interface Profile {
     totalPlayTime: number;
     averageRating?: number;
   };
-  
+
   // Preferences
   preferences: {
     notifications: boolean;
@@ -87,7 +90,7 @@ export interface Profile {
       };
     };
   };
-  
+
   // Legal
   waiverAccepted: boolean;
   waiverSignedAt?: string;
@@ -95,14 +98,15 @@ export interface Profile {
   termsAcceptedAt: string;
   privacyPolicyAccepted: boolean;
   privacyPolicyAcceptedAt: string;
-  
+
   // Timestamps
   createdAt: string;
   updatedAt: string;
   lastActive?: string;
 }
 
-export interface ProfileUpdateInput extends Partial<Omit<Profile, 'id' | 'userId' | 'createdAt' | 'updatedAt'>> {
+export interface ProfileUpdateInput
+  extends Partial<Omit<Profile, "id" | "userId" | "createdAt" | "updatedAt">> {
   // Additional validation rules or specific update fields can be added here
 }
 
@@ -138,31 +142,31 @@ export interface MembershipPlan {
 }
 
 export const DEFAULT_MEMBERSHIP_PLAN: MembershipPlan = {
-  id: 'free',
+  id: "free",
   tier: MembershipTier.Free,
-  name: 'Free Membership',
-  description: 'Basic access to PicklePass features',
+  name: "Free Membership",
+  description: "Basic access to PicklePass features",
   price: {
     monthly: 0,
-    annual: 0
+    annual: 0,
   },
   features: [
     {
-      name: 'Game Booking',
-      description: 'Book available games',
-      included: true
+      name: "Game Booking",
+      description: "Book available games",
+      included: true,
     },
     {
-      name: 'Basic Profile',
-      description: 'Create and maintain your player profile',
-      included: true
-    }
+      name: "Basic Profile",
+      description: "Create and maintain your player profile",
+      included: true,
+    },
   ],
   maxBookingsPerMonth: 2,
   courtReservationWindow: 3,
   partnerMatchingPriority: 0,
   cancellationWindow: 24,
-  guestPasses: 0
+  guestPasses: 0,
 };
 
 export interface ProfileData {
@@ -186,4 +190,4 @@ export interface FirstTimeProfileFormData {
     state: string;
     zipCode: string;
   };
-} 
+}

@@ -43,3 +43,15 @@ app-example
 
 # test coverage
 coverage/
+
+# Enviroment variables
+.env
+
+# Supabase
+supabase/.branches
+supabase/.temp
+
+# dotenvx
+supabase/.env.keys
+supabase/.env.local
+supabase/.env.*.local

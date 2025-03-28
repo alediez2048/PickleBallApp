@@ -1,4 +1,4 @@
-import { storage } from './storage';
+import { storage } from "./storage";
 
 interface CacheConfig {
   ttl?: number; // Time to live in milliseconds
@@ -16,17 +16,17 @@ interface CacheOptions extends CacheConfig {
 }
 
 // Polyfill CustomEvent for Node.js environment
-if (typeof CustomEvent === 'undefined') {
+if (typeof CustomEvent === "undefined") {
   class CustomEventPolyfill<T = any> {
     type: string;
     detail: T;
-    
+
     constructor(type: string, options?: { detail: T }) {
       this.type = type;
       this.detail = options?.detail as T;
     }
   }
-  
+
   (global as any).CustomEvent = CustomEventPolyfill;
 }
 
@@ -51,11 +51,7 @@ class CacheService {
     return `cache_${key}`;
   }
 
-  async set<T>(
-    key: string,
-    data: T,
-    config: CacheConfig = {}
-  ): Promise<void> {
+  async set<T>(key: string, data: T, config: CacheConfig = {}): Promise<void> {
     const cacheKey = this.getKey(key);
     const version = (this.version.get(key) || 0) + 1;
     this.version.set(key, version);
@@ -127,7 +123,7 @@ class CacheService {
   async clear(): Promise<void> {
     // Clear all cache entries and refresh timers
     const keys = Array.from(this.version.keys());
-    await Promise.all(keys.map(key => this.invalidate(key)));
+    await Promise.all(keys.map((key) => this.invalidate(key)));
     this.version.clear();
   }
 
@@ -140,7 +136,7 @@ class CacheService {
       const currentVersion = this.version.get(options.key);
       if (currentVersion === undefined) return;
 
-      const event = new CustomEvent('cacheRefresh', {
+      const event = new CustomEvent("cacheRefresh", {
         detail: { key: options.key },
       });
       window.dispatchEvent(event);
@@ -158,4 +154,4 @@ class CacheService {
   }
 }
 
-export const cache = CacheService.getInstance(); 
+export const cache = CacheService.getInstance();

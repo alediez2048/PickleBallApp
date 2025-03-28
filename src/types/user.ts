@@ -1,4 +1,4 @@
-import { ProfileData } from './profile';
+import { ProfileData } from "./profile";
 
 export interface User {
   id?: string;
@@ -6,11 +6,13 @@ export interface User {
   email?: string;
   isVerified?: boolean;
   skillLevel?: string;
-  profileImage?: string | {
-    uri: string;
-    base64: string;
-    timestamp: number;
-  };
+  profileImage?:
+    | string
+    | {
+        uri: string;
+        base64: string;
+        timestamp: number;
+      };
   // Profile fields
   phoneNumber?: string;
   dateOfBirth?: string;
@@ -24,4 +26,5 @@ export interface User {
   hasPaymentMethod?: boolean;
 }
 
-export type AuthenticatedUser = Required<Pick<User, 'id' | 'email' | 'name'>> & User; 
+export type AuthenticatedUser = Required<Pick<User, "id" | "email" | "name">> &
+  User;
