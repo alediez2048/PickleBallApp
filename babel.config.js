@@ -19,14 +19,14 @@ module.exports = function (api) {
             "@hooks": "./src/hooks",
           },
         },
-        [
-          "dotenv-import",
-          {
-            moduleName: "@env",
-            path: ".env",
-            safe: false,
-          },
-        ],
+      ],
+      [
+        "dotenv-import",
+        {
+          moduleName: "@env",
+          path: ".env",
+          safe: false,
+        },
       ],
     ],
   };
