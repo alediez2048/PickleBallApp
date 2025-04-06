@@ -1,5 +1,5 @@
 -- Insert default membership plans
-insert into public.membership_plans (
+insert into membership_plans (
     id,
     tier,
     name,

@@ -1,5 +1,14 @@
-import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
-import { ColorSchemeName, useColorScheme as useRNColorScheme } from 'react-native';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+  useEffect,
+} from "react";
+import {
+  ColorSchemeName,
+  useColorScheme as useRNColorScheme,
+} from "react-native";
 
 // State interface
 interface UIState {
@@ -8,36 +17,39 @@ interface UIState {
   toast: {
     visible: boolean;
     message: string;
-    type: 'success' | 'error' | 'info';
+    type: "success" | "error" | "info";
   };
 }
 
 // Action types
 type UIAction =
-  | { type: 'SET_COLOR_SCHEME'; payload: ColorSchemeName }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SHOW_TOAST'; payload: { message: string; type: 'success' | 'error' | 'info' } }
-  | { type: 'HIDE_TOAST' };
+  | { type: "SET_COLOR_SCHEME"; payload: ColorSchemeName }
+  | { type: "SET_LOADING"; payload: boolean }
+  | {
+      type: "SHOW_TOAST";
+      payload: { message: string; type: "success" | "error" | "info" };
+    }
+  | { type: "HIDE_TOAST" };
 
 // Initial state
 const initialState: UIState = {
-  colorScheme: 'light',
+  colorScheme: "light",
   isLoading: false,
   toast: {
     visible: false,
-    message: '',
-    type: 'info',
+    message: "",
+    type: "info",
   },
 };
 
 // Reducer
 function uiReducer(state: UIState, action: UIAction): UIState {
   switch (action.type) {
-    case 'SET_COLOR_SCHEME':
+    case "SET_COLOR_SCHEME":
       return { ...state, colorScheme: action.payload };
-    case 'SET_LOADING':
+    case "SET_LOADING":
       return { ...state, isLoading: action.payload };
-    case 'SHOW_TOAST':
+    case "SHOW_TOAST":
       return {
         ...state,
         toast: {
@@ -46,7 +58,7 @@ function uiReducer(state: UIState, action: UIAction): UIState {
           type: action.payload.type,
         },
       };
-    case 'HIDE_TOAST':
+    case "HIDE_TOAST":
       return {
         ...state,
         toast: {
@@ -63,9 +75,12 @@ function uiReducer(state: UIState, action: UIAction): UIState {
 interface UIContextType extends UIState {
   setColorScheme: (scheme: ColorSchemeName) => void;
   setLoading: (isLoading: boolean) => void;
-  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+  showToast: (message: string, type: "success" | "error" | "info") => void;
   hideToast: () => void;
-  useThemeColor: (props: { light?: string; dark?: string }, colorName: string) => string;
+  useThemeColor: (
+    props: { light?: string; dark?: string },
+    colorName: string
+  ) => string;
 }
 
 // Create context
@@ -78,32 +93,35 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
 
   // Sync with system color scheme
   useEffect(() => {
-    dispatch({ type: 'SET_COLOR_SCHEME', payload: systemColorScheme });
+    dispatch({ type: "SET_COLOR_SCHEME", payload: systemColorScheme });
   }, [systemColorScheme]);
 
   const setColorScheme = useCallback((scheme: ColorSchemeName) => {
-    dispatch({ type: 'SET_COLOR_SCHEME', payload: scheme });
+    dispatch({ type: "SET_COLOR_SCHEME", payload: scheme });
   }, []);
 
   const setLoading = useCallback((isLoading: boolean) => {
-    dispatch({ type: 'SET_LOADING', payload: isLoading });
+    dispatch({ type: "SET_LOADING", payload: isLoading });
   }, []);
 
-  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info') => {
-    dispatch({ type: 'SHOW_TOAST', payload: { message, type } });
-    // Auto-hide toast after 3 seconds
-    setTimeout(() => {
-      dispatch({ type: 'HIDE_TOAST' });
-    }, 3000);
-  }, []);
+  const showToast = useCallback(
+    (message: string, type: "success" | "error" | "info") => {
+      dispatch({ type: "SHOW_TOAST", payload: { message, type } });
+      // Auto-hide toast after 3 seconds
+      setTimeout(() => {
+        dispatch({ type: "HIDE_TOAST" });
+      }, 3000);
+    },
+    []
+  );
 
   const hideToast = useCallback(() => {
-    dispatch({ type: 'HIDE_TOAST' });
+    dispatch({ type: "HIDE_TOAST" });
   }, []);
 
   const useThemeColor = useCallback(
     (props: { light?: string; dark?: string }, colorName: string): string => {
-      const theme = state.colorScheme ?? 'light';
+      const theme = state.colorScheme ?? "light";
       const colorFromProps = props[theme];
 
       if (colorFromProps) {
@@ -113,22 +131,22 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
       // Default theme colors
       const Colors = {
         light: {
-          text: '#000000',
-          background: '#ffffff',
-          primary: '#2f95dc',
-          secondary: '#f4f4f5',
-          tint: '#2f95dc',
-          tabIconDefault: '#cccccc',
-          tabIconSelected: '#2f95dc',
+          text: "#000000",
+          background: "#ffffff",
+          primary: "#2f95dc",
+          secondary: "#f4f4f5",
+          tint: "#2f95dc",
+          tabIconDefault: "#cccccc",
+          tabIconSelected: "#2f95dc",
         },
         dark: {
-          text: '#ffffff',
-          background: '#000000',
-          primary: '#2f95dc',
-          secondary: '#27272a',
-          tint: '#ffffff',
-          tabIconDefault: '#cccccc',
-          tabIconSelected: '#ffffff',
+          text: "#ffffff",
+          background: "#000000",
+          primary: "#2f95dc",
+          secondary: "#27272a",
+          tint: "#ffffff",
+          tabIconDefault: "#cccccc",
+          tabIconSelected: "#ffffff",
         },
       };
 
@@ -153,7 +171,7 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
 export function useUI() {
   const context = useContext(UIContext);
   if (context === undefined) {
-    throw new Error('useUI must be used within a UIProvider');
+    throw new Error("useUI must be used within a UIProvider");
   }
   return context;
-} 
+}

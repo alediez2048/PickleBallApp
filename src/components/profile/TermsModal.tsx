@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   ScrollView,
@@ -6,16 +6,16 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
-} from 'react-native';
-import { ThemedText } from '@components/ThemedText';
-import { IconSymbol } from '@components/ui/IconSymbol';
-import { Button } from '@components/common/ui/Button';
+} from "react-native";
+import { ThemedText } from "@/components/common/ThemedText";
+import { IconSymbol } from "@components/ui/IconSymbol";
+import { Button } from "@components/common/ui/Button";
 
 interface TermsModalProps {
   visible: boolean;
   onClose: () => void;
   onAccept: () => void;
-  type: 'terms' | 'privacy' | 'waiver';
+  type: "terms" | "privacy" | "waiver";
   isLoading?: boolean;
 }
 
@@ -28,18 +28,18 @@ export const TermsModal: React.FC<TermsModalProps> = ({
 }) => {
   const getTitle = () => {
     switch (type) {
-      case 'terms':
-        return 'Terms & Conditions';
-      case 'privacy':
-        return 'Privacy Policy';
-      case 'waiver':
-        return 'Liability Waiver';
+      case "terms":
+        return "Terms & Conditions";
+      case "privacy":
+        return "Privacy Policy";
+      case "waiver":
+        return "Liability Waiver";
     }
   };
 
   const getContent = () => {
     switch (type) {
-      case 'terms':
+      case "terms":
         return `By accepting these Terms & Conditions, you agree to:
 
 1. Follow all rules and guidelines set by PicklePass
@@ -49,7 +49,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({
 5. Comply with our fair play standards
 
 These terms are subject to change. You will be notified of any updates.`;
-      case 'privacy':
+      case "privacy":
         return `Our Privacy Policy outlines how we collect, use, and protect your data:
 
 1. We collect profile information you provide
@@ -60,7 +60,7 @@ These terms are subject to change. You will be notified of any updates.`;
 6. You can request data deletion at any time
 
 Your privacy is important to us.`;
-      case 'waiver':
+      case "waiver":
         return `By accepting this Liability Waiver, you acknowledge:
 
 1. Pickleball involves inherent risks of injury
@@ -78,13 +78,13 @@ This is a legally binding agreement.`;
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType='slide'
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <ThemedText variant="title" style={styles.modalTitle}>
+            <ThemedText variant='title' style={styles.modalTitle}>
               {getTitle()}
             </ThemedText>
             <TouchableOpacity
@@ -93,23 +93,23 @@ This is a legally binding agreement.`;
               disabled={isLoading}
             >
               <IconSymbol
-                name="xmark"
+                name='xmark'
                 size={24}
-                color={isLoading ? '#999999' : '#666666'}
+                color={isLoading ? "#999999" : "#666666"}
               />
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.contentScroll}>
-            <ThemedText variant="body" style={styles.content} color="#666666">
+            <ThemedText variant='body' style={styles.content} color='#666666'>
               {getContent()}
             </ThemedText>
           </ScrollView>
 
           <View style={styles.footer}>
             <Button
-              variant="secondary"
-              size="medium"
+              variant='secondary'
+              size='medium'
               onPress={onClose}
               disabled={isLoading}
               style={styles.footerButton}
@@ -117,8 +117,8 @@ This is a legally binding agreement.`;
               Decline
             </Button>
             <Button
-              variant="primary"
-              size="medium"
+              variant='primary'
+              size='medium'
               onPress={onAccept}
               loading={isLoading}
               disabled={isLoading}
@@ -136,19 +136,19 @@ This is a legally binding agreement.`;
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 16,
-    width: '90%',
+    width: "90%",
     maxWidth: 500,
-    maxHeight: '80%',
+    maxHeight: "80%",
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 4,
@@ -159,21 +159,21 @@ const styles = StyleSheet.create({
     }),
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   modalTitle: {
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     marginRight: 40,
   },
   closeButton: {
     padding: 8,
-    position: 'absolute',
+    position: "absolute",
     right: 8,
     top: 8,
   },
@@ -183,17 +183,17 @@ const styles = StyleSheet.create({
   },
   content: {
     lineHeight: 24,
-    color: '#666666',
+    color: "#666666",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: "#eee",
     gap: 12,
   },
   footerButton: {
     flex: 1,
   },
-}); 
+});

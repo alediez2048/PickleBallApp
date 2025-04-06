@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   TouchableOpacity,
   StyleSheet,
@@ -6,20 +6,20 @@ import {
   ActivityIndicator,
   TouchableOpacityProps,
   Platform,
-} from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
+} from "react-native";
+import { ThemedText } from "@/components/common/ThemedText";
 
 interface ButtonProps extends TouchableOpacityProps {
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger';
-  size?: 'small' | 'medium' | 'large';
+  variant?: "primary" | "secondary" | "outline" | "danger";
+  size?: "small" | "medium" | "large";
   loading?: boolean;
   fullWidth?: boolean;
   children: React.ReactNode;
 }
 
 export const Button: React.FC<ButtonProps> = ({
-  variant = 'primary',
-  size = 'medium',
+  variant = "primary",
+  size = "medium",
   loading = false,
   disabled = false,
   fullWidth = false,
@@ -56,16 +56,18 @@ export const Button: React.FC<ButtonProps> = ({
     ];
 
     // Debug logging
-    console.debug('[Button Render]', {
-      text: typeof children === 'string' ? children : 'Custom children',
+    console.debug("[Button Render]", {
+      text: typeof children === "string" ? children : "Custom children",
       variant,
       size,
       isDisabled,
       fullWidth,
       customStyle: style,
       computedStyles: computedStyles
-        .filter((s): s is NonNullable<typeof s> => s !== null && s !== undefined)
-        .map(s => typeof s === 'object' ? Object.keys(s) : [])
+        .filter(
+          (s): s is NonNullable<typeof s> => s !== null && s !== undefined
+        )
+        .map((s) => (typeof s === "object" ? Object.keys(s) : [])),
     });
 
     return computedStyles;
@@ -88,15 +90,16 @@ export const Button: React.FC<ButtonProps> = ({
     return computedTextStyles;
   };
 
-  const buttonLabel = typeof children === 'string' ? children : accessibilityLabel;
+  const buttonLabel =
+    typeof children === "string" ? children : accessibilityLabel;
 
   return (
     <TouchableOpacity
-      testID="button"
+      testID='button'
       style={getButtonStyle()}
       disabled={isDisabled}
       onPress={onPress}
-      accessibilityRole="button"
+      accessibilityRole='button'
       accessibilityLabel={buttonLabel}
       accessibilityHint={accessibilityHint}
       accessibilityState={{
@@ -108,12 +111,12 @@ export const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator
-            testID="loading-spinner"
-            color={variant === 'outline' ? '#4CAF50' : '#FFFFFF'}
-            accessibilityLabel="Loading"
+            testID='loading-spinner'
+            color={variant === "outline" ? "#4CAF50" : "#FFFFFF"}
+            accessibilityLabel='Loading'
           />
         </View>
-      ) : typeof children === 'string' ? (
+      ) : typeof children === "string" ? (
         <ThemedText style={getTextStyle()}>{children}</ThemedText>
       ) : (
         children
@@ -125,27 +128,27 @@ export const Button: React.FC<ButtonProps> = ({
 const styles = StyleSheet.create({
   base: {
     borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: "transparent",
   },
   primary: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: "#4CAF50",
+    borderColor: "#4CAF50",
   },
   secondary: {
-    backgroundColor: '#2196F3',
-    borderColor: '#2196F3',
+    backgroundColor: "#2196F3",
+    borderColor: "#2196F3",
   },
   outline: {
-    backgroundColor: 'transparent',
-    borderColor: '#4CAF50',
+    backgroundColor: "transparent",
+    borderColor: "#4CAF50",
   },
   danger: {
-    backgroundColor: '#DC2626',
-    borderColor: '#DC2626',
+    backgroundColor: "#DC2626",
+    borderColor: "#DC2626",
   },
   small: {
     paddingVertical: 8,
@@ -163,37 +166,37 @@ const styles = StyleSheet.create({
     minHeight: 52,
   },
   fullWidth: {
-    width: '100%',
+    width: "100%",
   },
   disabled: {
     opacity: 0.5,
-    backgroundColor: '#E0E0E0',
-    borderColor: '#E0E0E0',
+    backgroundColor: "#E0E0E0",
+    borderColor: "#E0E0E0",
   },
   text: {
     fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
     letterSpacing: 0.5,
   },
   primaryText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   secondaryText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   outlineText: {
-    color: '#4CAF50',
+    color: "#4CAF50",
   },
   dangerText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   disabledText: {
-    color: '#666666',
+    color: "#666666",
   },
   loadingContainer: {
     minHeight: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
-}); 
+});

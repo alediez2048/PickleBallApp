@@ -5,7 +5,7 @@ import { Button } from '@/components/common/ui/Button';
 import { MembershipPlanModal } from './MembershipPlanModal';
 import { PaymentMethodModal } from '@/components/payment/PaymentMethodModal';
 import { MembershipPlan } from '@/types/membership';
-import { ThemedText } from '@/components/ThemedText';
+import { ThemedText } from "@/components/common/ThemedText";
 import { useAuth } from '@/contexts/AuthContext';
 
 interface MembershipManagementSectionProps {
@@ -21,7 +21,7 @@ export function MembershipManagementSection({
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
-  
+
   // Mock payment method for testing
   const mockPaymentMethod = {
     id: 'mock-payment-1',
@@ -31,16 +31,16 @@ export function MembershipManagementSection({
     expiryYear: '25',
     isDefault: true
   };
-  
+
   // Check if user has a payment method
   const hasPaymentMethod = true; // For testing
-  
+
   // Get default payment method if available
   const defaultPaymentMethod = mockPaymentMethod; // For testing
 
   const handlePlanSelect = (plan: MembershipPlan) => {
     setSelectedPlan(plan);
-    
+
     // If selecting the same plan, just close the modal
     if (currentPlan && plan.id === currentPlan.id) {
       Alert.alert(
@@ -55,7 +55,7 @@ export function MembershipManagementSection({
       );
       return;
     }
-    
+
     // If changing between paid plans
     if (currentPlan) {
       Alert.alert(
@@ -77,7 +77,7 @@ export function MembershipManagementSection({
       );
       return;
     }
-    
+
     // If no current plan, show payment modal for new plan
     if (hasPaymentMethod) {
       Alert.alert(
@@ -119,7 +119,7 @@ export function MembershipManagementSection({
   const getPrimaryAction = () => {
     if (!currentPlan) {
       return (
-        <Button 
+        <Button
           variant="primary"
           onPress={() => setShowPlanModal(true)}
           style={styles.actionButton}
@@ -128,17 +128,17 @@ export function MembershipManagementSection({
         </Button>
       );
     }
-    
+
     return (
       <View style={styles.actionButtonsRow}>
-        <Button 
+        <Button
           variant="outline"
           onPress={() => setShowPlanModal(true)}
           style={[styles.actionButton, styles.actionButtonHalf]}
         >
           Change Plan
         </Button>
-        <Button 
+        <Button
           variant="outline"
           onPress={() => {
             Alert.alert(
@@ -181,13 +181,13 @@ export function MembershipManagementSection({
               {formatPrice(currentPlan.price, currentPlan.interval)}
             </ThemedText>
           </View>
-          
+
           <ThemedText variant="caption" style={styles.planDescription}>
             {currentPlan.description}
           </ThemedText>
-          
+
           <View style={styles.divider} />
-          
+
           <View style={styles.benefitsContainer}>
             {currentPlan.benefits.slice(0, 3).map((benefit, index) => (
               <View key={index} style={styles.benefitRow}>
@@ -196,17 +196,17 @@ export function MembershipManagementSection({
               </View>
             ))}
           </View>
-          
+
           {defaultPaymentMethod && (
             <>
               <View style={styles.divider} />
               <View style={styles.paymentMethodContainer}>
                 <View style={styles.paymentMethodRow}>
-                  <IconSymbol 
-                    name="creditcard.fill" 
-                    size={16} 
-                    color="#666666" 
-                    style={styles.paymentIcon} 
+                  <IconSymbol
+                    name="creditcard.fill"
+                    size={16}
+                    color="#666666"
+                    style={styles.paymentIcon}
                   />
                   <ThemedText style={styles.paymentText}>
                     {defaultPaymentMethod.brand} •••• {defaultPaymentMethod.last4}
@@ -218,7 +218,7 @@ export function MembershipManagementSection({
               </View>
             </>
           )}
-          
+
           <View style={styles.actionsContainer}>
             {getPrimaryAction()}
           </View>
@@ -232,7 +232,7 @@ export function MembershipManagementSection({
           <ThemedText variant="caption" style={styles.emptySubtext}>
             Select a membership plan to enjoy exclusive benefits
           </ThemedText>
-          <Button 
+          <Button
             variant="primary"
             size="small"
             onPress={() => setShowPlanModal(true)}
@@ -398,4 +398,4 @@ const styles = StyleSheet.create({
     marginTop: 8,
     minWidth: 200,
   },
-}); 
+});

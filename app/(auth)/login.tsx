@@ -1,25 +1,30 @@
-import React, { useState } from 'react';
-import { View, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
-import { Link, router } from 'expo-router';
-import { Button } from '@/components/common/ui/Button';
-import { AntDesign } from '@expo/vector-icons';
-import { GoogleIcon } from '@/components/common/icons/GoogleIcon';
-import { useAuth } from '@/contexts/AuthContext';
-import { LoadingSpinner } from '@/components/common/ui/LoadingSpinner';
-import { ThemedText } from '@/components/ThemedText';
+import React, { useState } from "react";
+import { View, TouchableOpacity, SafeAreaView, StyleSheet } from "react-native";
+import { Link, router } from "expo-router";
+import { Button } from "@/components/common/ui/Button";
+import { AntDesign } from "@expo/vector-icons";
+import { GoogleIcon } from "@/components/common/icons/GoogleIcon";
+import { useAuth } from "@/contexts/AuthContext";
+import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
+import { ThemedText } from "@/components/common/ThemedText";
+import { useTheme } from "@/contexts/ThemeContext";
+import ThemeToggleButton from "@/components/common/ThemeToggleButton";
 
 export default function LoginScreen() {
   const { signInWithGoogle, signInWithFacebook } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const { theme } = useTheme();
 
-  const handleSocialSignIn = async (provider: 'google' | 'facebook') => {
+  const backgroundColor = theme === "dark" ? "#000" : "#fff";
+
+  const handleSocialSignIn = async (provider: "google" | "facebook") => {
     try {
       setIsLoading(true);
       switch (provider) {
-        case 'google':
+        case "google":
           await signInWithGoogle();
           break;
-        case 'facebook':
+        case "facebook":
           await signInWithFacebook();
           break;
       }
@@ -29,25 +34,25 @@ export default function LoginScreen() {
   };
 
   if (isLoading) {
-    return <LoadingSpinner message="Signing in..." />;
+    return <LoadingSpinner message='Signing in...' />;
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor }]}>
       <View style={styles.innerContainer}>
         <View style={styles.content}>
           {/* Logo */}
           <View style={styles.logoContainer}>
-            <ThemedText variant="title" style={styles.logo}>
+            <ThemedText variant='title' style={styles.logo}>
               PicklePass
             </ThemedText>
           </View>
 
           {/* Title */}
-          <ThemedText variant="title" style={styles.title}>
+          <ThemedText variant='title' style={styles.title}>
             Welcome to PicklePass
           </ThemedText>
-          <ThemedText variant="subtitle" style={styles.subtitle}>
+          <ThemedText variant='subtitle' style={styles.subtitle}>
             Sign in or create an account to get started
           </ThemedText>
 
@@ -55,20 +60,20 @@ export default function LoginScreen() {
           <View style={styles.buttonContainer}>
             {/* Email Button */}
             <Button
-              variant="primary"
-              size="large"
+              variant='primary'
+              size='large'
               fullWidth
-              onPress={() => router.push('/(auth)/email-login')}
+              onPress={() => router.push("/(auth)/email-login")}
             >
               Sign in with Email
             </Button>
 
             {/* Register Button */}
             <Button
-              variant="outline"
-              size="large"
+              variant='outline'
+              size='large'
               fullWidth
-              onPress={() => router.push('/(auth)/register')}
+              onPress={() => router.push("/(auth)/register")}
             >
               Create New Account
             </Button>
@@ -76,53 +81,62 @@ export default function LoginScreen() {
             {/* Divider */}
             <View style={styles.dividerContainer}>
               <View style={styles.dividerLine} />
-              <ThemedText variant="caption" style={styles.dividerText}>or</ThemedText>
+              <ThemedText variant='caption' style={styles.dividerText}>
+                or
+              </ThemedText>
               <View style={styles.dividerLine} />
             </View>
 
             {/* Social Buttons */}
-            <TouchableOpacity 
-              style={[styles.socialButton, styles.socialButtonWithBorder]} 
+            <TouchableOpacity
+              style={[styles.socialButton, styles.socialButtonWithBorder]}
               disabled={true}
               activeOpacity={0.8}
-              onPress={() => handleSocialSignIn('google')}
+              onPress={() => handleSocialSignIn("google")}
             >
               <View style={styles.socialButtonContent}>
                 <View style={styles.socialIconContainer}>
                   <GoogleIcon size={20} />
                 </View>
-                <ThemedText style={styles.socialButtonText}>Continue with Google</ThemedText>
+                <ThemedText style={styles.socialButtonText}>
+                  Continue with Google
+                </ThemedText>
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.socialButton, styles.socialButtonWithBorder]} 
+            <TouchableOpacity
+              style={[styles.socialButton, styles.socialButtonWithBorder]}
               disabled={true}
               activeOpacity={0.8}
-              onPress={() => handleSocialSignIn('facebook')}
+              onPress={() => handleSocialSignIn("facebook")}
             >
               <View style={styles.socialButtonContent}>
                 <View style={styles.socialIconContainer}>
-                  <AntDesign name="facebook-square" size={20} color="#1877F2" />
+                  <AntDesign name='facebook-square' size={20} color='#1877F2' />
                 </View>
-                <ThemedText style={styles.socialButtonText}>Continue with Facebook</ThemedText>
+                <ThemedText style={styles.socialButtonText}>
+                  Continue with Facebook
+                </ThemedText>
               </View>
             </TouchableOpacity>
           </View>
 
           {/* Sign In Link */}
           <View style={styles.signInContainer}>
-            <ThemedText variant="caption" style={styles.signInText}>
-              Already have an account?{' '}
-              <ThemedText 
-                variant="caption" 
-                style={styles.signInLink} 
-                onPress={() => router.push('/(auth)/email-login')}
+            <ThemedText variant='caption' style={styles.signInText}>
+              Already have an account?{" "}
+              <ThemedText
+                variant='caption'
+                style={styles.signInLink}
+                onPress={() => router.push("/(auth)/email-login")}
               >
                 Sign in
               </ThemedText>
             </ThemedText>
           </View>
+        </View>
+        <View>
+          <ThemeToggleButton />
         </View>
       </View>
     </SafeAreaView>
@@ -132,50 +146,50 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   innerContainer: {
     flex: 1,
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'stretch',
+    justifyContent: "center",
+    alignItems: "stretch",
     paddingHorizontal: 24,
     maxWidth: 400,
-    alignSelf: 'center',
-    width: '100%',
+    alignSelf: "center",
+    width: "100%",
   },
   logoContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 24,
   },
   logo: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   title: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
-    color: '#6B7280',
-    textAlign: 'center',
+    color: "#6B7280",
+    textAlign: "center",
     marginBottom: 32,
   },
   buttonContainer: {
-    width: '100%',
+    width: "100%",
     gap: 16,
   },
   dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginVertical: 20,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: "#E5E7EB",
   },
   dividerText: {
     marginHorizontal: 12,
@@ -183,45 +197,45 @@ const styles = StyleSheet.create({
   socialButton: {
     height: 52,
     borderRadius: 25,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 16,
-    position: 'relative',
-    backgroundColor: '#FFFFFF',
+    position: "relative",
+    backgroundColor: "#FFFFFF",
   },
   socialButtonWithBorder: {
     borderWidth: 1,
-    borderColor: '#DADCE0',
-    shadowColor: '#000',
+    borderColor: "#DADCE0",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
   },
   socialButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
   },
   socialIconContainer: {
     marginRight: 12,
   },
   socialButtonText: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#3c4043',
+    fontWeight: "500",
+    color: "#3c4043",
   },
   signInContainer: {
     marginTop: 32,
-    alignItems: 'center',
+    alignItems: "center",
   },
   signInText: {
-    color: '#6B7280',
+    color: "#6B7280",
   },
   signInLink: {
-    color: '#4CAF50',
-    fontWeight: '600',
+    color: "#4CAF50",
+    fontWeight: "600",
   },
-}); 
+});

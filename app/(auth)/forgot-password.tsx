@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
-import { router } from 'expo-router';
-import { Button } from '@/components/common/ui/Button';
-import { LoadingSpinner } from '@/components/common/ui/LoadingSpinner';
-import { validateEmail } from '@/utils/validation';
-import { mockApi } from '@/services/mockApi';
-import { ThemedText } from '@/components/ThemedText';
+import React, { useState } from "react";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  SafeAreaView,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { router } from "expo-router";
+import { Button } from "@/components/common/ui/Button";
+import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
+import { validateEmail } from "@/utils/validation";
+import { mockApi } from "@/services/mockApi";
+import { ThemedText } from "@/components/common/ThemedText";
 
 export default function ForgotPasswordScreen() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,39 +27,41 @@ export default function ForgotPasswordScreen() {
       setSuccess(null);
 
       if (!email) {
-        setError('Email is required');
+        setError("Email is required");
         return;
       }
 
       if (!validateEmail(email)) {
-        setError('Please enter a valid email address');
+        setError("Please enter a valid email address");
         return;
       }
 
       setIsLoading(true);
       await mockApi.requestPasswordReset({ email });
-      setSuccess('If an account exists with this email, you will receive password reset instructions shortly');
+      setSuccess(
+        "If an account exists with this email, you will receive password reset instructions shortly"
+      );
     } catch (err) {
-      setError('Failed to send reset instructions. Please try again.');
+      setError("Failed to send reset instructions. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   if (isLoading) {
-    return <LoadingSpinner message="Sending reset instructions..." />;
+    return <LoadingSpinner message='Sending reset instructions...' />;
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <View style={styles.content}>
           {/* Header with Back Button */}
           <View style={styles.header}>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => router.back()}
               style={styles.backButton}
             >
@@ -62,9 +72,12 @@ export default function ForgotPasswordScreen() {
           <View style={styles.formContainer}>
             {/* Title */}
             <View style={styles.titleContainer}>
-              <ThemedText variant="title" style={styles.title}>Reset your password</ThemedText>
-              <ThemedText variant="subtitle" style={styles.subtitle}>
-                Enter your email address and we'll send you instructions to reset your password
+              <ThemedText variant='title' style={styles.title}>
+                Reset your password
+              </ThemedText>
+              <ThemedText variant='subtitle' style={styles.subtitle}>
+                Enter your email address and we'll send you instructions to
+                reset your password
               </ThemedText>
             </View>
 
@@ -73,16 +86,16 @@ export default function ForgotPasswordScreen() {
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
-                  placeholder="Email"
-                  placeholderTextColor="#6B7280"
+                  placeholder='Email'
+                  placeholderTextColor='#6B7280'
                   value={email}
                   onChangeText={(text) => {
                     setEmail(text);
                     setError(null);
                     setSuccess(null);
                   }}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
+                  autoCapitalize='none'
+                  keyboardType='email-address'
                   editable={!isLoading}
                 />
                 {error && (
@@ -93,10 +106,10 @@ export default function ForgotPasswordScreen() {
                 )}
               </View>
 
-              <Button 
-                onPress={handleResetPassword} 
-                size="large" 
-                variant="primary"
+              <Button
+                onPress={handleResetPassword}
+                size='large'
+                variant='primary'
                 fullWidth
                 disabled={isLoading}
               >
@@ -104,12 +117,12 @@ export default function ForgotPasswordScreen() {
               </Button>
 
               <View style={styles.signInContainer}>
-                <ThemedText variant="caption" style={styles.signInText}>
-                  Remember your password?{' '}
-                  <ThemedText 
-                    variant="caption" 
-                    style={styles.signInLink} 
-                    onPress={() => router.push('/(auth)/email-login')}
+                <ThemedText variant='caption' style={styles.signInText}>
+                  Remember your password?{" "}
+                  <ThemedText
+                    variant='caption'
+                    style={styles.signInLink}
+                    onPress={() => router.push("/(auth)/email-login")}
                   >
                     Sign in
                   </ThemedText>
@@ -126,7 +139,7 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   keyboardView: {
     flex: 1,
@@ -137,19 +150,19 @@ const styles = StyleSheet.create({
   },
   header: {
     height: 60,
-    justifyContent: 'center',
+    justifyContent: "center",
     marginTop: 20,
   },
   backButton: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   backButtonText: {
-    color: '#6B7280',
+    color: "#6B7280",
     fontSize: 16,
   },
   formContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingTop: 20,
   },
   titleContainer: {
@@ -159,8 +172,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   subtitle: {
-    color: '#6B7280',
-    textAlign: 'center',
+    color: "#6B7280",
+    textAlign: "center",
   },
   form: {
     gap: 16,
@@ -171,34 +184,34 @@ const styles = StyleSheet.create({
   input: {
     height: 52,
     paddingHorizontal: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
     borderRadius: 25,
     fontSize: 16,
-    color: '#000',
+    color: "#000",
   },
   errorText: {
-    color: '#EF4444',
+    color: "#EF4444",
     fontSize: 14,
     marginTop: 4,
     marginLeft: 4,
   },
   successText: {
-    color: '#10B981',
+    color: "#10B981",
     fontSize: 14,
     marginTop: 4,
     marginLeft: 4,
   },
   signInContainer: {
     marginTop: 32,
-    alignItems: 'center',
+    alignItems: "center",
   },
   signInText: {
-    color: '#6B7280',
+    color: "#6B7280",
   },
   signInLink: {
-    color: '#4CAF50',
-    fontWeight: '600',
+    color: "#4CAF50",
+    fontWeight: "600",
   },
-}); 
+});

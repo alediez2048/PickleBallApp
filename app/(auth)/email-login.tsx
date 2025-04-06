@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
-import { router } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/common/ui/Button';
-import { LoadingSpinner } from '@/components/common/ui/LoadingSpinner';
-import { validateLoginForm } from '@/utils/validation';
-import { ThemedText } from '@/components/ThemedText';
+import React, { useState } from "react";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+} from "react-native";
+import { router } from "expo-router";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/common/ui/Button";
+import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
+import { validateLoginForm } from "@/utils/validation";
+import { ThemedText } from "@/components/common/ThemedText";
 
 export default function EmailLoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const { signIn } = useAuth();
@@ -20,7 +27,7 @@ export default function EmailLoginScreen() {
       const validationResult = validateLoginForm(email, password);
       if (validationResult.hasErrors()) {
         const newErrors: { [key: string]: string } = {};
-        validationResult.getAllErrors().forEach(error => {
+        validationResult.getAllErrors().forEach((error) => {
           newErrors[error.field] = error.message;
         });
         setErrors(newErrors);
@@ -31,26 +38,26 @@ export default function EmailLoginScreen() {
       await signIn(email, password);
       // Navigation will be handled by the root layout
     } catch (err) {
-      setErrors({ form: 'Invalid email or password' });
+      setErrors({ form: "Invalid email or password" });
     } finally {
       setIsLoading(false);
     }
   };
 
   if (isLoading) {
-    return <LoadingSpinner message="Signing in..." />;
+    return <LoadingSpinner message='Signing in...' />;
   }
 
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <View style={styles.content}>
           {/* Header with Back Button */}
           <View style={styles.header}>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => router.back()}
               style={styles.backButton}
             >
@@ -61,10 +68,10 @@ export default function EmailLoginScreen() {
           <View style={styles.formContainer}>
             {/* Title */}
             <View style={styles.titleContainer}>
-              <ThemedText variant="title" style={styles.title}>
+              <ThemedText variant='title' style={styles.title}>
                 Sign in with email
               </ThemedText>
-              <ThemedText variant="subtitle" style={styles.subtitle}>
+              <ThemedText variant='subtitle' style={styles.subtitle}>
                 Enter your email and password
               </ThemedText>
             </View>
@@ -74,14 +81,14 @@ export default function EmailLoginScreen() {
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
-                  placeholder="Email"
-                  placeholderTextColor="#6B7280"
+                  placeholder='Email'
+                  placeholderTextColor='#6B7280'
                   value={email}
                   onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
+                  autoCapitalize='none'
+                  keyboardType='email-address'
                   editable={!isLoading}
-                  returnKeyType="next"
+                  returnKeyType='next'
                 />
                 {errors.email && (
                   <ThemedText style={styles.errorText}>
@@ -93,13 +100,13 @@ export default function EmailLoginScreen() {
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
-                  placeholder="Password"
-                  placeholderTextColor="#6B7280"
+                  placeholder='Password'
+                  placeholderTextColor='#6B7280'
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
                   editable={!isLoading}
-                  returnKeyType="done"
+                  returnKeyType='done'
                   onSubmitEditing={handleLogin}
                 />
                 {errors.password && (
@@ -107,11 +114,13 @@ export default function EmailLoginScreen() {
                     {errors.password}
                   </ThemedText>
                 )}
-                <TouchableOpacity 
-                  onPress={() => router.push('/(auth)/forgot-password')}
+                <TouchableOpacity
+                  onPress={() => router.push("/(auth)/forgot-password")}
                   style={styles.forgotPasswordContainer}
                 >
-                  <ThemedText style={styles.forgotPasswordText}>Forgot password?</ThemedText>
+                  <ThemedText style={styles.forgotPasswordText}>
+                    Forgot password?
+                  </ThemedText>
                 </TouchableOpacity>
               </View>
 
@@ -121,10 +130,10 @@ export default function EmailLoginScreen() {
                 </ThemedText>
               )}
 
-              <Button 
+              <Button
                 onPress={handleLogin}
-                size="large"
-                variant="primary"
+                size='large'
+                variant='primary'
                 fullWidth
                 disabled={isLoading}
               >
@@ -141,7 +150,7 @@ export default function EmailLoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   keyboardView: {
     flex: 1,
@@ -152,19 +161,19 @@ const styles = StyleSheet.create({
   },
   header: {
     height: 60,
-    justifyContent: 'center',
+    justifyContent: "center",
     marginTop: 20,
   },
   backButton: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   backButtonText: {
-    color: '#6B7280',
+    color: "#6B7280",
     fontSize: 16,
   },
   formContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingTop: 20,
   },
   titleContainer: {
@@ -174,7 +183,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   subtitle: {
-    color: '#6B7280',
+    color: "#6B7280",
   },
   form: {
     gap: 16,
@@ -185,30 +194,30 @@ const styles = StyleSheet.create({
   input: {
     height: 52,
     paddingHorizontal: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
     borderRadius: 25,
     fontSize: 16,
-    color: '#000',
+    color: "#000",
   },
   errorText: {
-    color: '#EF4444',
+    color: "#EF4444",
     fontSize: 14,
     marginTop: 4,
     marginLeft: 4,
   },
   formError: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 16,
   },
   forgotPasswordContainer: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginTop: 8,
   },
   forgotPasswordText: {
-    color: '#4CAF50',
+    color: "#4CAF50",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
-}); 
+});

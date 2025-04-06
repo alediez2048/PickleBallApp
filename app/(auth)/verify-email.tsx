@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { View, SafeAreaView, StyleSheet } from 'react-native';
-import { router } from 'expo-router';
-import { Button } from '@/components/common/ui/Button';
-import { LoadingSpinner } from '@/components/common/ui/LoadingSpinner';
-import { mockApi } from '@/services/mockApi';
-import { useAuth } from '@/contexts/AuthContext';
-import { VerifyEmailIcon } from '@/components/common/icons/VerifyEmailIcon';
-import { ThemedText } from '@/components/ThemedText';
+import React, { useState } from "react";
+import { View, SafeAreaView, StyleSheet } from "react-native";
+import { router } from "expo-router";
+import { Button } from "@/components/common/ui/Button";
+import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
+import { mockApi } from "@/services/mockApi";
+import { useAuth } from "@/contexts/AuthContext";
+import { VerifyEmailIcon } from "@/components/common/icons/VerifyEmailIcon";
+import { ThemedText } from "@/components/common/ThemedText";
 
 export default function VerifyEmailScreen() {
   const { user, signOut } = useAuth();
@@ -16,19 +16,21 @@ export default function VerifyEmailScreen() {
 
   const handleResendVerification = async () => {
     if (!user?.email) return;
-    
+
     try {
       setIsLoading(true);
       setError(null);
       setSuccess(null);
-      
+
       await mockApi.resendVerificationEmail(user.email);
-      setSuccess('Verification email has been resent. Please check your inbox.');
+      setSuccess(
+        "Verification email has been resent. Please check your inbox."
+      );
     } catch (err) {
-      if (err instanceof Error && err.message === 'Email already verified') {
-        router.replace('/(tabs)');
+      if (err instanceof Error && err.message === "Email already verified") {
+        router.replace("/(tabs)");
       } else {
-        setError('Failed to resend verification email. Please try again.');
+        setError("Failed to resend verification email. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -41,13 +43,13 @@ export default function VerifyEmailScreen() {
       await signOut();
       // Navigation will be handled by the root layout
     } catch (err) {
-      setError('Failed to sign out. Please try again.');
+      setError("Failed to sign out. Please try again.");
       setIsLoading(false);
     }
   };
 
   if (isLoading) {
-    return <LoadingSpinner message="Please wait..." />;
+    return <LoadingSpinner message='Please wait...' />;
   }
 
   return (
@@ -57,28 +59,30 @@ export default function VerifyEmailScreen() {
           <VerifyEmailIcon size={80} />
         </View>
 
-        <ThemedText variant="title" style={styles.title}>Verify your email</ThemedText>
-        <ThemedText variant="subtitle" style={styles.subtitle}>
-          We've sent a verification email to{'\n'}
-          <ThemedText variant="subtitle" style={styles.email}>{user?.email}</ThemedText>
+        <ThemedText variant='title' style={styles.title}>
+          Verify your email
+        </ThemedText>
+        <ThemedText variant='subtitle' style={styles.subtitle}>
+          We've sent a verification email to{"\n"}
+          <ThemedText variant='subtitle' style={styles.email}>
+            {user?.email}
+          </ThemedText>
         </ThemedText>
 
         <View style={styles.messageContainer}>
-          {error && (
-            <ThemedText style={styles.errorText}>{error}</ThemedText>
-          )}
+          {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
           {success && (
             <ThemedText style={styles.successText}>{success}</ThemedText>
           )}
         </View>
 
         <View style={styles.buttonContainer}>
-          <ThemedText variant="caption" style={styles.resendText}>
+          <ThemedText variant='caption' style={styles.resendText}>
             Didn't receive the email?
           </ThemedText>
           <Button
-            variant="primary"
-            size="large"
+            variant='primary'
+            size='large'
             fullWidth
             onPress={handleResendVerification}
             disabled={isLoading}
@@ -88,12 +92,12 @@ export default function VerifyEmailScreen() {
 
           <View style={styles.divider} />
 
-          <ThemedText variant="caption" style={styles.signInText}>
+          <ThemedText variant='caption' style={styles.signInText}>
             Want to use a different account?
           </ThemedText>
           <Button
-            variant="outline"
-            size="large"
+            variant='outline'
+            size='large'
             fullWidth
             onPress={handleBackToSignIn}
             disabled={isLoading}
@@ -109,59 +113,59 @@ export default function VerifyEmailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   content: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 24,
   },
   iconContainer: {
     marginBottom: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   title: {
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
-    color: '#6B7280',
-    textAlign: 'center',
+    color: "#6B7280",
+    textAlign: "center",
     marginBottom: 24,
   },
   email: {
-    fontWeight: '600',
+    fontWeight: "600",
   },
   messageContainer: {
     marginBottom: 24,
     minHeight: 40,
   },
   errorText: {
-    color: '#EF4444',
+    color: "#EF4444",
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
   },
   successText: {
-    color: '#10B981',
+    color: "#10B981",
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
   },
   buttonContainer: {
-    width: '100%',
+    width: "100%",
     gap: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   resendText: {
-    color: '#6B7280',
+    color: "#6B7280",
   },
   divider: {
     height: 1,
-    backgroundColor: '#E5E7EB',
-    width: '100%',
+    backgroundColor: "#E5E7EB",
+    width: "100%",
     marginVertical: 8,
   },
   signInText: {
-    color: '#6B7280',
+    color: "#6B7280",
   },
-}); 
+});
