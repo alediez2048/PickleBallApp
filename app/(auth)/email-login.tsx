@@ -38,6 +38,7 @@ export default function EmailLoginScreen() {
       await signIn(email, password);
       // Navigation will be handled by the root layout
     } catch (err) {
+      console.log(err);
       setErrors({ form: "Invalid email or password" });
     } finally {
       setIsLoading(false);

@@ -13,9 +13,7 @@ import ThemeToggleButton from "@/components/common/ThemeToggleButton";
 export default function LoginScreen() {
   const { signInWithGoogle, signInWithFacebook } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const { theme } = useTheme();
-
-  const backgroundColor = theme === "dark" ? "#000" : "#fff";
+  const { colors, theme } = useTheme();
 
   const handleSocialSignIn = async (provider: "google" | "facebook") => {
     try {
@@ -38,7 +36,9 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={styles.innerContainer}>
         <View style={styles.content}>
           {/* Logo */}
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 10,
   },
   logo: {
     fontSize: 32,
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 20,
+    marginVertical: 10,
   },
   dividerLine: {
     flex: 1,

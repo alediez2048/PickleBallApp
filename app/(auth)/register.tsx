@@ -14,6 +14,7 @@ import { Button } from "@/components/common/ui/Button";
 import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
 import { validateRegisterForm } from "@/utils/validation";
 import { ThemedText } from "@/components/common/ThemedText";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function RegisterScreen() {
   const [name, setName] = useState("");
@@ -22,6 +23,7 @@ export default function RegisterScreen() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
+  const { colors } = useTheme();
 
   const handleRegister = async () => {
     try {
@@ -54,7 +56,9 @@ export default function RegisterScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
@@ -198,7 +202,7 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     justifyContent: "center",
-    paddingTop: 20,
+    paddingTop: 5,
   },
   titleContainer: {
     marginBottom: 32,
