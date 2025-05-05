@@ -28,16 +28,16 @@ export default function TabLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!user?.emailVerified) {
+    if (!user?.email_confirmed_at) {
       router.replace("/verify-email" as const);
       return;
     }
 
-    if (!user?.skillLevel) {
+    if (!user?.skill_level) {
       router.replace("/(skill-select)" as const);
       return;
     }
-  }, [user?.emailVerified, user?.skillLevel]);
+  }, [user?.email_confirmed_at, user?.skill_level]);
 
   return (
     <Tabs

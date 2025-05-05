@@ -19,11 +19,13 @@ export type ThemedTextProps = TextProps & {
     | "caption"
     | "link"
     | "bold";
+  colorType?: "default" | "black" | "white" | "primary" | "secondary";
 };
 
 export function ThemedText({
   style,
   type = "default",
+  colorType = "default",
   ...rest
 }: ThemedTextProps) {
   const { colors } = useTheme();
@@ -53,10 +55,27 @@ export function ThemedText({
     }
   };
 
-  const styleMatch = getTypeStyle();
+  const getColorStyle = (): StyleProp<TextStyle> => {
+    switch (colorType) {
+      case "black":
+        return { color: colors.black };
+      case "white":
+        return { color: colors.white };
+      case "primary":
+        return { color: colors.primary };
+      case "secondary":
+        return { color: colors.secondary };
+      default:
+        return { color: colors.text };
+    }
+  };
 
-  return <Text style={[{ color: colors.text }, styleMatch, style]} {...rest} />;
+  const styleMatch = getTypeStyle();
+  const colorMatch = getColorStyle();
+
+  return <Text style={[colorMatch, styleMatch, style]} {...rest} />;
 }
+
 const styles = StyleSheet.create({
   default: {
     fontSize: 16,

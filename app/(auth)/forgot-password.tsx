@@ -117,10 +117,10 @@ export default function ForgotPasswordScreen() {
               </Button>
 
               <View style={styles.signInContainer}>
-                <ThemedText variant='caption' style={styles.signInText}>
+                <ThemedText type='caption' style={styles.signInText}>
                   Remember your password?{" "}
                   <ThemedText
-                    variant='caption'
+                    type='caption'
                     style={styles.signInLink}
                     onPress={() => router.push("/(auth)/email-login")}
                   >

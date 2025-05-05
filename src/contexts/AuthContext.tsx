@@ -6,22 +6,24 @@ import React, {
   useCallback,
 } from "react";
 import { router } from "expo-router";
-import {
-  mockApi,
-  FirstTimeProfileData,
-  UpdateProfileData,
-} from "@/services/mockApi";
+import { mockApi } from "@/services/mockApi";
 import { storage } from "@/services/storage";
 import { socialAuth } from "@/services/socialAuth";
 import { Alert, Platform } from "react-native";
 import { MembershipPlan } from "@/types/membership";
+import { UserProfile } from "@/types/user";
 import {
   signUpWithEmail,
   signInWithEmail,
   getSession,
   logout,
+  resendConfirmationEmail,
 } from "@/services/authService";
-import { createUserProfile } from "@/services/userService";
+import {
+  createUserProfile,
+  updateUserProfile,
+  getUserProfile,
+} from "@/services/userService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface PaymentMethod {
@@ -31,33 +33,6 @@ interface PaymentMethod {
   expiryMonth: string;
   expiryYear: string;
   isDefault: boolean;
-}
-
-interface UserProfile {
-  id?: string;
-  email?: string;
-  name?: string;
-  isVerified?: boolean;
-  skillLevel?: string;
-  profileImage?:
-    | string
-    | {
-        uri: string;
-        base64: string;
-        timestamp: number;
-      };
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    zipCode?: string;
-    country?: string;
-  };
-  membership?: MembershipPlan;
-  paymentMethods?: PaymentMethod[];
-  hasCompletedProfile?: boolean;
 }
 
 interface AuthState {
@@ -78,8 +53,8 @@ interface AuthContextType extends AuthState {
   signInWithFacebook: () => Promise<void>;
 
   // Profile management methods
-  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
-  updateFirstTimeProfile: (data: FirstTimeProfileData) => Promise<void>;
+  updateProfile: (updates: Record<string, any>) => Promise<void>;
+  resendConfirmationOfEmail: (email: string) => Promise<void>;
   updateMembership: (plan: MembershipPlan) => Promise<void>;
   updatePaymentMethods: (methods: PaymentMethod[]) => Promise<void>;
   updatePaymentMethod?: (hasPaymentMethod: boolean) => Promise<void>;
@@ -94,6 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user: null,
     token: null,
+    session: null,
     isLoading: true,
   });
 
@@ -199,19 +175,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const token = data.session.access_token;
-      const user = data.user;
       const session = data.session;
+      const user = data.user;
 
       console.log("Sign in successful:", { token, user });
 
+      const { data: userProfile, error: profileError } = await getUserProfile(
+        user.id
+      );
+
+      if (profileError) {
+        console.error("Error fetching user profile:", profileError);
+      }
+
+      const fullUserProfile = {
+        ...user,
+        ...userProfile,
+      };
+
       await Promise.all([
         AsyncStorage.setItem("auth_token", token),
-        AsyncStorage.setItem("user", JSON.stringify(user)),
+        AsyncStorage.setItem("user", JSON.stringify(fullUserProfile)),
       ]);
 
-      console.log("Auth data stored");
+      console.log("Auth data stored successfully");
 
-      setState({ token, session, user, isLoading: false });
+      setState({
+        token,
+        session,
+        user: fullUserProfile,
+        isLoading: false,
+      });
     } catch (error: any) {
       console.error("Sign in error:", error.message);
       setState((prev) => ({ ...prev, isLoading: false }));
@@ -255,6 +249,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setState({
         token: response.token,
         user: response.user,
+        session: null,
         isLoading: false,
       });
     } catch (error) {
@@ -297,118 +292,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateProfile = async (updates: Partial<UserProfile>) => {
+  const updateProfile = async (updates: Record<string, any>) => {
     try {
-      setState((prev) => ({ ...prev, isLoading: true }));
-
-      if (!state.user?.email) {
+      if (!state.user?.id) {
         throw new Error("No authenticated user");
       }
 
-      // Map UserProfile to UpdateProfileData
-      const profileUpdates: UpdateProfileData = { ...updates } as any;
-
-      // Handle address mapping if it exists
-      if (updates.address) {
-        profileUpdates.address = {
-          address: updates.address.street || "",
-          city: updates.address.city || "",
-          state: updates.address.state || "",
-          zipCode: updates.address.zipCode || "",
-          country: updates.address.country || "United States",
-        };
+      const { error } = await updateUserProfile(state.user.id, updates);
+      if (error) {
+        throw new Error(error.message);
       }
 
-      const { user: updatedUser } = await mockApi.updateProfile(
-        state.user.email,
-        profileUpdates
-      );
-
-      // Store the updated user data
-      await storage.setItem("user", JSON.stringify(updatedUser));
-
-      setState((prev) => ({
-        ...prev,
-        user: updatedUser,
-        isLoading: false,
-      }));
-
-      console.log("Profile updated successfully:", updatedUser);
+      const updatedUser = { ...state.user, ...updates };
+      await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
+      setState((prev) => ({ ...prev, user: updatedUser }));
     } catch (error) {
-      console.error("Profile update error:", error);
-      setState((prev) => ({ ...prev, isLoading: false }));
-      throw error;
-    }
-  };
-
-  const updateFirstTimeProfile = async (data: FirstTimeProfileData) => {
-    try {
-      console.debug("[AuthContext] Starting first time profile update", {
-        platform: Platform.OS,
-        hasUser: !!state.user,
-        userEmail: state.user?.email,
-        data,
-      });
-
-      setState((prev) => ({ ...prev, isLoading: true }));
-
-      if (!state.user?.email) {
-        console.error("[AuthContext] No authenticated user found");
-        throw new Error("No authenticated user");
-      }
-
-      // Map FirstTimeProfileData to UpdateProfileData
-      const profileData: UpdateProfileData = {
-        skillLevel: data.skillLevel,
-        displayName: data.displayName,
-        phoneNumber: data.phoneNumber,
-        dateOfBirth: data.dateOfBirth,
-        address: {
-          address: data.address.address,
-          city: data.address.city,
-          state: data.address.state,
-          zipCode: data.address.zipCode,
-          country: data.address.country,
-        },
-        hasCompletedProfile: true,
-      };
-
-      console.debug("[AuthContext] Calling mockApi.updateProfile", {
-        email: state.user.email,
-        profileData,
-      });
-
-      const { user: updatedUser } = await mockApi.updateProfile(
-        state.user.email,
-        profileData
-      );
-
-      console.debug("[AuthContext] Profile update API call successful", {
-        updatedUser,
-      });
-
-      // After successful profile update, update the stored user data
-      const userWithProfile = {
-        ...updatedUser,
-        hasCompletedProfile: true,
-      };
-
-      console.debug("[AuthContext] Storing updated user data");
-      await storage.setItem("user", JSON.stringify(userWithProfile));
-
-      console.debug("[AuthContext] Updating state with new user data");
-      setState((prev) => ({
-        ...prev,
-        user: userWithProfile,
-        isLoading: false,
-      }));
-
-      console.debug(
-        "[AuthContext] First time profile update completed successfully"
-      );
-    } catch (error) {
-      console.error("[AuthContext] Profile update error:", error);
-      setState((prev) => ({ ...prev, isLoading: false }));
+      console.error("Update profile error:", error);
       throw error;
     }
   };
@@ -511,6 +410,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resendConfirmationOfEmail = async (email: string) => {
+    try {
+      if (!email) {
+        throw new Error("Email is required");
+      }
+
+      await resendConfirmationEmail(email);
+      console.log("Confirmation email resent successfully");
+    } catch (error) {
+      console.error("Error resending confirmation email:", error);
+      throw error;
+    }
+  };
+
   const value = {
     ...state,
     signIn,
@@ -519,10 +432,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGoogle,
     signInWithFacebook,
     updateProfile,
-    updateFirstTimeProfile,
     updateMembership,
     updatePaymentMethods,
     updatePaymentMethod,
+    resendConfirmationOfEmail,
     isAuthenticated: !!state.token,
   };
 

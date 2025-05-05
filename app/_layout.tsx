@@ -30,8 +30,7 @@ function RootLayoutNav() {
     console.log("[Navigation Debug]", {
       currentSegment: segments[0],
       isAuthenticated,
-      hasSkillLevel: user?.skillLevel,
-      hasCompletedProfile: user?.hasCompletedProfile,
+      hasCompletedProfile: user?.has_completed_profile,
       inAuthGroup,
       inSkillGroup,
       inProfileSetup,
@@ -53,21 +52,21 @@ function RootLayoutNav() {
       }
     } else {
       // User is authenticated, check skill level first
-      if (!user?.skillLevel && !inSkillGroup) {
+      if (!user?.skill_level && !inSkillGroup) {
         targetRoute = "/(skill-select)";
       }
       // Then check profile completion
       else if (
-        user?.skillLevel &&
-        !user?.hasCompletedProfile &&
+        user?.skill_level &&
+        !user?.has_completed_profile &&
         !inProfileSetup
       ) {
         targetRoute = "/(profile-setup)";
       }
       // Only redirect to main app if all requirements are met
       else if (
-        user?.skillLevel &&
-        user?.hasCompletedProfile &&
+        user?.skill_level &&
+        user?.has_completed_profile &&
         !inMainApp &&
         (inAuthGroup || inProfileSetup || inSkillGroup)
       ) {
@@ -81,8 +80,8 @@ function RootLayoutNav() {
         from: segments.join("/"),
         to: targetRoute,
         auth: isAuthenticated,
-        profile: user?.hasCompletedProfile,
-        skill: user?.skillLevel,
+        profile: user?.has_completed_profile,
+        skill: user?.skill_level,
         inMainApp,
       });
 
@@ -93,8 +92,8 @@ function RootLayoutNav() {
     isAuthenticated,
     segments,
     isLoading,
-    user?.skillLevel,
-    user?.hasCompletedProfile,
+    user?.skill_level,
+    user?.has_completed_profile,
   ]);
 
   return <Slot />;

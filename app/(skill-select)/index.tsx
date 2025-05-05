@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
@@ -13,70 +12,9 @@ import { useRouter } from "expo-router";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { SkillLevel } from "@/types/game";
-
-interface SkillLevelOption {
-  value: SkillLevel;
-  label: string;
-  description: string;
-  rules: string[];
-  icon: "person.fill" | "person.2.fill" | "trophy.fill" | "star.fill";
-  color: string;
-}
-
-const SKILL_LEVELS: SkillLevelOption[] = [
-  {
-    value: SkillLevel.Beginner,
-    label: "Beginner",
-    description:
-      "New to pickleball or played a few times. Learning basic rules and shots.",
-    rules: [
-      "Access to beginner-friendly games",
-      "Matched with other beginners",
-      "Instructional games available",
-    ],
-    icon: "person.fill",
-    color: "#4CAF50",
-  },
-  {
-    value: SkillLevel.Intermediate,
-    label: "Intermediate",
-    description:
-      "Comfortable with basic shots and rules. Starting to develop strategy.",
-    rules: [
-      "Access to intermediate games",
-      "Can join some advanced games",
-      "Mixed skill level games available",
-    ],
-    icon: "person.2.fill",
-    color: "#2196F3",
-  },
-  {
-    value: SkillLevel.Advanced,
-    label: "Advanced",
-    description:
-      "Experienced player with strong shots and strategy. Competitive play.",
-    rules: [
-      "Access to advanced games",
-      "Competitive matches",
-      "Tournament eligibility",
-    ],
-    icon: "trophy.fill",
-    color: "#F44336",
-  },
-  {
-    value: SkillLevel.Open,
-    label: "Open",
-    description:
-      "Highly skilled player. Tournament experience. All shots and strategies mastered.",
-    rules: [
-      "Access to all game levels",
-      "Priority for tournaments",
-      "Can host competitive games",
-    ],
-    icon: "star.fill",
-    color: "#9C27B0",
-  },
-];
+import { SKILL_LEVELS } from "@/constants/skillLevels";
+import { useTheme } from "@/contexts/ThemeContext";
+import { ThemedText } from "@/components/common/ThemedText";
 
 export default function SkillSelectScreen() {
   const [selectedSkill, setSelectedSkill] = useState<SkillLevel | null>(null);
@@ -84,12 +22,15 @@ export default function SkillSelectScreen() {
   const [isUpdating, setIsUpdating] = useState(false);
   const { updateProfile } = useAuth();
   const router = useRouter();
+  const { colors } = useTheme();
 
+  // Handles skill selection
   const handleSkillSelect = (skill: SkillLevel) => {
     setSelectedSkill(skill);
     setExpandedSkill(skill);
   };
 
+  // Confirms the selected skill and updates the profile
   const handleConfirm = async () => {
     if (!selectedSkill) {
       Alert.alert(
@@ -102,7 +43,7 @@ export default function SkillSelectScreen() {
 
     setIsUpdating(true);
     try {
-      await updateProfile({ skillLevel: selectedSkill });
+      await updateProfile({ skill_level: selectedSkill });
       router.replace("/(tabs)/explore");
     } catch (error) {
       const errorMessage =
@@ -123,24 +64,28 @@ export default function SkillSelectScreen() {
     }
   };
 
+  // Toggles the expanded state of a skill
   const toggleExpanded = (skill: SkillLevel) => {
     setExpandedSkill(expandedSkill === skill ? null : skill);
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header Section */}
       <View style={styles.header}>
-        <Text style={styles.title}>Select Your Skill Level</Text>
-        <Text style={styles.subtitle}>
+        <ThemedText type='title'>Select Your Skill Level</ThemedText>
+        <ThemedText type='paragraph'>
           Choose the level that best matches your current abilities. This helps
           us match you with appropriate games.
-        </Text>
+        </ThemedText>
       </View>
 
+      {/* Skill List Section */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.skillList}>
           {SKILL_LEVELS.map((skill) => (
             <View key={skill.value} style={styles.skillCard}>
+              {/* Skill Header */}
               <TouchableOpacity
                 style={[
                   styles.skillHeader,
@@ -157,19 +102,23 @@ export default function SkillSelectScreen() {
                     style={styles.skillIcon}
                   />
                   <View style={styles.textContainer}>
-                    <Text style={styles.skillLabel}>{skill.label}</Text>
-                    <Text
+                    <ThemedText type='subtitle' colorType='black'>
+                      {skill.label}
+                    </ThemedText>
+                    <ThemedText
+                      type='paragraph'
                       style={styles.skillDescription}
                       numberOfLines={
                         expandedSkill === skill.value ? undefined : 2
                       }
+                      colorType='black'
                     >
                       {skill.description}
-                    </Text>
+                    </ThemedText>
                   </View>
                 </View>
                 <TouchableOpacity
-                  style={styles.expandButton}
+                  style={[styles.expandButton]}
                   onPress={() => toggleExpanded(skill.value)}
                 >
                   <IconSymbol
@@ -179,7 +128,7 @@ export default function SkillSelectScreen() {
                         : "chevron.down"
                     }
                     size={20}
-                    color='#666666'
+                    color={skill.color}
                     style={[
                       styles.expandIcon,
                       expandedSkill === skill.value && styles.expandedIcon,
@@ -188,9 +137,12 @@ export default function SkillSelectScreen() {
                 </TouchableOpacity>
               </TouchableOpacity>
 
+              {/* Expanded Rules Section */}
               {expandedSkill === skill.value && (
                 <View style={styles.rulesContainer}>
-                  <Text style={styles.rulesTitle}>Booking Rules:</Text>
+                  <ThemedText type='subtitle' colorType='black'>
+                    Booking Rules:
+                  </ThemedText>
                   {skill.rules.map((rule, index) => (
                     <View key={index} style={styles.ruleItem}>
                       <View
@@ -199,7 +151,9 @@ export default function SkillSelectScreen() {
                           { backgroundColor: skill.color },
                         ]}
                       />
-                      <Text style={styles.ruleText}>{rule}</Text>
+                      <ThemedText type='paragraph' colorType='black'>
+                        {rule}
+                      </ThemedText>
                     </View>
                   ))}
                 </View>
@@ -209,6 +163,7 @@ export default function SkillSelectScreen() {
         </View>
       </ScrollView>
 
+      {/* Footer Section */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={[
@@ -219,11 +174,11 @@ export default function SkillSelectScreen() {
           disabled={!selectedSkill || isUpdating}
         >
           {isUpdating ? (
-            <ActivityIndicator color='#FFFFFF' />
+            <ActivityIndicator color={colors.white} />
           ) : (
-            <Text style={styles.confirmButtonText}>
+            <ThemedText type='bold' style={styles.confirmButtonText}>
               {selectedSkill ? "Confirm Selection" : "Select a Skill Level"}
-            </Text>
+            </ThemedText>
           )}
         </TouchableOpacity>
       </View>
@@ -234,23 +189,10 @@ export default function SkillSelectScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
   },
   header: {
     padding: 24,
     paddingTop: Platform.OS === "ios" ? 80 : 60,
-    backgroundColor: "#FFFFFF",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#000000",
-    marginBottom: 12,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666666",
-    lineHeight: 22,
   },
   content: {
     flex: 1,
@@ -284,7 +226,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     borderRadius: 12,
-    backgroundColor: "#FFFFFF",
     borderWidth: 2,
     borderColor: "#E0E0E0",
   },
@@ -305,16 +246,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  skillLabel: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000000",
-    marginBottom: 4,
-  },
   skillDescription: {
-    fontSize: 14,
-    color: "#666666",
-    lineHeight: 20,
+    marginTop: 4,
   },
   textContainer: {
     flex: 1,
@@ -339,12 +272,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
   },
-  rulesTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000000",
-    marginBottom: 12,
-  },
   ruleItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -356,31 +283,23 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     marginRight: 8,
   },
-  ruleText: {
-    fontSize: 14,
-    color: "#666666",
-    flex: 1,
-  },
   footer: {
     padding: 16,
     paddingBottom: Platform.OS === "ios" ? 32 : 16,
-    backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#E5E7EB",
   },
   confirmButton: {
-    backgroundColor: "#4CAF50",
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#4CAF50",
   },
   disabledButton: {
     backgroundColor: "#E0E0E0",
   },
   confirmButtonText: {
     color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });

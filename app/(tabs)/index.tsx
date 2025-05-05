@@ -1,25 +1,35 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert } from 'react-native';
-import { Button } from '@components/common/ui/Button';
-import { useAuth } from '@/contexts/AuthContext';
-import { useUserProfile } from '@/contexts/selectors/authSelectors';
-import { useRouter } from 'expo-router';
-import { useUpcomingBookedGames, useBookedGames } from '@/contexts/BookedGamesContext';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Platform,
+  Alert,
+} from "react-native";
+import { Button } from "@components/common/ui/Button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "expo-router";
+import {
+  useUpcomingBookedGames,
+  useBookedGames,
+} from "@/contexts/BookedGamesContext";
+import { IconSymbol } from "@/components/ui/IconSymbol";
 
 export default function TabHomeScreen() {
-  const user = useUserProfile();
+  const { user } = useAuth();
   const router = useRouter();
   const upcomingGames = useUpcomingBookedGames();
   const { clearAllGames } = useBookedGames();
-  
+
   const handleGamePress = (gameId: string) => {
     // Find the booked game to get its original game ID
-    const bookedGame = upcomingGames.find(game => game.id === gameId);
+    const bookedGame = upcomingGames.find((game) => game.id === gameId);
     if (bookedGame) {
       router.push({
-        pathname: '/game/[id]',
-        params: { id: bookedGame.gameId }
+        pathname: "/game/[id]",
+        params: { id: bookedGame.gameId },
       });
     }
   };
@@ -28,35 +38,31 @@ export default function TabHomeScreen() {
     <View style={styles.container}>
       <View style={styles.banner}>
         <Text style={styles.welcomeText}>
-          Hi {user?.name || 'User'}, Welcome to PicklePass
+          Hi {user?.name || "User"}, Welcome to PicklePass
         </Text>
       </View>
 
       <ScrollView style={styles.contentContainer}>
         <View style={styles.content}>
-          <Text style={styles.title}>
-            Welcome to PicklePass
-          </Text>
+          <Text style={styles.title}>Welcome to PicklePass</Text>
           <Text style={styles.subtitle}>
             Find and join pickleball games near you
           </Text>
-          
+
           <View style={styles.buttonContainer}>
-            <Button 
-              onPress={() => router.push('/(tabs)/explore')} 
-              size="large"
-              variant="primary"
+            <Button
+              onPress={() => router.push("/(tabs)/explore")}
+              size='large'
+              variant='primary'
               fullWidth
               style={styles.button}
             >
               Find Games
             </Button>
-            
+
             <View style={styles.upcomingGamesContainer}>
               <View style={styles.upcomingGamesHeader}>
-                <Text style={styles.sectionTitle}>
-                  Upcoming Games
-                </Text>
+                <Text style={styles.sectionTitle}>Upcoming Games</Text>
               </View>
               {upcomingGames.length > 0 ? (
                 <View style={styles.gamesList}>
@@ -69,14 +75,31 @@ export default function TabHomeScreen() {
                       <View style={styles.gameCardContent}>
                         <View style={styles.gameTimeAndLocation}>
                           <View style={styles.timeContainer}>
-                            <IconSymbol name="calendar" size={16} color="#4CAF50" style={styles.timeIcon} />
+                            <IconSymbol
+                              name='calendar'
+                              size={16}
+                              color='#4CAF50'
+                              style={styles.timeIcon}
+                            />
                             <Text style={styles.gameTime}>{game.time}</Text>
                           </View>
                           <View style={styles.locationContainer}>
-                            <IconSymbol name="location.fill" size={16} color="#666666" style={styles.locationIcon} />
+                            <IconSymbol
+                              name='location.fill'
+                              size={16}
+                              color='#666666'
+                              style={styles.locationIcon}
+                            />
                             <View style={styles.locationTextContainer}>
-                              <Text style={styles.gameCourt}>{game.courtName}</Text>
-                              <Text style={styles.gameAddress} numberOfLines={1}>{game.location.address}</Text>
+                              <Text style={styles.gameCourt}>
+                                {game.courtName}
+                              </Text>
+                              <Text
+                                style={styles.gameAddress}
+                                numberOfLines={1}
+                              >
+                                {game.location.address}
+                              </Text>
                             </View>
                           </View>
                         </View>
@@ -86,7 +109,12 @@ export default function TabHomeScreen() {
                 </View>
               ) : (
                 <View style={styles.emptyStateContainer}>
-                  <IconSymbol name="gamecontroller.fill" size={40} color="#666666" style={styles.emptyStateIcon} />
+                  <IconSymbol
+                    name='gamecontroller.fill'
+                    size={40}
+                    color='#666666'
+                    style={styles.emptyStateIcon}
+                  />
                   <Text style={styles.emptyStateTitle}>No Upcoming Games</Text>
                   <Text style={styles.emptyStateText}>
                     Find and join games to see them here!
@@ -104,59 +132,59 @@ export default function TabHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   banner: {
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     padding: 20,
     paddingTop: 60,
   },
   welcomeText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   contentContainer: {
     flex: 1,
   },
   content: {
-    alignItems: 'center',
-    width: '100%',
+    alignItems: "center",
+    width: "100%",
     maxWidth: 400,
-    alignSelf: 'center',
+    alignSelf: "center",
     padding: 16,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#4CAF50',
+    fontWeight: "bold",
+    color: "#4CAF50",
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 18,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     paddingHorizontal: 16,
     marginBottom: 32,
   },
   buttonContainer: {
-    width: '100%',
+    width: "100%",
     gap: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   button: {
-    width: '100%',
+    width: "100%",
     marginBottom: 12,
   },
   upcomingGamesContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderRadius: 16,
-    width: '100%',
+    width: "100%",
     marginVertical: 16,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: {
           width: 0,
           height: 2,
@@ -172,26 +200,26 @@ const styles = StyleSheet.create({
   upcomingGamesHeader: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#000000',
+    fontWeight: "700",
+    color: "#000000",
   },
   gamesList: {
     padding: 12,
     gap: 12,
   },
   gameCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: "#f0f0f0",
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: {
           width: 0,
           height: 2,
@@ -206,17 +234,17 @@ const styles = StyleSheet.create({
   },
   gameCardContent: {
     padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   gameTimeAndLocation: {
     flex: 1,
     gap: 8,
   },
   timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   timeIcon: {
@@ -224,12 +252,12 @@ const styles = StyleSheet.create({
   },
   gameTime: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#4CAF50',
+    fontWeight: "600",
+    color: "#4CAF50",
   },
   locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: 6,
   },
   locationIcon: {
@@ -240,18 +268,18 @@ const styles = StyleSheet.create({
   },
   gameCourt: {
     fontSize: 15,
-    fontWeight: '500',
-    color: '#000000',
+    fontWeight: "500",
+    color: "#000000",
     marginBottom: 2,
   },
   gameAddress: {
     fontSize: 13,
-    color: '#666666',
+    color: "#666666",
   },
   emptyStateContainer: {
     padding: 32,
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
     margin: 12,
     borderRadius: 12,
   },
@@ -261,13 +289,13 @@ const styles = StyleSheet.create({
   },
   emptyStateTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
+    fontWeight: "600",
+    color: "#000000",
     marginBottom: 8,
   },
   emptyStateText: {
     fontSize: 14,
-    color: '#666666',
-    textAlign: 'center',
+    color: "#666666",
+    textAlign: "center",
   },
 });

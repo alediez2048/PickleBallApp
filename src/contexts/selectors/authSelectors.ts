@@ -7,23 +7,6 @@ export const useUser = () => {
   return useMemo(() => user, [user]);
 };
 
-export const useUserProfile = () => {
-  const { user } = useAuth();
-  return useMemo(() => ({
-    id: user?.id,
-    name: user?.name,
-    email: user?.email,
-    isVerified: user?.isVerified,
-    skillLevel: user?.skillLevel,
-    profileImage: user?.profileImage,
-    phoneNumber: user?.phoneNumber,
-    dateOfBirth: user?.dateOfBirth,
-    address: user?.address,
-    membership: user?.membership,
-    paymentMethods: user?.paymentMethods
-  }), [user]);
-};
-
 // Auth state selectors
 export const useAuthState = () => {
   const { isAuthenticated, isLoading, token } = useAuth();
@@ -43,4 +26,4 @@ export const useSocialAuthState = () => {
     hasGoogleAuth: !!signInWithGoogle,
     hasFacebookAuth: !!signInWithFacebook,
   }), [signInWithGoogle, signInWithFacebook]);
-}; 
+};

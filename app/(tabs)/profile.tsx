@@ -11,7 +11,6 @@ import {
   ScrollView,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { useUserProfile } from "@/contexts/selectors/authSelectors";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useUpcomingGames } from "@/contexts/selectors/gameSelectors";
 import { Button } from "@/components/common/ui/Button";
@@ -81,7 +80,7 @@ const SKILL_LEVELS = [
 ];
 
 export default function ProfileScreen() {
-  const user = useUserProfile() as UserProfile;
+  const { user } = useAuth();
   const { updateProfile, signOut, updateMembership } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);

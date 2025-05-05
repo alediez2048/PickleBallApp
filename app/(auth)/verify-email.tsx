@@ -3,13 +3,12 @@ import { View, SafeAreaView, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { Button } from "@/components/common/ui/Button";
 import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
-import { mockApi } from "@/services/mockApi";
 import { useAuth } from "@/contexts/AuthContext";
 import { VerifyEmailIcon } from "@/components/common/icons/VerifyEmailIcon";
 import { ThemedText } from "@/components/common/ThemedText";
 
 export default function VerifyEmailScreen() {
-  const { user, signOut } = useAuth();
+  const { user, resendConfirmationOfEmail, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -22,7 +21,8 @@ export default function VerifyEmailScreen() {
       setError(null);
       setSuccess(null);
 
-      await mockApi.resendVerificationEmail(user.email);
+      await resendConfirmationOfEmail(user.email);
+
       setSuccess(
         "Verification email has been resent. Please check your inbox."
       );
@@ -59,25 +59,35 @@ export default function VerifyEmailScreen() {
           <VerifyEmailIcon size={80} />
         </View>
 
-        <ThemedText variant='title' style={styles.title}>
+        <ThemedText type='title' style={styles.title}>
           Verify your email
         </ThemedText>
-        <ThemedText variant='subtitle' style={styles.subtitle}>
+        <ThemedText type='subtitleCenter' style={styles.subtitle}>
           We've sent a verification email to{"\n"}
-          <ThemedText variant='subtitle' style={styles.email}>
+          <ThemedText type='subtitle' style={styles.email}>
             {user?.email}
           </ThemedText>
         </ThemedText>
 
         <View style={styles.messageContainer}>
-          {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
+          {error && (
+            <ThemedText type='caption' style={styles.errorText}>
+              {error}
+            </ThemedText>
+          )}
           {success && (
-            <ThemedText style={styles.successText}>{success}</ThemedText>
+            <ThemedText
+              type='caption'
+              colorType='primary'
+              style={styles.successText}
+            >
+              {success}
+            </ThemedText>
           )}
         </View>
 
         <View style={styles.buttonContainer}>
-          <ThemedText variant='caption' style={styles.resendText}>
+          <ThemedText type='caption' style={styles.resendText}>
             Didn't receive the email?
           </ThemedText>
           <Button
@@ -92,7 +102,7 @@ export default function VerifyEmailScreen() {
 
           <View style={styles.divider} />
 
-          <ThemedText variant='caption' style={styles.signInText}>
+          <ThemedText type='caption' style={styles.signInText}>
             Want to use a different account?
           </ThemedText>
           <Button
@@ -113,7 +123,6 @@ export default function VerifyEmailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   content: {
     flex: 1,
@@ -130,7 +139,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   subtitle: {
-    color: "#6B7280",
     textAlign: "center",
     marginBottom: 24,
   },
@@ -142,12 +150,10 @@ const styles = StyleSheet.create({
     minHeight: 40,
   },
   errorText: {
-    color: "#EF4444",
     fontSize: 14,
     textAlign: "center",
   },
   successText: {
-    color: "#10B981",
     fontSize: 14,
     textAlign: "center",
   },
@@ -157,7 +163,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   resendText: {
-    color: "#6B7280",
+    textAlign: "center",
   },
   divider: {
     height: 1,
@@ -166,6 +172,6 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   signInText: {
-    color: "#6B7280",
+    textAlign: "center",
   },
 });

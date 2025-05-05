@@ -21,3 +21,21 @@ export const getSession = async () => {
 export const logout = async () => {
   return await supabase.auth.signOut()
 }
+
+export const resendConfirmationEmail = async (email: string) => {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password: "fake-password",
+  });
+
+  if (error) {
+    if (error.message.includes("User already registered")) {
+      console.log("Confirmation email re-sent (if needed).");
+    } else {
+      console.error("Error:", error.message);
+    }
+  } else {
+    console.log("Email sent successfully:", data);
+  }
+  return true
+};
