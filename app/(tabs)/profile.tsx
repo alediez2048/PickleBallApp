@@ -423,9 +423,22 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Sign Out Button - Redesigned */}
+        {/* Sign Out Button */}
         <View style={styles.signOutContainer}>
-          <Button variant='outline' onPress={signOut} size='large' fullWidth>
+          <Button
+            variant='outline'
+            onPress={async () => {
+              try {
+                await signOut();
+                router.replace("/");
+              } catch (error) {
+                console.error("Error during sign out:", error);
+                Alert.alert("Error", "Failed to sign out. Please try again.");
+              }
+            }}
+            size='large'
+            fullWidth
+          >
             Sign Out
           </Button>
         </View>

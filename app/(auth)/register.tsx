@@ -15,6 +15,7 @@ import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
 import { validateRegisterForm } from "@/utils/validation";
 import { ThemedText } from "@/components/common/ThemedText";
 import { useTheme } from "@/contexts/ThemeContext";
+import Logo from "@/components/common/Logo";
 
 export default function RegisterScreen() {
   const [name, setName] = useState("");
@@ -56,9 +57,7 @@ export default function RegisterScreen() {
   }
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
+    <SafeAreaView style={[styles.container]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
@@ -75,12 +74,11 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.formContainer}>
+            <Logo />
             {/* Title */}
             <View style={styles.titleContainer}>
-              <ThemedText variant='title' style={styles.title}>
-                Create your account
-              </ThemedText>
-              <ThemedText variant='subtitle' style={styles.subtitle}>
+              <ThemedText style={styles.title}>Create your account</ThemedText>
+              <ThemedText style={styles.subtitle}>
                 Enter your details below
               </ThemedText>
             </View>
@@ -178,7 +176,6 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   keyboardView: {
     flex: 1,

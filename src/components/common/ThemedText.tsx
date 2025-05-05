@@ -1,37 +1,62 @@
-import { Text, type TextProps, StyleSheet } from "react-native";
+import {
+  Text,
+  type TextProps,
+  StyleSheet,
+  type StyleProp,
+  type TextStyle,
+} from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 
 export type ThemedTextProps = TextProps & {
-  lightColor?: string;
-  darkColor?: string;
-  type?: "default" | "title" | "defaultSemiBold" | "subtitle" | "link";
+  type?:
+    | "default"
+    | "defaultSemiBold"
+    | "title"
+    | "subtitle"
+    | "subtitleCenter"
+    | "paragraph"
+    | "paragraphCenter"
+    | "caption"
+    | "link"
+    | "bold";
 };
 
 export function ThemedText({
   style,
-  lightColor,
-  darkColor,
   type = "default",
   ...rest
 }: ThemedTextProps) {
   const { colors } = useTheme();
 
-  return (
-    <Text
-      style={[
-        { color: colors.text },
-        type === "default" ? styles.default : undefined,
-        type === "title" ? styles.title : undefined,
-        type === "defaultSemiBold" ? styles.defaultSemiBold : undefined,
-        type === "subtitle" ? styles.subtitle : undefined,
-        type === "link" ? styles.link : undefined,
-        style,
-      ]}
-      {...rest}
-    />
-  );
-}
+  const getTypeStyle = (): StyleProp<TextStyle> => {
+    switch (type) {
+      case "title":
+        return styles.title;
+      case "defaultSemiBold":
+        return styles.defaultSemiBold;
+      case "subtitle":
+        return styles.subtitle;
+      case "subtitleCenter":
+        return [styles.subtitle, { textAlign: "center" }];
+      case "paragraph":
+        return styles.paragraph;
+      case "paragraphCenter":
+        return [styles.paragraph, { textAlign: "center" }];
+      case "caption":
+        return styles.caption;
+      case "link":
+        return [styles.link, { color: colors.primary }];
+      case "bold":
+        return styles.bold;
+      default:
+        return styles.default;
+    }
+  };
 
+  const styleMatch = getTypeStyle();
+
+  return <Text style={[{ color: colors.text }, styleMatch, style]} {...rest} />;
+}
 const styles = StyleSheet.create({
   default: {
     fontSize: 16,
@@ -45,15 +70,28 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: "bold",
-    lineHeight: 32,
+    lineHeight: 36,
   },
   subtitle: {
     fontSize: 20,
     fontWeight: "bold",
+    lineHeight: 28,
+  },
+  paragraph: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  caption: {
+    fontSize: 12,
+    color: "#999",
   },
   link: {
-    lineHeight: 30,
     fontSize: 16,
-    color: "#0a7ea4",
+    lineHeight: 24,
+    textDecorationLine: "underline",
+  },
+  bold: {
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

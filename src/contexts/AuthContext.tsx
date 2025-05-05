@@ -227,10 +227,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await Promise.all([
         storage.removeItem("auth_token"),
         storage.removeItem("user"),
+        logout(),
       ]);
       console.log("Auth data removed");
 
-      setState({ token: null, user: null, isLoading: false });
+      setState({ token: null, user: null, session: null, isLoading: false });
     } catch (error) {
       console.error("Sign out error:", error);
       setState((prev) => ({ ...prev, isLoading: false }));

@@ -13,6 +13,8 @@ import { Button } from "@/components/common/ui/Button";
 import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
 import { validateLoginForm } from "@/utils/validation";
 import { ThemedText } from "@/components/common/ThemedText";
+import Logo from "@/components/common/Logo";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function EmailLoginScreen() {
   const [email, setEmail] = useState("");
@@ -20,6 +22,7 @@ export default function EmailLoginScreen() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const { signIn } = useAuth();
+  const { colors, theme } = useTheme();
 
   const handleLogin = async () => {
     try {
@@ -67,12 +70,11 @@ export default function EmailLoginScreen() {
           </View>
 
           <View style={styles.formContainer}>
+            <Logo />
             {/* Title */}
             <View style={styles.titleContainer}>
-              <ThemedText variant='title' style={styles.title}>
-                Sign in with email
-              </ThemedText>
-              <ThemedText variant='subtitle' style={styles.subtitle}>
+              <ThemedText style={styles.title}>Sign in with email</ThemedText>
+              <ThemedText style={styles.subtitle}>
                 Enter your email and password
               </ThemedText>
             </View>
@@ -151,7 +153,6 @@ export default function EmailLoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   keyboardView: {
     flex: 1,
@@ -159,11 +160,15 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
+    justifyContent: "center",
+    alignItems: "stretch",
+    maxWidth: 400,
+    alignSelf: "center",
+    width: "100%",
   },
   header: {
     height: 60,
     justifyContent: "center",
-    marginTop: 20,
   },
   backButton: {
     alignSelf: "flex-start",
@@ -175,7 +180,6 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     justifyContent: "center",
-    paddingTop: 20,
   },
   titleContainer: {
     marginBottom: 32,

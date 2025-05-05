@@ -14,6 +14,7 @@ import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
 import { validateEmail } from "@/utils/validation";
 import { mockApi } from "@/services/mockApi";
 import { ThemedText } from "@/components/common/ThemedText";
+import Logo from "@/components/common/Logo";
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
@@ -70,12 +71,11 @@ export default function ForgotPasswordScreen() {
           </View>
 
           <View style={styles.formContainer}>
+            <Logo />
             {/* Title */}
             <View style={styles.titleContainer}>
-              <ThemedText variant='title' style={styles.title}>
-                Reset your password
-              </ThemedText>
-              <ThemedText variant='subtitle' style={styles.subtitle}>
+              <ThemedText type='subtitle'>Reset your password</ThemedText>
+              <ThemedText>
                 Enter your email address and we'll send you instructions to
                 reset your password
               </ThemedText>

@@ -1,25 +1,25 @@
-import { Tabs } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { TabBarBackground } from '@/components/common/navigation/TabBarBackground';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Tabs } from "expo-router";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "expo-router";
+import { useEffect } from "react";
+import { TabBarBackground } from "@/components/common/navigation/TabBarBackground";
+import { IconSymbol } from "@/components/ui/IconSymbol";
 
 const TAB_ITEMS = [
   {
-    name: 'index',
-    label: 'Home',
-    icon: 'house.fill' as const,
+    name: "index",
+    label: "Home",
+    icon: "house.fill" as const,
   },
   {
-    name: 'explore',
-    label: 'Explore',
-    icon: 'gamecontroller.fill' as const,
+    name: "explore",
+    label: "Explore",
+    icon: "gamecontroller.fill" as const,
   },
   {
-    name: 'profile',
-    label: 'Profile',
-    icon: 'person.fill' as const,
+    name: "profile",
+    label: "Profile",
+    icon: "person.fill" as const,
   },
 ];
 
@@ -29,12 +29,12 @@ export default function TabLayout() {
 
   useEffect(() => {
     if (!user?.emailVerified) {
-      router.replace('/verify-email' as const);
+      router.replace("/verify-email" as const);
       return;
     }
 
     if (!user?.skillLevel) {
-      router.replace('/(skill-select)' as const);
+      router.replace("/(skill-select)" as const);
       return;
     }
   }, [user?.emailVerified, user?.skillLevel]);
@@ -44,21 +44,24 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: '#4CAF50',
-        tabBarInactiveTintColor: '#666666',
+        tabBarActiveTintColor: "#4CAF50",
+        tabBarInactiveTintColor: "#666666",
         tabBarBackground: () => <TabBarBackground />,
         tabBarStyle: {
-          position: 'absolute',
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
           borderTopWidth: 0,
           elevation: 0,
-          height: 85,
-          paddingTop: 8,
-          paddingBottom: 32,
+          height: 65,
+          backgroundColor: "#FFFFFF",
         },
         tabBarItemStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: "#FFFFFF",
         },
-      }}>
+      }}
+    >
       {TAB_ITEMS.map((tab) => (
         <Tabs.Screen
           key={tab.name}

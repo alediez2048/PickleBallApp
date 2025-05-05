@@ -8,7 +8,6 @@ export default function AuthLayout() {
   const { isLoading } = useAuth();
   const { colors } = useTheme();
 
-  // Show a loading screen while checking authentication status
   if (isLoading) {
     return <LoadingSpinner />;
   }
@@ -17,10 +16,11 @@ export default function AuthLayout() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack
         screenOptions={{
+          header: () => null,
           headerShown: false,
           animation: "fade",
           contentStyle: {
-            backgroundColor: "transparent",
+            backgroundColor: colors.background,
           },
         }}
       />

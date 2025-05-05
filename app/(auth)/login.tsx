@@ -7,13 +7,11 @@ import { GoogleIcon } from "@/components/common/icons/GoogleIcon";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
 import { ThemedText } from "@/components/common/ThemedText";
-import { useTheme } from "@/contexts/ThemeContext";
 import ThemeToggleButton from "@/components/common/ThemeToggleButton";
 
 export default function LoginScreen() {
   const { signInWithGoogle, signInWithFacebook } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const { colors, theme } = useTheme();
 
   const handleSocialSignIn = async (provider: "google" | "facebook") => {
     try {
@@ -36,23 +34,17 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
+    <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
         <View style={styles.content}>
           {/* Logo */}
           <View style={styles.logoContainer}>
-            <ThemedText variant='title' style={styles.logo}>
-              PicklePass
-            </ThemedText>
+            <ThemedText style={styles.logo}>PicklePass</ThemedText>
           </View>
 
           {/* Title */}
-          <ThemedText variant='title' style={styles.title}>
-            Welcome to PicklePass
-          </ThemedText>
-          <ThemedText variant='subtitle' style={styles.subtitle}>
+          <ThemedText style={styles.title}>Welcome to PicklePass</ThemedText>
+          <ThemedText style={styles.subtitle}>
             Sign in or create an account to get started
           </ThemedText>
 
@@ -81,9 +73,7 @@ export default function LoginScreen() {
             {/* Divider */}
             <View style={styles.dividerContainer}>
               <View style={styles.dividerLine} />
-              <ThemedText variant='caption' style={styles.dividerText}>
-                or
-              </ThemedText>
+              <ThemedText style={styles.dividerText}>or</ThemedText>
               <View style={styles.dividerLine} />
             </View>
 
@@ -123,10 +113,9 @@ export default function LoginScreen() {
 
           {/* Sign In Link */}
           <View style={styles.signInContainer}>
-            <ThemedText variant='caption' style={styles.signInText}>
+            <ThemedText style={styles.signInText}>
               Already have an account?{" "}
               <ThemedText
-                variant='caption'
                 style={styles.signInLink}
                 onPress={() => router.push("/(auth)/email-login")}
               >
@@ -146,7 +135,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   innerContainer: {
     flex: 1,
