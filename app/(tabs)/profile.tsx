@@ -14,7 +14,7 @@ import * as ImagePicker from "expo-image-picker";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useUpcomingGames } from "@/contexts/selectors/gameSelectors";
 import { Button } from "@/components/common/ui/Button";
-import { SkillLevel } from "@/types/game";
+import { SkillLevel } from "@/types/games";
 import { useAuth } from "@/contexts/AuthContext";
 import { FirstTimeProfileForm } from "@/components/profile/FirstTimeProfileForm";
 import { useRouter } from "expo-router";

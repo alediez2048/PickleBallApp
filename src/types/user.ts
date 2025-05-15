@@ -1,5 +1,5 @@
 import type { MembershipPlan } from './membership';
-import type { SkillLevel } from './game';
+import type { SkillLevel } from './games';
 
 export interface Address {
   street?: string;

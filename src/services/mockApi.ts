@@ -1,6 +1,6 @@
 import { storage } from "./storage";
 import { MOCK_GAMES } from "@/utils/mockData";
-import { Game } from "@/types/game";
+import { Game } from "@/types/games";
 import { Platform } from "react-native";
 
 // Simulated network delay

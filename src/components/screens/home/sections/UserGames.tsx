@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Game } from '@/types/game';
-import { ThemedText } from '@/components/ThemedText';
-import { GameCard } from '@/components/common/GameCard';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import { Game } from "@/types/games";
+import { ThemedText } from "@/components/ThemedText";
+import { GameCard } from "@/components/common/GameCard";
 
 interface UserGamesProps {
   games: Game[];
@@ -21,7 +21,7 @@ export function UserGames({ games, onGamePress }: UserGamesProps) {
             key={game.id}
             game={game}
             onPress={() => onGamePress(game.id)}
-            variant="compact"
+            variant='compact'
           />
         ))}
       </View>
@@ -35,10 +35,10 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 12,
   },
   gamesContainer: {
     gap: 12,
   },
-}); 
+});

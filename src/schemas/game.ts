@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SkillLevel, GameStatus } from '@/types/game';
+import { SkillLevel, GameStatus } from '@/types/games';
 
 // Create literal union types from our const maps
 const skillLevelSchema = z.enum([

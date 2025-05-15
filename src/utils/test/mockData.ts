@@ -1,4 +1,4 @@
-import { Game, SkillLevel, GameStatus } from '@/types/game';
+import { Game, SkillLevel, GameStatus } from '@/types/games';
 
 export const mockGame: Game = {
   id: '1',

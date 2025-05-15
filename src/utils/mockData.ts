@@ -1,4 +1,4 @@
-import { Game, SkillLevel, GameStatus, GAME_CONSTANTS } from '@/types/game';
+import { Game, SkillLevel, GameStatus, GAME_CONSTANTS } from '@/types/games';
 
 // Helper to create dates for specific days
 const createDate = (daysFromNow: number, hours: number, minutes: number): string => {

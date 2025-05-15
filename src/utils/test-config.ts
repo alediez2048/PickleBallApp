@@ -1,4 +1,4 @@
-import { Game } from '@/types/game';
+import { Game } from '@/types/games';
 import { useGames } from '@/hooks/useGames';
 import { ThemedText } from '@/components/ThemedText';
 

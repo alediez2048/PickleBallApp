@@ -6,7 +6,7 @@ import {
   validateGameResponse,
   validateApiError,
 } from '../api';
-import { SkillLevel, GameStatus } from '@/types/game';
+import { SkillLevel, GameStatus } from '@/types/games';
 
 describe('API Schemas', () => {
   const validLocation = {

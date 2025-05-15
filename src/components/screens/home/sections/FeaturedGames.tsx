@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Game } from '@/types/game';
-import { ThemedText } from '@/components/ThemedText';
-import { GameCard } from '@/components/common/GameCard';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import { Game } from "@/types/games";
+import { ThemedText } from "@/components/ThemedText";
+import { GameCard } from "@/components/common/GameCard";
 
 interface FeaturedGamesProps {
   games: Game[];
@@ -10,7 +10,11 @@ interface FeaturedGamesProps {
   onViewAll: () => void;
 }
 
-export function FeaturedGames({ games, onGamePress, onViewAll }: FeaturedGamesProps) {
+export function FeaturedGames({
+  games,
+  onGamePress,
+  onViewAll,
+}: FeaturedGamesProps) {
   if (!games.length) return null;
 
   return (
@@ -27,7 +31,7 @@ export function FeaturedGames({ games, onGamePress, onViewAll }: FeaturedGamesPr
             key={game.id}
             game={game}
             onPress={() => onGamePress(game.id)}
-            variant="compact"
+            variant='compact'
           />
         ))}
       </View>
@@ -40,20 +44,20 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   title: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   viewAll: {
-    color: '#4CAF50',
-    fontWeight: '500',
+    color: "#4CAF50",
+    fontWeight: "500",
   },
   gamesContainer: {
     gap: 12,
   },
-}); 
+});

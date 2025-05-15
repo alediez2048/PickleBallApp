@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Game, SkillLevel, GameStatus } from '@/types/game';
+import { Game, SkillLevel, GameStatus } from '@/types/games';
 import { useGames } from '../GameContext';
 
 // Basic selectors

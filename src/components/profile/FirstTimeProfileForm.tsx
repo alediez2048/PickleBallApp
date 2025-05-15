@@ -12,7 +12,7 @@ import { Button } from "@components/common/ui/Button";
 import { TextInput } from "@components/common/ui/TextInput";
 import { ThemedText } from "@/components/common/ThemedText";
 import { useAuth } from "@/contexts/AuthContext";
-import { SkillLevel } from "@/types/game";
+import { SkillLevel } from "@/types/games";
 import { Address } from "@/types/user";
 import { useTheme } from "@/contexts/ThemeContext";
 

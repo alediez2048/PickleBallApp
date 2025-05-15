@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { GamesApi } from '@/services/api/games';
 import { prefetch } from '@/utils/prefetch';
-import type { Game } from '@/types/game';
+import type { Game } from '@/types/games';
 
 interface BookingState {
   step: 'details' | 'payment' | 'confirmation';

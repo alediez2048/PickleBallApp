@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { mockApi } from '@/services/mockApi';
-import { GAME_CONSTANTS } from '@/types/game';
+import { GAME_CONSTANTS } from '@/types/games';
 import { MOCK_GAMES } from '@/utils/mockData';
 
 interface GameRegistrationState {

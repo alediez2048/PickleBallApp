@@ -1,10 +1,10 @@
-import React, { useCallback } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
-import { useGames } from '@/hooks/useGames';
-import { GameCard } from './common/GameCard';
-import { prefetch } from '@/utils/prefetch';
-import type { Game, SkillLevel } from '@/types/game';
+import React, { useCallback } from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { FlashList } from "@shopify/flash-list";
+import { useGames } from "@/hooks/useGames";
+import { GameCard } from "./common/GameCard";
+import { prefetch } from "@/utils/prefetch";
+import type { Game, SkillLevel } from "@/types/games";
 
 interface GameListProps {
   filters?: {
@@ -15,30 +15,33 @@ interface GameListProps {
   onGamePress?: (game: Game) => void;
 }
 
-export const GameList = React.memo(function GameList({ 
+export const GameList = React.memo(function GameList({
   filters,
   onGamePress,
 }: GameListProps) {
   const { games, error, isRefreshing, refreshGames } = useGames(filters);
 
-  const handleGamePress = useCallback((game: Game) => {
-    // Prefetch game details and booking flow data when a game is pressed
-    prefetch.prefetchBookingFlow(game.id);
-    onGamePress?.(game);
-  }, [onGamePress]);
+  const handleGamePress = useCallback(
+    (game: Game) => {
+      // Prefetch game details and booking flow data when a game is pressed
+      prefetch.prefetchBookingFlow(game.id);
+      onGamePress?.(game);
+    },
+    [onGamePress]
+  );
 
-  const renderItem = useCallback(({ item }: { item: Game }) => (
-    <GameCard
-      game={item}
-      onPress={() => handleGamePress(item)}
-    />
-  ), [handleGamePress]);
+  const renderItem = useCallback(
+    ({ item }: { item: Game }) => (
+      <GameCard game={item} onPress={() => handleGamePress(item)} />
+    ),
+    [handleGamePress]
+  );
 
   if (error) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>
-          {error.message || 'An error occurred while loading games'}
+          {error.message || "An error occurred while loading games"}
         </Text>
       </View>
     );
@@ -63,12 +66,12 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 16,
   },
   errorText: {
-    color: 'red',
-    textAlign: 'center',
+    color: "red",
+    textAlign: "center",
   },
-}); 
+});

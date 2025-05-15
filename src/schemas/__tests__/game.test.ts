@@ -1,5 +1,5 @@
 import { validateGame, validateLocation, validateUser, validatePartialGame } from '../game';
-import { SkillLevel, GameStatus } from '@/types/game';
+import { SkillLevel, GameStatus } from '@/types/games';
 
 describe('Game Schemas', () => {
   const validLocation = {

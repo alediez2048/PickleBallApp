@@ -1,14 +1,15 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import { Image } from 'expo-image';
-import { Game } from '@/types/game';
-import { withMemo } from '@/components/hoc/withMemo';
-import { useGames } from '@/contexts/GameContext';
-import { LoadingSpinner } from './LoadingSpinner';
-import { ThemedText } from '@/components/ThemedText';
+import React, { useCallback, useMemo, useEffect } from "react";
+import { View, StyleSheet, Platform } from "react-native";
+import { FlashList, ListRenderItem } from "@shopify/flash-list";
+import { Image } from "expo-image";
+import { Game } from "@/types/games";
+import { withMemo } from "@/components/hoc/withMemo";
+import { useGames } from "@/contexts/GameContext";
+import { LoadingSpinner } from "./LoadingSpinner";
+import { ThemedText } from "@/components/ThemedText";
 
-const blurhash = '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
+const blurhash =
+  "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
 
 interface GameListProps {
   data?: Game[];
@@ -35,7 +36,12 @@ const GameListComponent: React.FC<GameListProps> = ({
   estimatedItemSize = 100,
   prefetchCount = 5,
 }) => {
-  const { games: contextGames, loading: contextLoading, error: contextError, prefetchGame } = useGames();
+  const {
+    games: contextGames,
+    loading: contextLoading,
+    error: contextError,
+    prefetchGame,
+  } = useGames();
   const games = data || contextGames;
   const isLoading = loading || contextLoading;
   const hasError = error || contextError;
@@ -44,7 +50,7 @@ const GameListComponent: React.FC<GameListProps> = ({
   useEffect(() => {
     if (prefetchGame && games.length > 0) {
       const startIndex = Math.max(0, games.length - prefetchCount);
-      games.slice(startIndex).forEach(game => {
+      games.slice(startIndex).forEach((game) => {
         prefetchGame(game.id);
       });
     }
@@ -54,10 +60,7 @@ const GameListComponent: React.FC<GameListProps> = ({
 
   const renderItem: ListRenderItem<Game> = useCallback(
     ({ item }) => (
-      <GameListItem
-        game={item}
-        onPress={() => onGamePress?.(item)}
-      />
+      <GameListItem game={item} onPress={() => onGamePress?.(item)} />
     ),
     [onGamePress]
   );
@@ -95,7 +98,7 @@ const GameListComponent: React.FC<GameListProps> = ({
       overrideItemLayout={(layout, item) => {
         layout.size = estimatedItemSize;
       }}
-      removeClippedSubviews={Platform.OS !== 'web'}
+      removeClippedSubviews={Platform.OS !== "web"}
     />
   );
 };
@@ -109,9 +112,9 @@ const GameListItem = withMemo<{ game: Game; onPress?: () => void }>(
             source={game.location.imageUrl}
             style={styles.image}
             placeholder={blurhash}
-            contentFit="cover"
+            contentFit='cover'
             transition={200}
-            cachePolicy="memory-disk"
+            cachePolicy='memory-disk'
           />
         )}
         <View style={styles.contentContainer}>
@@ -132,19 +135,19 @@ const GameListItem = withMemo<{ game: Game; onPress?: () => void }>(
 const styles = StyleSheet.create({
   centerContent: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 20,
   },
   errorText: {
-    color: '#DC2626',
-    textAlign: 'center',
+    color: "#DC2626",
+    textAlign: "center",
   },
   itemContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: "#E5E7EB",
   },
   image: {
     width: 80,
@@ -154,22 +157,22 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   title: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 4,
   },
   details: {
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
     marginBottom: 2,
   },
   location: {
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
   },
 });
 
-export const GameList = withMemo(GameListComponent); 
+export const GameList = withMemo(GameListComponent);

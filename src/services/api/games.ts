@@ -1,5 +1,4 @@
-import { api } from './client';
-import { Game, SkillLevel, GameStatus } from '@/types/game';
+import { Game, SkillLevel, GameStatus } from '@/types/games';
 import {
   gameListResponseSchema,
   gameResponseSchema,
@@ -166,4 +165,4 @@ export class GamesApi {
   }
 }
 
-export const gamesApi = new GamesApi(); 
+export const gamesApi = new GamesApi();

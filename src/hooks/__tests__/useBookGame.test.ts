@@ -3,7 +3,7 @@ import { act } from 'react-test-renderer';
 import { useBookGame } from '../useBookGame';
 import { GamesApi } from '@/services/api/games';
 import { prefetch } from '@/utils/prefetch';
-import { SkillLevel, GameStatus } from '@/types/game';
+import { SkillLevel, GameStatus } from '@/types/games';
 
 // Mock the GamesApi and prefetch
 jest.mock('@/services/api/games');

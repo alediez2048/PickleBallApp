@@ -13,7 +13,7 @@ import {
 import { useRouter } from "expo-router";
 import { MOCK_GAMES } from "@/utils/mockData";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import { SkillLevel, Game } from "@/types/game";
+import { SkillLevel, Game } from "@/types/games";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useBookedGames,
@@ -21,7 +21,7 @@ import {
 } from "@/contexts/BookedGamesContext";
 import { mockApi } from "@/services/mockApi";
 import { SpotsAvailability } from "@/components/common/SpotsAvailability";
-import { GAME_CONSTANTS } from "@/types/game";
+import { GAME_CONSTANTS } from "@/types/games";
 
 export default function ExploreScreen() {
   const router = useRouter();
@@ -125,16 +125,19 @@ export default function ExploreScreen() {
   // Initialize game statuses
   useEffect(() => {
     // Set initial states for all games
-    const initialStatuses = Object.values(MOCK_GAMES).reduce((acc, game) => {
-      acc[game.id] = {
-        canReserve: true,
-        buttonText: "Reserve",
-        buttonStyle: styles.reserveButton,
-        textStyle: styles.reserveText,
-        isBooked: false,
-      };
-      return acc;
-    }, {} as Record<string, any>);
+    const initialStatuses = Object.values(MOCK_GAMES).reduce(
+      (acc, game) => {
+        acc[game.id] = {
+          canReserve: true,
+          buttonText: "Reserve",
+          buttonStyle: styles.reserveButton,
+          textStyle: styles.reserveText,
+          isBooked: false,
+        };
+        return acc;
+      },
+      {} as Record<string, any>
+    );
 
     setGameStatuses(initialStatuses);
   }, []);

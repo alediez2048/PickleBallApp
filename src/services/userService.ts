@@ -11,7 +11,7 @@ export const createUserProfile = async (userId: string, extraData: any) => {
 
 export const updateUserProfile = async (userId: string, updates: Record<string, any>) => {
   return await supabase
-    .from('users') // Asegúrate de que esta sea la tabla correcta
+    .from('users')
     .update(updates)
     .eq('id', userId)
 }

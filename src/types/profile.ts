@@ -1,4 +1,4 @@
-import { SkillLevel } from "./game";
+import { SkillLevel } from "./games";
 
 export const ProfileVisibility = {
   Public: "public",

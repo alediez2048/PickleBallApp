@@ -4,6 +4,22 @@ import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import { TabBarBackground } from "@/components/common/navigation/TabBarBackground";
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import { StyleProp, TextStyle } from "react-native";
+
+type IconName =
+  | "house.fill"
+  | "gamecontroller.fill"
+  | "person.fill"
+  | "gearshape.fill";
+
+interface IconSymbolProps {
+  name: IconName;
+  size?: number;
+  color?: string;
+  style?: StyleProp<TextStyle>;
+}
+
+const ADMIN_USERS = ["urbina.yoimar@gmail.com"];
 
 const TAB_ITEMS = [
   {
@@ -20,6 +36,12 @@ const TAB_ITEMS = [
     name: "profile",
     label: "Profile",
     icon: "person.fill" as const,
+  },
+  {
+    name: "admin",
+    label: "Admin",
+    icon: "gearshape.fill" as const,
+    adminOnly: true,
   },
 ];
 
@@ -38,6 +60,10 @@ export default function TabLayout() {
       return;
     }
   }, [user?.email_confirmed_at, user?.skill_level]);
+
+  // Filter by admin users
+  const isAdmin = ADMIN_USERS.includes(user?.email ?? "");
+  const visibleTabs = TAB_ITEMS.filter((tab) => !tab.adminOnly || isAdmin);
 
   return (
     <Tabs
@@ -62,7 +88,7 @@ export default function TabLayout() {
         },
       }}
     >
-      {TAB_ITEMS.map((tab) => (
+      {visibleTabs.map((tab) => (
         <Tabs.Screen
           key={tab.name}
           name={tab.name}

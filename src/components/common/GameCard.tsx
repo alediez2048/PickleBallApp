@@ -1,29 +1,26 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
-import type { Game } from '@/types/game';
+import React from "react";
+import { View, Text, StyleSheet, Pressable, Image } from "react-native";
+import type { Game } from "@/types/games";
 
 interface GameCardProps {
   game: Game;
   onPress?: () => void;
 }
 
-export const GameCard = React.memo(function GameCard({ 
+export const GameCard = React.memo(function GameCard({
   game,
   onPress,
 }: GameCardProps) {
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.container,
-        pressed && styles.pressed,
-      ]}
+      style={({ pressed }) => [styles.container, pressed && styles.pressed]}
       onPress={onPress}
     >
       {game.location.imageUrl && (
         <Image
           source={{ uri: game.location.imageUrl }}
           style={styles.image}
-          resizeMode="cover"
+          resizeMode='cover'
         />
       )}
       <View style={styles.content}>
@@ -48,10 +45,10 @@ export const GameCard = React.memo(function GameCard({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 12,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -64,7 +61,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   image: {
-    width: '100%',
+    width: "100%",
     height: 150,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
@@ -74,44 +71,44 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
   },
   location: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     marginBottom: 8,
   },
   details: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 8,
   },
   date: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   players: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 8,
   },
   skillLevel: {
     fontSize: 14,
-    color: '#666',
-    backgroundColor: '#f0f0f0',
+    color: "#666",
+    backgroundColor: "#f0f0f0",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
   },
   price: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#2196F3',
+    fontWeight: "600",
+    color: "#2196F3",
   },
-}); 
+});

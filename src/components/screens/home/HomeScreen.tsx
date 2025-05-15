@@ -1,19 +1,19 @@
-import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import { Game } from '@/types/game';
-import { GamesApi } from '@/services/api/games';
-import { FeaturedGames } from './sections/FeaturedGames';
-import { QuickActions } from './sections/QuickActions';
-import { GameCategories } from './sections/GameCategories';
-import { UserGames } from './sections/UserGames';
-import { RecentActivity } from './sections/RecentActivity';
-import { useAppNavigation } from '@/hooks/useAppNavigation';
+import React from "react";
+import { ScrollView, StyleSheet } from "react-native";
+import { useQuery } from "@tanstack/react-query";
+import { Game } from "@/types/games";
+import { GamesApi } from "@/services/api/games";
+import { FeaturedGames } from "./sections/FeaturedGames";
+import { QuickActions } from "./sections/QuickActions";
+import { GameCategories } from "./sections/GameCategories";
+import { UserGames } from "./sections/UserGames";
+import { RecentActivity } from "./sections/RecentActivity";
+import { useAppNavigation } from "@/hooks/useAppNavigation";
 
 export function HomeScreen() {
   const navigation = useAppNavigation();
   const { data: games = [] } = useQuery<Game[]>({
-    queryKey: ['games'],
+    queryKey: ["games"],
     queryFn: () => GamesApi.getGames(),
   });
 
@@ -22,11 +22,11 @@ export function HomeScreen() {
   };
 
   const handleCreateGame = () => {
-    navigation.navigate('/game/create');
+    navigation.navigate("/game/create");
   };
 
   const handleViewAllGames = () => {
-    navigation.navigate('/games');
+    navigation.navigate("/games");
   };
 
   return (
@@ -39,7 +39,7 @@ export function HomeScreen() {
       />
       <GameCategories />
       <UserGames games={games} onGamePress={handleGamePress} />
-      <RecentActivity userId="current-user" />
+      <RecentActivity userId='current-user' />
     </ScrollView>
   );
 }
@@ -48,4 +48,4 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-}); 
+});

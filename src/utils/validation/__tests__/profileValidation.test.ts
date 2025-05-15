@@ -1,6 +1,6 @@
 import { validateProfile, validateProfileUpdate, ProfileValidationResult } from '../profileValidation';
 import { Profile, ProfileVisibility } from '@/types/profile';
-import { SkillLevel } from '@/types/game';
+import { SkillLevel } from '@/types/games';
 
 describe('Profile Validation', () => {
   const validProfile: Profile = {

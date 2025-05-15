@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Game } from '@/types/game';
+import { Game } from '@/types/games';
 import { GamesApi, GameFiltersType } from '@/services/api/games';
 import { useState, useEffect } from 'react';
 import { mockApi } from '@/services/mockApi';
