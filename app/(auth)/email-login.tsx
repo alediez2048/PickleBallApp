@@ -13,8 +13,8 @@ import { Button } from "@/components/common/ui/Button";
 import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
 import { validateLoginForm } from "@/utils/validation";
 import { ThemedText } from "@/components/common/ThemedText";
-import Logo from "@/components/common/Logo";
 import { useTheme } from "@/contexts/ThemeContext";
+import Logo from "@/components/common/Logo";
 
 export default function EmailLoginScreen() {
   const [email, setEmail] = useState("");

@@ -1,106 +1,124 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
-  Text,
   TextInput,
   Button,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
   Alert,
 } from "react-native";
 import { useLocations } from "@/contexts/LocationsContext";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import BackButton from "@/components/common/BackButton";
+import { ThemedText } from "@/components/common/ThemedText";
+import { useTheme } from "@/contexts/ThemeContext";
 
-export default function AdminLocationCreate() {
-  const { createLocation, loading } = useLocations();
+export default function AdminLocationEdit() {
+  const { getLocation, updateLocation, loading } = useLocations();
   const router = useRouter();
-  const [form, setForm] = useState({
-    name: "",
-    address: "",
-    city: "",
-    state: "",
-    zip_code: "",
-    image_url: "",
-    coordinates: { latitude: 0, longitude: 0 },
-  });
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [form, setForm] = useState<any>(null);
+  const [fetching, setFetching] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      if (id) {
+        const loc = await getLocation(id);
+        if (loc) {
+          setForm({
+            ...loc,
+            coordinates: loc.coordinates || { latitude: 0, longitude: 0 },
+          });
+        }
+        setFetching(false);
+      }
+    })();
+  }, [id]);
 
   const handleChange = (field: string, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev: any) => ({ ...prev, [field]: value }));
   };
 
   const handleCoordinateChange = (
     field: "latitude" | "longitude",
     value: string
   ) => {
-    setForm((prev) => ({
+    setForm((prev: any) => ({
       ...prev,
       coordinates: { ...prev.coordinates, [field]: parseFloat(value) || 0 },
     }));
   };
 
   const handleSubmit = async () => {
-    if (!form.name) return Alert.alert("El nombre es obligatorio");
-    const created = await createLocation(form);
-    if (created) {
-      Alert.alert("Ubicación creada");
+    if (!form.name) return Alert.alert("Name is required");
+    const ok = await updateLocation(id, {
+      ...form,
+      coordinates: form.coordinates,
+    });
+    if (ok) {
+      Alert.alert("Location updated");
       router.replace("/admin/locations");
     }
   };
 
+  if (fetching || !form) return <ActivityIndicator style={{ marginTop: 40 }} />;
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.label}>Nombre*</Text>
+      <BackButton />
+      <ThemedText style={styles.label}>Name*</ThemedText>
       <TextInput
         style={styles.input}
         value={form.name}
         onChangeText={(v) => handleChange("name", v)}
       />
-      <Text style={styles.label}>Dirección</Text>
+      <ThemedText style={styles.label}>Address</ThemedText>
       <TextInput
         style={styles.input}
         value={form.address}
         onChangeText={(v) => handleChange("address", v)}
       />
-      <Text style={styles.label}>Ciudad</Text>
+      <ThemedText style={styles.label}>City</ThemedText>
       <TextInput
         style={styles.input}
         value={form.city}
         onChangeText={(v) => handleChange("city", v)}
       />
-      <Text style={styles.label}>Estado</Text>
+      <ThemedText style={styles.label}>State</ThemedText>
       <TextInput
         style={styles.input}
         value={form.state}
         onChangeText={(v) => handleChange("state", v)}
       />
-      <Text style={styles.label}>Código Postal</Text>
+      <ThemedText style={styles.label}>Zip Code</ThemedText>
       <TextInput
         style={styles.input}
         value={form.zip_code}
         onChangeText={(v) => handleChange("zip_code", v)}
       />
-      <Text style={styles.label}>Imagen (URL)</Text>
+      <ThemedText style={styles.label}>Image (URL)</ThemedText>
       <TextInput
         style={styles.input}
         value={form.image_url}
         onChangeText={(v) => handleChange("image_url", v)}
       />
-      <Text style={styles.label}>Latitud</Text>
+      <ThemedText style={styles.label}>Latitude</ThemedText>
       <TextInput
         style={styles.input}
-        value={form.coordinates.latitude.toString()}
+        value={form.coordinates.latitude?.toString() || ""}
         keyboardType='numeric'
         onChangeText={(v) => handleCoordinateChange("latitude", v)}
       />
-      <Text style={styles.label}>Longitud</Text>
+      <ThemedText style={styles.label}>Longitude</ThemedText>
       <TextInput
         style={styles.input}
-        value={form.coordinates.longitude.toString()}
+        value={form.coordinates.longitude?.toString() || ""}
         keyboardType='numeric'
         onChangeText={(v) => handleCoordinateChange("longitude", v)}
       />
       <Button
-        title={loading ? "Creando..." : "Crear ubicación"}
+        title={loading ? "Updating..." : "Update location"}
         onPress={handleSubmit}
         disabled={loading}
       />

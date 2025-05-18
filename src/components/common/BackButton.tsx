@@ -8,7 +8,7 @@ export default function BackButton() {
 
   return (
     <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-      <ThemedText style={styles.backButtonText}>← Back</ThemedText>
+      <ThemedText>← Back</ThemedText>
     </TouchableOpacity>
   );
 }
@@ -19,5 +19,6 @@ const styles = StyleSheet.create({
     top: 16,
     left: 16,
     zIndex: 10,
+    marginBottom: 16,
   },
 });

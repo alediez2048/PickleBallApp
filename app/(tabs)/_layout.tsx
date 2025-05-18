@@ -25,21 +25,25 @@ const TAB_ITEMS = [
     name: "index",
     label: "Home",
     icon: "house.fill" as const,
+    route: "index",
   },
   {
     name: "explore",
     label: "Explore",
     icon: "gamecontroller.fill" as const,
+    route: "explore",
   },
   {
     name: "profile",
     label: "Profile",
     icon: "person.fill" as const,
+    route: "profile",
   },
   {
     name: "admin",
     label: "Admin",
     icon: "gearshape.fill" as const,
+    route: "admin",
     adminOnly: true,
   },
 ];
@@ -88,7 +92,7 @@ export default function TabLayout() {
     >
       {visibleTabs.map((tab) => (
         <Tabs.Screen
-          key={tab.name}
+          key={tab.route}
           name={tab.name}
           options={{
             tabBarIcon: ({ color, focused }) => (

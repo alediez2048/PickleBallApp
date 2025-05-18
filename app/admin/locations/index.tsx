@@ -1,15 +1,16 @@
 import React from "react";
 import {
   View,
-  Text,
-  FlatList,
-  ActivityIndicator,
   Button,
+  ActivityIndicator,
   Alert,
   StyleSheet,
+  FlatList,
 } from "react-native";
 import { useLocations } from "@/contexts/LocationsContext";
 import { Link } from "expo-router";
+import BackButton from "@/components/common/BackButton";
+import { ThemedText } from "@/components/common/ThemedText";
 
 export default function AdminLocationsList() {
   const { locations, loading, error, deleteLocation } = useLocations();
@@ -32,10 +33,16 @@ export default function AdminLocationsList() {
   };
 
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} />;
-  if (error) return <Text style={{ color: "red", margin: 20 }}>{error}</Text>;
+  if (error)
+    return (
+      <ThemedText style={{ color: "red", margin: 20 }}>{error}</ThemedText>
+    );
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <BackButton />
+      </View>
       <Link href='/admin/locations/create' asChild>
         <Button title='Create new location' />
       </Link>
@@ -44,8 +51,8 @@ export default function AdminLocationsList() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.item}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.address}>{item.address}</Text>
+            <ThemedText style={styles.name}>{item.name}</ThemedText>
+            <ThemedText style={styles.address}>{item.address}</ThemedText>
             <View style={styles.actions}>
               <Link href={`/admin/locations/${item.id}`} asChild>
                 <Button title='Edit' />
@@ -59,7 +66,9 @@ export default function AdminLocationsList() {
           </View>
         )}
         ListEmptyComponent={
-          <Text style={{ margin: 20 }}>No locations registered.</Text>
+          <ThemedText style={{ margin: 20 }}>
+            No locations registered.
+          </ThemedText>
         }
       />
     </View>
@@ -77,4 +86,5 @@ const styles = StyleSheet.create({
   name: { fontWeight: "bold", fontSize: 16 },
   address: { color: "#555", marginBottom: 8 },
   actions: { flexDirection: "row", gap: 12 },
+  header: { marginBottom: 16, height: 40 },
 });
