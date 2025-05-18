@@ -2,13 +2,15 @@ import { Slot, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef } from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { GameProvider } from "@/contexts/GameContext";
 import { UIProvider } from "@/contexts/UIContext";
 import { BookedGamesProvider } from "@/contexts/BookedGamesContext";
-import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LocationsProvider } from "@/contexts/LocationsContext";
+import { ThemedView } from "@/components/common/ThemedView";
+import { ThemedText } from "@/components/common/ThemedText";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -28,6 +30,7 @@ function RootLayoutNav() {
     const inProfileSetup = segments[0] === "(profile-setup)";
     const inMainApp = segments[0] === "(tabs)";
 
+    // Debug navigation state
     console.log("[Navigation Debug]", {
       currentSegment: segments[0],
       isAuthenticated,
@@ -100,7 +103,7 @@ function RootLayoutNav() {
   return <Slot />;
 }
 
-// Root layout wraps the app with necessary providers
+// Root layout wraps the app with all necessary providers and themed containers
 export default function RootLayout() {
   return (
     <ThemeProvider>
@@ -109,10 +112,13 @@ export default function RootLayout() {
           <GameProvider>
             <BookedGamesProvider>
               <LocationsProvider>
-                <View style={styles.container}>
+                {/* ThemedView is used as the main container for consistent theming */}
+                <ThemedView style={styles.container}>
+                  {/* Example ThemedText header, can be customized or removed */}
+                  {/* <ThemedText type="title">PickleBall App</ThemedText> */}
                   <RootLayoutNav />
                   <StatusBar style='dark' />
-                </View>
+                </ThemedView>
               </LocationsProvider>
             </BookedGamesProvider>
           </GameProvider>
@@ -125,6 +131,6 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    // The background color will be set by ThemedView according to the theme
   },
 });

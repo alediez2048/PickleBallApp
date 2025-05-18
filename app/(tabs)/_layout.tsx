@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { StyleProp, TextStyle } from "react-native";
+import { ThemedView } from "@/components/common/ThemedView";
 
 type IconName =
   | "house.fill"
@@ -68,45 +69,50 @@ export default function TabLayout() {
   const isAdmin = ADMIN_USERS.includes(user?.email ?? "");
   const visibleTabs = TAB_ITEMS.filter((tab) => !tab.adminOnly || isAdmin);
 
+  // ThemedView is used as the main container for consistent theming
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: true,
-        tabBarActiveTintColor: "#4CAF50",
-        tabBarInactiveTintColor: "#666666",
-        tabBarStyle: {
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          borderTopWidth: 0,
-          elevation: 0,
-          height: 65,
-          backgroundColor: "#FFFFFF",
-        },
-        tabBarItemStyle: {
-          backgroundColor: "#FFFFFF",
-        },
-      }}
-    >
-      {visibleTabs.map((tab) => (
-        <Tabs.Screen
-          key={tab.route}
-          name={tab.name}
-          options={{
-            tabBarIcon: ({ color, focused }) => (
-              <IconSymbol
-                name={tab.icon}
-                size={24}
-                color={color}
-                style={{ opacity: focused ? 1 : 0.8 }}
-              />
-            ),
-            tabBarLabel: tab.label,
-          }}
-        />
-      ))}
-    </Tabs>
+    <ThemedView style={{ flex: 1 }}>
+      {/* Example ThemedText header, can be customized or removed */}
+      {/* <ThemedText type="title">Main Navigation</ThemedText> */}
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarShowLabel: true,
+          tabBarActiveTintColor: "#4CAF50",
+          tabBarInactiveTintColor: "#666666",
+          tabBarStyle: {
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            borderTopWidth: 0,
+            elevation: 0,
+            height: 65,
+            // ThemedView handles background color
+          },
+          tabBarItemStyle: {
+            // ThemedView handles background color
+          },
+        }}
+      >
+        {visibleTabs.map((tab) => (
+          <Tabs.Screen
+            key={tab.route}
+            name={tab.name}
+            options={{
+              tabBarIcon: ({ color, focused }) => (
+                <IconSymbol
+                  name={tab.icon}
+                  size={24}
+                  color={color}
+                  style={{ opacity: focused ? 1 : 0.8 }}
+                />
+              ),
+              tabBarLabel: tab.label,
+            }}
+          />
+        ))}
+      </Tabs>
+    </ThemedView>
   );
 }

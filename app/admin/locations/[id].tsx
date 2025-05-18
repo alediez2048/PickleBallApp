@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  View,
   TextInput,
   Button,
   StyleSheet,
@@ -12,6 +11,7 @@ import { useLocations } from "@/contexts/LocationsContext";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import BackButton from "@/components/common/BackButton";
 import { ThemedText } from "@/components/common/ThemedText";
+import { ThemedView } from "@/components/common/ThemedView";
 import { useTheme } from "@/contexts/ThemeContext";
 
 export default function AdminLocationEdit() {
@@ -20,15 +20,17 @@ export default function AdminLocationEdit() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [form, setForm] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
+  const { colors } = useTheme();
 
+  // Fetch location data on mount
   useEffect(() => {
     (async () => {
       if (id) {
-        const loc = await getLocation(id);
-        if (loc) {
+        const location = await getLocation(id);
+        if (location) {
           setForm({
-            ...loc,
-            coordinates: loc.coordinates || { latitude: 0, longitude: 0 },
+            ...location,
+            coordinates: location.coordinates || { latitude: 0, longitude: 0 },
           });
         }
         setFetching(false);
@@ -36,10 +38,12 @@ export default function AdminLocationEdit() {
     })();
   }, [id]);
 
+  // Handle input change for text fields
   const handleChange = (field: string, value: string) => {
     setForm((prev: any) => ({ ...prev, [field]: value }));
   };
 
+  // Handle input change for coordinates
   const handleCoordinateChange = (
     field: "latitude" | "longitude",
     value: string
@@ -50,6 +54,7 @@ export default function AdminLocationEdit() {
     }));
   };
 
+  // Handle form submission
   const handleSubmit = async () => {
     if (!form.name) return Alert.alert("Name is required");
     const ok = await updateLocation(id, {
@@ -67,61 +72,63 @@ export default function AdminLocationEdit() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <BackButton />
-      <ThemedText style={styles.label}>Name*</ThemedText>
-      <TextInput
-        style={styles.input}
-        value={form.name}
-        onChangeText={(v) => handleChange("name", v)}
-      />
-      <ThemedText style={styles.label}>Address</ThemedText>
-      <TextInput
-        style={styles.input}
-        value={form.address}
-        onChangeText={(v) => handleChange("address", v)}
-      />
-      <ThemedText style={styles.label}>City</ThemedText>
-      <TextInput
-        style={styles.input}
-        value={form.city}
-        onChangeText={(v) => handleChange("city", v)}
-      />
-      <ThemedText style={styles.label}>State</ThemedText>
-      <TextInput
-        style={styles.input}
-        value={form.state}
-        onChangeText={(v) => handleChange("state", v)}
-      />
-      <ThemedText style={styles.label}>Zip Code</ThemedText>
-      <TextInput
-        style={styles.input}
-        value={form.zip_code}
-        onChangeText={(v) => handleChange("zip_code", v)}
-      />
-      <ThemedText style={styles.label}>Image (URL)</ThemedText>
-      <TextInput
-        style={styles.input}
-        value={form.image_url}
-        onChangeText={(v) => handleChange("image_url", v)}
-      />
-      <ThemedText style={styles.label}>Latitude</ThemedText>
-      <TextInput
-        style={styles.input}
-        value={form.coordinates.latitude?.toString() || ""}
-        keyboardType='numeric'
-        onChangeText={(v) => handleCoordinateChange("latitude", v)}
-      />
-      <ThemedText style={styles.label}>Longitude</ThemedText>
-      <TextInput
-        style={styles.input}
-        value={form.coordinates.longitude?.toString() || ""}
-        keyboardType='numeric'
-        onChangeText={(v) => handleCoordinateChange("longitude", v)}
-      />
-      <Button
-        title={loading ? "Updating..." : "Update location"}
-        onPress={handleSubmit}
-        disabled={loading}
-      />
+      <ThemedView>
+        <ThemedText style={styles.label}>Name*</ThemedText>
+        <TextInput
+          style={[styles.input, { color: colors.text }]}
+          value={form.name}
+          onChangeText={(v) => handleChange("name", v)}
+        />
+        <ThemedText style={styles.label}>Address</ThemedText>
+        <TextInput
+          style={[styles.input, { color: colors.text }]}
+          value={form.address}
+          onChangeText={(v) => handleChange("address", v)}
+        />
+        <ThemedText style={styles.label}>City</ThemedText>
+        <TextInput
+          style={[styles.input, { color: colors.text }]}
+          value={form.city}
+          onChangeText={(v) => handleChange("city", v)}
+        />
+        <ThemedText style={styles.label}>State</ThemedText>
+        <TextInput
+          style={[styles.input, { color: colors.text }]}
+          value={form.state}
+          onChangeText={(v) => handleChange("state", v)}
+        />
+        <ThemedText style={styles.label}>Zip Code</ThemedText>
+        <TextInput
+          style={[styles.input, { color: colors.text }]}
+          value={form.zip_code}
+          onChangeText={(v) => handleChange("zip_code", v)}
+        />
+        <ThemedText style={styles.label}>Image (URL)</ThemedText>
+        <TextInput
+          style={[styles.input, { color: colors.text }]}
+          value={form.image_url}
+          onChangeText={(v) => handleChange("image_url", v)}
+        />
+        <ThemedText style={styles.label}>Latitude</ThemedText>
+        <TextInput
+          style={[styles.input, { color: colors.text }]}
+          value={form.coordinates.latitude?.toString() || ""}
+          keyboardType='numeric'
+          onChangeText={(v) => handleCoordinateChange("latitude", v)}
+        />
+        <ThemedText style={styles.label}>Longitude</ThemedText>
+        <TextInput
+          style={[styles.input, { color: colors.text }]}
+          value={form.coordinates.longitude?.toString() || ""}
+          keyboardType='numeric'
+          onChangeText={(v) => handleCoordinateChange("longitude", v)}
+        />
+        <Button
+          title={loading ? "Updating..." : "Update location"}
+          onPress={handleSubmit}
+          disabled={loading}
+        />
+      </ThemedView>
     </ScrollView>
   );
 }
