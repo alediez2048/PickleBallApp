@@ -50,7 +50,7 @@ export default function AdminLocationCreate() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <BackButton />
-      <ThemedView>
+      <ThemedView style={{ marginTop: 20 }}>
         <ThemedText style={styles.label}>Name*</ThemedText>
         <TextInput
           style={[styles.input, { color: colors.text }]}
@@ -101,6 +101,8 @@ export default function AdminLocationCreate() {
           keyboardType='numeric'
           onChangeText={(v) => handleCoordinateChange("longitude", v)}
         />
+      </ThemedView>
+      <ThemedView style={{ marginTop: 20 }}>
         <Button
           title={loading ? "Creating..." : "Create location"}
           onPress={handleSubmit}
