@@ -1,29 +1,19 @@
-import { View, Text, Button, StyleSheet } from "react-native";
+import { Button } from "react-native";
 import { useRouter } from "expo-router";
+import { ThemedView } from "@/components/common/ThemedView";
+import { ThemedText } from "@/components/common/ThemedText";
 
 export default function AdminScreen() {
   const router = useRouter();
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Admin Panel</Text>
+    <ThemedView type='centered' style={{ flex: 1 }}>
+      <ThemedText type='title' colorType='primary' style={{ marginBottom: 16 }}>
+        Admin Panel
+      </ThemedText>
       <Button
         title='Go to Locations'
         onPress={() => router.push("/admin/locations")}
       />
-    </View>
+    </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-});
