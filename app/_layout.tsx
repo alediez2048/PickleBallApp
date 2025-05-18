@@ -9,6 +9,7 @@ import { UIProvider } from "@/contexts/UIContext";
 import { BookedGamesProvider } from "@/contexts/BookedGamesContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LocationsProvider } from "@/contexts/LocationsContext";
+import { FixedGamesProvider } from "@/contexts/FixedGamesContext";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
 
@@ -112,13 +113,15 @@ export default function RootLayout() {
           <GameProvider>
             <BookedGamesProvider>
               <LocationsProvider>
-                {/* ThemedView is used as the main container for consistent theming */}
-                <ThemedView style={styles.container}>
-                  {/* Example ThemedText header, can be customized or removed */}
-                  {/* <ThemedText type="title">PickleBall App</ThemedText> */}
-                  <RootLayoutNav />
-                  <StatusBar style='dark' />
-                </ThemedView>
+                <FixedGamesProvider>
+                  {/* ThemedView is used as the main container for consistent theming */}
+                  <ThemedView style={styles.container}>
+                    {/* Example ThemedText header, can be customized or removed */}
+                    {/* <ThemedText type="title">PickleBall App</ThemedText> */}
+                    <RootLayoutNav />
+                    <StatusBar style='dark' />
+                  </ThemedView>
+                </FixedGamesProvider>
               </LocationsProvider>
             </BookedGamesProvider>
           </GameProvider>

@@ -14,6 +14,10 @@ export default function AdminScreen() {
         title='Go to Locations'
         onPress={() => router.push("/admin/locations")}
       />
+      <Button
+        title='Go to Fixed Games'
+        onPress={() => router.push("/admin/fixed-games")}
+      />
     </ThemedView>
   );
 }
