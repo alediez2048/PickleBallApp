@@ -1,5 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`PaymentMethodModal renders correctly when not visible 1`] = `null`;
-
-exports[`PaymentMethodModal renders correctly with selected plan 1`] = `null`;

@@ -1,9 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`UIContext provides initial state: initial state 1`] = `null`;
-
-exports[`UIContext shows and auto-hides toast: before showing toast 1`] = `null`;
-
-exports[`UIContext toggles color scheme: with initial color scheme 1`] = `null`;
-
-exports[`UIContext toggles loading state: before loading 1`] = `null`;

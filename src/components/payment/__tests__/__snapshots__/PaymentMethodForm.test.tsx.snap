@@ -1,5 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`PaymentMethodForm renders correctly in first-time mode 1`] = `null`;
-
-exports[`PaymentMethodForm renders correctly with default props 1`] = `null`;
