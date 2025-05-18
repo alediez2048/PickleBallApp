@@ -8,6 +8,7 @@ import { GameProvider } from "@/contexts/GameContext";
 import { UIProvider } from "@/contexts/UIContext";
 import { BookedGamesProvider } from "@/contexts/BookedGamesContext";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
+import { LocationsProvider } from "@/contexts/LocationsContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -107,10 +108,12 @@ export default function RootLayout() {
         <UIProvider>
           <GameProvider>
             <BookedGamesProvider>
-              <View style={styles.container}>
-                <RootLayoutNav />
-                <StatusBar style='dark' />
-              </View>
+              <LocationsProvider>
+                <View style={styles.container}>
+                  <RootLayoutNav />
+                  <StatusBar style='dark' />
+                </View>
+              </LocationsProvider>
             </BookedGamesProvider>
           </GameProvider>
         </UIProvider>
