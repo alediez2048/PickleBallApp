@@ -11,6 +11,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useFixedGames } from "@/contexts/FixedGamesContext";
 import { ThemedText } from "@/components/common/ThemedText";
 import { ThemedView } from "@/components/common/ThemedView";
+import BackButton from "@/components/common/BackButton";
 
 export default function FixedGameDelete() {
   const { getFixedGame, deleteFixedGame, loading } = useFixedGames();
@@ -42,24 +43,27 @@ export default function FixedGameDelete() {
   if (fetching || !game) return <ActivityIndicator style={{ marginTop: 40 }} />;
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type='title'>Delete Fixed Game</ThemedText>
-      <ThemedText>
-        Are you sure you want to delete the fixed game "{game.title}"?
-      </ThemedText>
-      <View style={styles.actions}>
-        <Button
-          title='Cancel'
-          onPress={() => router.replace("/admin/fixed-games")}
-        />
-        <Button
-          title={loading ? "Deleting..." : "Delete"}
-          color='red'
-          onPress={handleDelete}
-          disabled={loading}
-        />
-      </View>
-    </ThemedView>
+    <>
+      <BackButton />
+      <ThemedView style={styles.container}>
+        <ThemedText type='title'>Delete Fixed Game</ThemedText>
+        <ThemedText>
+          Are you sure you want to delete the fixed game "{game.title}"?
+        </ThemedText>
+        <View style={styles.actions}>
+          <Button
+            title='Cancel'
+            onPress={() => router.replace("/admin/fixed-games")}
+          />
+          <Button
+            title={loading ? "Deleting..." : "Delete"}
+            color='red'
+            onPress={handleDelete}
+            disabled={loading}
+          />
+        </View>
+      </ThemedView>
+    </>
   );
 }
 

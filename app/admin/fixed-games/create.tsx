@@ -1,6 +1,14 @@
 // Create view for Fixed Games
 import React, { useState } from "react";
-import { TextInput, Button, StyleSheet, ScrollView, Alert } from "react-native";
+import {
+  TextInput,
+  Button,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useFixedGames } from "@/contexts/FixedGamesContext";
 import { ThemedText } from "@/components/common/ThemedText";
@@ -12,6 +20,9 @@ import {
   SkillLevel as SkillLevelEnum,
 } from "@/constants/skillLevel.types";
 import { useLocations } from "@/contexts/LocationsContext";
+import BackButton from "@/components/common/BackButton";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { ThemedPicker } from "@/components/common/ThemedPicker";
 
 const days: DayOfWeek[] = [
   "Sunday",
@@ -43,6 +54,7 @@ export default function FixedGameCreate() {
     image_url: "",
     status: statuses[0],
   });
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   // Handle input change for text fields
   const handleChange = (field: string, value: string) => {
@@ -88,6 +100,7 @@ export default function FixedGameCreate() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <BackButton />
       <ThemedView>
         <ThemedText type='title' style={styles.title}>
           Create Fixed Game
@@ -105,85 +118,128 @@ export default function FixedGameCreate() {
           onChangeText={(v) => handleChange("description", v)}
         />
         <ThemedText style={styles.label}>Day of Week*</ThemedText>
-        <select
-          style={{ marginBottom: 8, padding: 8 }}
-          value={form.day_of_week}
-          onChange={(e) => handleChange("day_of_week", e.target.value)}
+        <ThemedPicker
+          selectedValue={form.day_of_week}
+          onValueChange={(v) => handleChange("day_of_week", v as string)}
+          style={{
+            color: colors.text,
+            backgroundColor: colors.background,
+            paddingVertical: 6,
+          }}
         >
           {days.map((day) => (
-            <option key={day} value={day}>
-              {day}
-            </option>
+            <ThemedPicker.Item key={day} label={day} value={day} />
           ))}
-        </select>
+        </ThemedPicker>
         <ThemedText style={styles.label}>Start Time* (HH:MM:SS)</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
-          value={form.start_time}
-          onChangeText={(v) => handleChange("start_time", v)}
-        />
+        <TouchableOpacity
+          onPress={() => setShowTimePicker(true)}
+          style={[styles.input, { backgroundColor: colors.background }]}
+        >
+          <ThemedText>{form.start_time || "Select time"}</ThemedText>
+        </TouchableOpacity>
+        {showTimePicker && (
+          <DateTimePicker
+            value={
+              form.start_time
+                ? new Date(`1970-01-01T${form.start_time}`)
+                : new Date()
+            }
+            mode='time'
+            is24Hour={true}
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={(event, date) => {
+              setShowTimePicker(false);
+              if (date) {
+                const h = date.getHours().toString().padStart(2, "0");
+                const m = date.getMinutes().toString().padStart(2, "0");
+                setForm((prev) => ({ ...prev, start_time: `${h}:${m}:00` }));
+              }
+            }}
+          />
+        )}
         <ThemedText style={styles.label}>Duration (minutes)*</ThemedText>
         <TextInput
-          style={[styles.input, { color: colors.text }]}
+          style={[
+            styles.input,
+            { color: colors.text, backgroundColor: colors.background },
+          ]}
           value={form.duration_minutes}
           onChangeText={(v) => handleChange("duration_minutes", v)}
           keyboardType='numeric'
         />
         <ThemedText style={styles.label}>Location*</ThemedText>
-        <select
-          style={{ marginBottom: 8, padding: 8 }}
-          value={form.location_id}
-          onChange={(e) => handleChange("location_id", e.target.value)}
+        <ThemedPicker
+          selectedValue={form.location_id}
+          onValueChange={(v) => handleChange("location_id", v as string)}
+          style={{
+            color: colors.text,
+            backgroundColor: colors.background,
+            paddingVertical: 6,
+          }}
         >
-          <option value=''>Select a location</option>
+          <ThemedPicker.Item label='Select a location' value='' />
           {locations.map((loc) => (
-            <option key={loc.id} value={loc.id}>
-              {loc.name}
-            </option>
+            <ThemedPicker.Item key={loc.id} label={loc.name} value={loc.id} />
           ))}
-        </select>
+        </ThemedPicker>
         <ThemedText style={styles.label}>Max Players*</ThemedText>
         <TextInput
-          style={[styles.input, { color: colors.text }]}
+          style={[
+            styles.input,
+            { color: colors.text, backgroundColor: colors.background },
+          ]}
           value={form.max_players}
           onChangeText={(v) => handleChange("max_players", v)}
           keyboardType='numeric'
         />
         <ThemedText style={styles.label}>Skill Level*</ThemedText>
-        <select
-          style={{ marginBottom: 8, padding: 8 }}
-          value={form.skill_level}
-          onChange={(e) =>
-            handleChange("skill_level", e.target.value as SkillLevel)
-          }
+        <ThemedPicker
+          selectedValue={form.skill_level}
+          onValueChange={(v) => handleChange("skill_level", v as string)}
+          style={{
+            color: colors.text,
+            backgroundColor: colors.background,
+            paddingVertical: 6,
+          }}
         >
-          <option value=''>Select skill level</option>
+          <ThemedPicker.Item label='Select skill level' value='' />
           {Object.values(SkillLevelEnum).map((level) => (
-            <option key={level} value={level}>
-              {level}
-            </option>
+            <ThemedPicker.Item key={level} label={level} value={level} />
           ))}
-        </select>
+        </ThemedPicker>
         <ThemedText style={styles.label}>Price*</ThemedText>
         <TextInput
-          style={[styles.input, { color: colors.text }]}
+          style={[
+            styles.input,
+            { color: colors.text, backgroundColor: colors.background },
+          ]}
           value={form.price}
           onChangeText={(v) => handleChange("price", v)}
           keyboardType='numeric'
         />
         <ThemedText style={styles.label}>Image URL</ThemedText>
         <TextInput
-          style={[styles.input, { color: colors.text }]}
+          style={[
+            styles.input,
+            { color: colors.text, backgroundColor: colors.background },
+          ]}
           value={form.image_url}
           onChangeText={(v) => handleChange("image_url", v)}
         />
         <ThemedText style={styles.label}>Status*</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
-          value={form.status}
-          onChangeText={(v) => handleChange("status", v)}
-          placeholder='active or inactive'
-        />
+        <ThemedPicker
+          selectedValue={form.status}
+          onValueChange={(v) => handleChange("status", v as string)}
+          style={{
+            color: colors.text,
+            backgroundColor: colors.background,
+            paddingVertical: 6,
+          }}
+        >
+          <ThemedPicker.Item label='Active' value='active' />
+          <ThemedPicker.Item label='Inactive' value='inactive' />
+        </ThemedPicker>
         <Button
           title={loading ? "Creating..." : "Create Fixed Game"}
           onPress={handleSubmit}
