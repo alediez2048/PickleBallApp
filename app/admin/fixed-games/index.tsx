@@ -43,12 +43,6 @@ export default function FixedGamesList() {
             <ThemedText type='caption'>Location: {game.location_id}</ThemedText>
             <ThemedText type='caption'>Created: {game.created_at}</ThemedText>
             <ThemedText type='caption'>Updated: {game.updated_at}</ThemedText>
-            <ThemedText type='caption'>
-              Host:{" "}
-              {typeof game.host === "string"
-                ? game.host
-                : JSON.stringify(game.host)}
-            </ThemedText>
             <ThemedText type='caption'>Image: {game.image_url}</ThemedText>
             <View style={styles.actions}>
               <Button

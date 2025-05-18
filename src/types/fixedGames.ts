@@ -1,3 +1,5 @@
+import type { SkillLevel } from "@/constants/skillLevel.types";
+
 // Types for Fixed Games based on the SQL schema
 export type DayOfWeek =
   | 'Sunday'
@@ -20,7 +22,7 @@ export interface FixedGame {
   location_id: string;
   host: any; // JSON object, can be typed further if needed
   max_players: number;
-  skill_level: string;
+  skill_level: SkillLevel;
   price: number;
   image_url?: string;
   status: FixedGameStatus;

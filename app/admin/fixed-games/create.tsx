@@ -7,6 +7,11 @@ import { ThemedText } from "@/components/common/ThemedText";
 import { ThemedView } from "@/components/common/ThemedView";
 import { useTheme } from "@/contexts/ThemeContext";
 import { DayOfWeek, FixedGameStatus } from "@/types/fixedGames";
+import {
+  SkillLevel,
+  SkillLevel as SkillLevelEnum,
+} from "@/constants/skillLevel.types";
+import { useLocations } from "@/contexts/LocationsContext";
 
 const days: DayOfWeek[] = [
   "Sunday",
@@ -23,6 +28,7 @@ export default function FixedGameCreate() {
   const { createFixedGame, loading } = useFixedGames();
   const router = useRouter();
   const { colors } = useTheme();
+  const { locations } = useLocations();
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -99,12 +105,17 @@ export default function FixedGameCreate() {
           onChangeText={(v) => handleChange("description", v)}
         />
         <ThemedText style={styles.label}>Day of Week*</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
+        <select
+          style={{ marginBottom: 8, padding: 8 }}
           value={form.day_of_week}
-          onChangeText={(v) => handleChange("day_of_week", v)}
-          placeholder='e.g. Monday'
-        />
+          onChange={(e) => handleChange("day_of_week", e.target.value)}
+        >
+          {days.map((day) => (
+            <option key={day} value={day}>
+              {day}
+            </option>
+          ))}
+        </select>
         <ThemedText style={styles.label}>Start Time* (HH:MM:SS)</ThemedText>
         <TextInput
           style={[styles.input, { color: colors.text }]}
@@ -118,18 +129,19 @@ export default function FixedGameCreate() {
           onChangeText={(v) => handleChange("duration_minutes", v)}
           keyboardType='numeric'
         />
-        <ThemedText style={styles.label}>Location ID*</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
+        <ThemedText style={styles.label}>Location*</ThemedText>
+        <select
+          style={{ marginBottom: 8, padding: 8 }}
           value={form.location_id}
-          onChangeText={(v) => handleChange("location_id", v)}
-        />
-        <ThemedText style={styles.label}>Host (JSON)*</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
-          value={form.host}
-          onChangeText={(v) => handleChange("host", v)}
-        />
+          onChange={(e) => handleChange("location_id", e.target.value)}
+        >
+          <option value=''>Select a location</option>
+          {locations.map((loc) => (
+            <option key={loc.id} value={loc.id}>
+              {loc.name}
+            </option>
+          ))}
+        </select>
         <ThemedText style={styles.label}>Max Players*</ThemedText>
         <TextInput
           style={[styles.input, { color: colors.text }]}
@@ -138,11 +150,20 @@ export default function FixedGameCreate() {
           keyboardType='numeric'
         />
         <ThemedText style={styles.label}>Skill Level*</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
+        <select
+          style={{ marginBottom: 8, padding: 8 }}
           value={form.skill_level}
-          onChangeText={(v) => handleChange("skill_level", v)}
-        />
+          onChange={(e) =>
+            handleChange("skill_level", e.target.value as SkillLevel)
+          }
+        >
+          <option value=''>Select skill level</option>
+          {Object.values(SkillLevelEnum).map((level) => (
+            <option key={level} value={level}>
+              {level}
+            </option>
+          ))}
+        </select>
         <ThemedText style={styles.label}>Price*</ThemedText>
         <TextInput
           style={[styles.input, { color: colors.text }]}

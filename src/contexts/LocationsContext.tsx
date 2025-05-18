@@ -20,6 +20,7 @@ interface LocationsContextProps {
   ) => Promise<Location | null>;
   updateLocation: (id: string, updates: Partial<Location>) => Promise<boolean>;
   deleteLocation: (id: string) => Promise<boolean>;
+  getLocationOptions: () => { name: string; id: string }[];
 }
 
 const LocationsContext = createContext<LocationsContextProps | undefined>(
@@ -86,6 +87,11 @@ export const LocationsProvider = ({ children }: { children: ReactNode }) => {
     [fetchLocations]
   );
 
+  // Add this helper to get locations as options for selects
+  const getLocationOptions = useCallback(() => {
+    return locations.map((loc) => ({ name: loc.name, id: loc.id }));
+  }, [locations]);
+
   useEffect(() => {
     fetchLocations();
   }, [fetchLocations]);
@@ -101,6 +107,7 @@ export const LocationsProvider = ({ children }: { children: ReactNode }) => {
         createLocation,
         updateLocation,
         deleteLocation,
+        getLocationOptions, // add to context value
       }}
     >
       {children}
