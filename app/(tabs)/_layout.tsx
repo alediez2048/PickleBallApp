@@ -2,7 +2,6 @@ import { Tabs } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
-import { TabBarBackground } from "@/components/common/navigation/TabBarBackground";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { StyleProp, TextStyle } from "react-native";
 
@@ -72,7 +71,6 @@ export default function TabLayout() {
         tabBarShowLabel: true,
         tabBarActiveTintColor: "#4CAF50",
         tabBarInactiveTintColor: "#666666",
-        tabBarBackground: () => <TabBarBackground />,
         tabBarStyle: {
           position: "absolute",
           bottom: 0,

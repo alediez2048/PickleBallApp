@@ -1,5 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`Authentication Flow renders authenticated state: authenticated state 1`] = `null`;
-
-exports[`Authentication Flow renders initial unauthenticated state: unauthenticated state 1`] = `null`;
