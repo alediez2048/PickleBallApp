@@ -20,3 +20,8 @@ export const updateLocation = async (locationId: string, updates: Record<string,
 export const deleteLocation = async (locationId: string) => {
   return await supabase.from('locations').delete().eq('id', locationId);
 };
+
+// Get a single location by id
+export const getLocation = async (locationId: string) => {
+  return await supabase.from('locations').select('*').eq('id', locationId).single();
+};
