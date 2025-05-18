@@ -11,6 +11,7 @@ import { useLocations } from "@/contexts/LocationsContext";
 import { Link } from "expo-router";
 import BackButton from "@/components/common/BackButton";
 import { ThemedText } from "@/components/common/ThemedText";
+import { ThemedView } from "@/components/common/ThemedView";
 
 export default function AdminLocationsList() {
   const { locations, loading, error, deleteLocation } = useLocations();
@@ -39,7 +40,7 @@ export default function AdminLocationsList() {
     );
 
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <View style={styles.header}>
         <BackButton />
       </View>
@@ -50,8 +51,10 @@ export default function AdminLocationsList() {
         data={locations}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.item}>
-            <ThemedText style={styles.name}>{item.name}</ThemedText>
+          <ThemedView type='card' colorType='secondary' style={styles.item}>
+            <ThemedText type='bold' style={styles.name}>
+              {item.name}
+            </ThemedText>
             <ThemedText style={styles.address}>{item.address}</ThemedText>
             <View style={styles.actions}>
               <Link href={`/admin/locations/${item.id}`} asChild>
@@ -63,7 +66,7 @@ export default function AdminLocationsList() {
                 onPress={() => handleDelete(item.id)}
               />
             </View>
-          </View>
+          </ThemedView>
         )}
         ListEmptyComponent={
           <ThemedText style={{ margin: 20 }}>
@@ -71,20 +74,19 @@ export default function AdminLocationsList() {
           </ThemedText>
         }
       />
-    </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
   item: {
-    backgroundColor: "#f9f9f9",
     marginVertical: 8,
     padding: 16,
     borderRadius: 8,
   },
   name: { fontWeight: "bold", fontSize: 16 },
-  address: { color: "#555", marginBottom: 8 },
+  address: { marginBottom: 8 },
   actions: { flexDirection: "row", gap: 12 },
   header: { marginBottom: 16, height: 40 },
 });
