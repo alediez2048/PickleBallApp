@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { useFixedGames } from "@/contexts/FixedGamesContext";
 import { ThemedText } from "@/components/common/ThemedText";
 import { ThemedView } from "@/components/common/ThemedView";
+import BackButton from "@/components/common/BackButton";
 
 export default function FixedGamesList() {
   const { fixedGames, fetchFixedGames, loading } = useFixedGames();
@@ -16,6 +17,7 @@ export default function FixedGamesList() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <BackButton />
       <ThemedView>
         <ThemedText type='title' style={styles.title}>
           Fixed Games

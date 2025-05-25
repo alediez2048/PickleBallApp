@@ -136,34 +136,57 @@ export default function FixedGameEdit() {
           ))}
         </ThemedPicker>
         <ThemedText style={styles.label}>Start Time* (HH:MM:SS)</ThemedText>
-        <TouchableOpacity
-          onPress={() => setShowTimePicker(true)}
-          style={[styles.input, { backgroundColor: colors.background }]}
-        >
-          <ThemedText>{form.start_time || "Select time"}</ThemedText>
-        </TouchableOpacity>
-        {showTimePicker && (
-          <DateTimePicker
-            value={
-              form.start_time
-                ? new Date(`1970-01-01T${form.start_time}`)
-                : new Date()
-            }
-            mode='time'
-            is24Hour={true}
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={(event, date) => {
-              setShowTimePicker(false);
-              if (date) {
-                const h = date.getHours().toString().padStart(2, "0");
-                const m = date.getMinutes().toString().padStart(2, "0");
-                setForm((prev: any) => ({
-                  ...prev,
-                  start_time: `${h}:${m}:00`,
-                }));
-              }
+        {Platform.OS === "web" ? (
+          <input
+            type='time'
+            step='60'
+            value={form.start_time.slice(0, 5)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setForm((prev: any) => ({ ...prev, start_time: value + ":00" }));
+            }}
+            style={{
+              width: "100%",
+              padding: 8,
+              borderRadius: 6,
+              border: "1px solid #ccc",
+              marginBottom: 4,
+              background: colors.background,
+              color: colors.text,
             }}
           />
+        ) : (
+          <>
+            <TouchableOpacity
+              onPress={() => setShowTimePicker(true)}
+              style={[styles.input, { backgroundColor: colors.background }]}
+            >
+              <ThemedText>{form.start_time || "Select time"}</ThemedText>
+            </TouchableOpacity>
+            {showTimePicker && (
+              <DateTimePicker
+                value={
+                  form.start_time
+                    ? new Date(`1970-01-01T${form.start_time}`)
+                    : new Date()
+                }
+                mode='time'
+                is24Hour={true}
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={(event, date) => {
+                  setShowTimePicker(false);
+                  if (date) {
+                    const h = date.getHours().toString().padStart(2, "0");
+                    const m = date.getMinutes().toString().padStart(2, "0");
+                    setForm((prev: any) => ({
+                      ...prev,
+                      start_time: `${h}:${m}:00`,
+                    }));
+                  }
+                }}
+              />
+            )}
+          </>
         )}
         <ThemedText style={styles.label}>Duration (minutes)*</ThemedText>
         <TextInput
@@ -268,4 +291,5 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 4,
   },
+  header: { height: 40, marginBottom: 20 },
 });
