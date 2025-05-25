@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
   ScrollView,
   SafeAreaView,
   TouchableOpacity,
   Platform,
+  StyleSheet,
   Alert,
   Modal,
 } from "react-native";
@@ -22,6 +20,8 @@ import {
 import { mockApi } from "@/services/mockApi";
 import { SpotsAvailability } from "@/components/common/SpotsAvailability";
 import { GAME_CONSTANTS } from "@/types/games";
+import { ThemedView } from "@/components/common/ThemedView";
+import { ThemedText } from "@/components/common/ThemedText";
 
 export default function ExploreScreen() {
   const router = useRouter();
@@ -69,8 +69,13 @@ export default function ExploreScreen() {
           return {
             canReserve: false,
             buttonText: "Cancel",
-            buttonStyle: styles.cancelButton,
-            textStyle: styles.cancelText,
+            buttonStyle: {
+              backgroundColor: "#F44336",
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              borderRadius: 20,
+            },
+            textStyle: { color: "#FFFFFF", fontWeight: "600" },
             isBooked: true,
           };
         }
@@ -92,8 +97,13 @@ export default function ExploreScreen() {
           return {
             canReserve: true,
             buttonText: "Reserve",
-            buttonStyle: styles.reserveButton,
-            textStyle: styles.reserveText,
+            buttonStyle: {
+              backgroundColor: "#4CAF50",
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              borderRadius: 20,
+            },
+            textStyle: { color: "#FFFFFF", fontWeight: "600" },
             isBooked: false,
           };
         }
@@ -101,8 +111,13 @@ export default function ExploreScreen() {
         return {
           canReserve: false,
           buttonText: "Join Waitlist",
-          buttonStyle: styles.waitlistButton,
-          textStyle: styles.waitlistText,
+          buttonStyle: {
+            backgroundColor: "#FFA000",
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            borderRadius: 20,
+          },
+          textStyle: { color: "#FFFFFF", fontWeight: "600" },
           isBooked: false,
         };
       } catch (error) {
@@ -113,8 +128,13 @@ export default function ExploreScreen() {
         return {
           canReserve: false,
           buttonText: "Unavailable",
-          buttonStyle: styles.disabledButton,
-          textStyle: styles.disabledButtonText,
+          buttonStyle: {
+            backgroundColor: "#E0E0E0",
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            borderRadius: 20,
+          },
+          textStyle: { color: "#666666", fontWeight: "600" },
           isBooked: false,
         };
       }
@@ -125,19 +145,16 @@ export default function ExploreScreen() {
   // Initialize game statuses
   useEffect(() => {
     // Set initial states for all games
-    const initialStatuses = Object.values(MOCK_GAMES).reduce(
-      (acc, game) => {
-        acc[game.id] = {
-          canReserve: true,
-          buttonText: "Reserve",
-          buttonStyle: styles.reserveButton,
-          textStyle: styles.reserveText,
-          isBooked: false,
-        };
-        return acc;
-      },
-      {} as Record<string, any>
-    );
+    const initialStatuses = Object.values(MOCK_GAMES).reduce((acc, game) => {
+      acc[game.id] = {
+        canReserve: true,
+        buttonText: "Reserve",
+        buttonStyle: styles.reserveButton,
+        textStyle: styles.reserveText,
+        isBooked: false,
+      };
+      return acc;
+    }, {} as Record<string, any>);
 
     setGameStatuses(initialStatuses);
   }, []);
@@ -376,834 +393,337 @@ export default function ExploreScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header with Filters */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.locationButton}>
-          <Text style={styles.locationText}>Games in Austin ▼</Text>
-        </TouchableOpacity>
-
-        {/* Skill Level Filter Button */}
+    <SafeAreaView style={{ flex: 1 }}>
+      <ThemedView type='section'>
         <TouchableOpacity
           style={styles.filterButton}
-          onPress={() => setShowSkillFilter(!showSkillFilter)}
+          onPress={() => setShowSkillFilter((v) => !v)}
         >
-          <IconSymbol name='trophy.fill' size={20} color='#666666' />
-          <Text style={styles.filterButtonText}>
-            {selectedSkillLevel === "all" ? "All Levels" : selectedSkillLevel}
-          </Text>
-          <IconSymbol
-            name={showSkillFilter ? "xmark" : "chevron.down"}
-            size={16}
-            color='#666666'
-          />
+          <ThemedView
+            type='bordered'
+            style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+          >
+            <IconSymbol name='filter' size={20} color='#666' />
+            <ThemedText
+              type='paragraph'
+              colorType='default'
+              style={{ flex: 1 }}
+            >
+              {skillLevels.find((s) => s.value === selectedSkillLevel)?.label}
+            </ThemedText>
+          </ThemedView>
         </TouchableOpacity>
-
-        {/* Skill Level Filter Dropdown */}
         {showSkillFilter && (
-          <View style={styles.skillFilterDropdown}>
+          <ThemedView type='surface' style={styles.skillFilterDropdown}>
             {skillLevels.map((level) => (
               <TouchableOpacity
                 key={level.value}
-                style={[
-                  styles.skillFilterOption,
-                  selectedSkillLevel === level.value &&
-                    styles.selectedSkillOption,
-                ]}
                 onPress={() => {
                   setSelectedSkillLevel(level.value);
                   setShowSkillFilter(false);
                 }}
               >
-                <View style={styles.skillLevelBadge}>
-                  <View
-                    style={[
-                      styles.skillLevelDot,
-                      { backgroundColor: getSkillLevelColor(level.value) },
-                    ]}
+                <ThemedView
+                  type='badgeContainer'
+                  style={
+                    selectedSkillLevel === level.value
+                      ? { backgroundColor: "#F1F8E9" }
+                      : {}
+                  }
+                >
+                  <ThemedView
+                    style={{
+                      ...styles.badgeDot,
+                      backgroundColor: getSkillLevelColor(level.value),
+                    }}
                   />
-                  <Text
-                    style={[
-                      styles.skillFilterText,
-                      selectedSkillLevel === level.value &&
-                        styles.selectedSkillText,
-                    ]}
+                  <ThemedText
+                    type={
+                      selectedSkillLevel === level.value ? "bold" : "paragraph"
+                    }
                   >
                     {level.label}
-                  </Text>
-                </View>
-                {selectedSkillLevel === level.value && (
-                  <IconSymbol name='checkmark' size={20} color='#4CAF50' />
-                )}
+                  </ThemedText>
+                </ThemedView>
               </TouchableOpacity>
             ))}
-          </View>
+          </ThemedView>
         )}
-      </View>
+      </ThemedView>
 
-      {/* Games List */}
-      <ScrollView style={styles.gamesContainer}>
-        {Object.keys(groupedGames).length > 0 ? (
-          orderedDateKeys.map((dateKey) => (
-            <View key={`date-${dateKey}`} style={styles.dateSection}>
-              <View style={styles.dateTitleContainer}>
-                <Text style={styles.dateTitle}>{dateKey}</Text>
-                {dateKey === "Today" || dateKey === "Tomorrow" ? (
-                  <Text style={styles.dateSubtitle}>
-                    {new Date(
-                      dateKey === "Today" ? Date.now() : Date.now() + 86400000
-                    ).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </Text>
-                ) : null}
-              </View>
-
-              {groupedGames[dateKey].map((game) => {
-                const reservationStatus = gameStatuses[game.id] || {
-                  canReserve: false,
-                  buttonText: "Loading...",
-                  buttonStyle: styles.disabledButton,
-                  textStyle: styles.disabledButtonText,
-                  isBooked: false,
-                };
-
-                // Check if the game is booked by the current user
-                const isBooked = upcomingGames.some(
-                  (bookedGame) =>
-                    bookedGame.gameId === game.id &&
-                    bookedGame.status === "upcoming"
-                );
-
-                return (
-                  <View
-                    key={`explore-${game.id}`}
-                    style={[
-                      styles.gameCard,
-                      !isSkillLevelMatch(game.skillLevel) &&
-                        styles.mismatchedGameCard,
-                    ]}
-                  >
-                    <TouchableOpacity
-                      style={styles.gameCardContent}
-                      onPress={() => handleGamePress(game.id)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.gameHeader}>
-                        <View>
-                          <Text style={styles.timeText}>
-                            {new Date(game.startTime).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </Text>
-                          <Text style={styles.courtText}>
-                            {game.location.name}
-                          </Text>
-                        </View>
-                        <View
-                          style={[
-                            styles.skillLevelTag,
-                            {
-                              backgroundColor:
-                                getSkillLevelColor(game.skillLevel) + "15",
-                            },
-                          ]}
-                        >
-                          <View
-                            style={[
-                              styles.skillLevelDot,
-                              {
-                                backgroundColor: getSkillLevelColor(
-                                  game.skillLevel
-                                ),
-                              },
-                            ]}
-                          />
-                          <Text
-                            style={[
-                              styles.skillLevelText,
-                              { color: getSkillLevelColor(game.skillLevel) },
-                            ]}
-                          >
-                            {game.skillLevel}
-                          </Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.locationInfo}>
-                        <Text style={styles.addressText}>
-                          {game.location.address}
-                        </Text>
-                        <Text style={styles.cityText}>
-                          {game.location.city}, {game.location.state}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-
-                    <View style={styles.gameFooter}>
-                      <View style={styles.spotsContainer}>
-                        <SpotsAvailability
-                          gameId={game.id}
-                          variant='card'
-                          showLoadingState={false}
-                        />
-                      </View>
-                      {isBooked ? (
-                        <TouchableOpacity
-                          style={styles.cancelButton}
-                          onPress={() => handleCancelRegistration(game.id)}
-                        >
-                          <Text style={styles.cancelText}>Cancel</Text>
-                        </TouchableOpacity>
-                      ) : (
-                        <TouchableOpacity
-                          style={[
-                            reservationStatus.buttonStyle,
-                            game.registeredCount >=
-                              GAME_CONSTANTS.MAX_PLAYERS &&
-                              styles.disabledButton,
-                          ]}
-                          onPress={() => handleGamePress(game.id)}
-                          disabled={
-                            game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS
-                          }
-                        >
-                          <Text
-                            style={[
-                              reservationStatus.textStyle,
-                              game.registeredCount >=
-                                GAME_CONSTANTS.MAX_PLAYERS &&
-                                styles.disabledButtonText,
-                            ]}
-                          >
-                            {game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS
-                              ? "Game Full"
-                              : reservationStatus.buttonText}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-          ))
-        ) : (
-          <View style={styles.emptyState}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        {orderedDateKeys.length === 0 && (
+          <ThemedView type='emptyStateContainer'>
             <IconSymbol
-              name='gamecontroller.fill'
-              size={40}
-              color='#666666'
-              style={styles.emptyStateIcon}
+              name='calendar'
+              size={48}
+              color='#bbb'
+              style={{ marginBottom: 16, opacity: 0.5 }}
             />
-            <Text style={styles.emptyStateTitle}>No Games Found</Text>
-            <Text style={styles.emptyStateText}>
-              No games available for the selected skill level. Try adjusting
-              your filters or check back later.
-            </Text>
-          </View>
+            <ThemedText type='emptyStateTitle'>No games found</ThemedText>
+            <ThemedText type='emptyStateText'>
+              There are no games available for the selected skill level. Try
+              changing the filter or check back later.
+            </ThemedText>
+          </ThemedView>
         )}
-      </ScrollView>
-
-      {/* Cancel Registration Modal */}
-      <Modal
-        visible={isCancelModalVisible}
-        animationType='fade'
-        transparent={true}
-        onRequestClose={() => !isLoading && setIsCancelModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <TouchableOpacity
-              onPress={() => !isLoading && setIsCancelModalVisible(false)}
-              style={styles.modalCloseButton}
-            >
-              <IconSymbol name='xmark' size={24} color='#666666' />
-            </TouchableOpacity>
-
-            <Text style={styles.modalTitle}>Cancel Registration</Text>
-
-            {selectedGame && (
-              <>
-                <View style={styles.bookingGameCard}>
-                  <View style={styles.bookingTimeContainer}>
-                    <Text style={styles.bookingTime}>
-                      {new Date(selectedGame.startTime).toLocaleTimeString([], {
+        {orderedDateKeys.map((dateKey) => (
+          <ThemedView key={dateKey} type='dateSection'>
+            <ThemedView type='dateTitleContainer'>
+              <ThemedText type='sectionTitle'>{dateKey}</ThemedText>
+            </ThemedView>
+            {groupedGames[dateKey].map((game) => (
+              <ThemedView
+                key={game.id}
+                type='gameCard'
+                style={
+                  isSkillLevelMatch(game.skillLevel)
+                    ? {}
+                    : styles.gameCardMismatch
+                }
+              >
+                <TouchableOpacity onPress={() => handleGamePress(game.id)}>
+                  <ThemedView
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      marginBottom: 12,
+                    }}
+                  >
+                    <ThemedText
+                      type='title'
+                      style={{ fontSize: 24, marginBottom: 4 }}
+                    >
+                      {new Date(game.startTime).toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
-                    </Text>
-                  </View>
-                  <View style={styles.bookingLocationContainer}>
-                    <Text style={styles.bookingLocationName}>
-                      {selectedGame.location.name}
-                    </Text>
-                    <Text style={styles.bookingLocationAddress}>
-                      {selectedGame.location.address}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.bookingSummaryCard}>
-                  <Text style={styles.summaryTitle}>Game Details</Text>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Skill Level</Text>
-                    <Text style={styles.summaryValue}>
-                      {selectedGame.skillLevel}
-                    </Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Price</Text>
-                    <Text style={styles.summaryValue}>
-                      ${selectedGame.price}
-                    </Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Booking ID</Text>
-                    <Text style={styles.summaryValue}>
-                      {upcomingGames
-                        .find((g) => g.gameId === selectedGame.id)
-                        ?.id.split("_")[0] || "N/A"}
-                    </Text>
-                  </View>
-                </View>
-
-                <Text style={[styles.bookingNote, { color: "#F44336" }]}>
-                  By canceling, you will lose your spot in this game. This
-                  action cannot be undone.
-                </Text>
-
-                <View style={styles.bookingActions}>
-                  <TouchableOpacity
-                    style={styles.keepBookingButton}
-                    onPress={() => !isLoading && setIsCancelModalVisible(false)}
-                    disabled={isLoading}
-                  >
-                    <Text style={styles.keepBookingText}>Keep My Spot</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.confirmCancelButton,
-                      isLoading && styles.disabledButton,
-                    ]}
-                    onPress={async () => {
-                      try {
-                        const bookedGame = upcomingGames.find(
-                          (game) =>
-                            game.gameId === selectedGame.id &&
-                            game.status === "upcoming"
-                        );
-
-                        if (!bookedGame) {
-                          throw new Error(
-                            "Could not find your registration for this game"
-                          );
+                    </ThemedText>
+                    <ThemedText type='paragraph'>{game.title}</ThemedText>
+                    <ThemedText type='paragraph'>
+                      {game.location.name}
+                    </ThemedText>
+                    <ThemedText type='caption'>
+                      {game.location.address}
+                    </ThemedText>
+                    <ThemedText type='caption'>
+                      {game.location.city}, {game.location.state}
+                    </ThemedText>
+                    <ThemedView
+                      type='badgeContainer'
+                      style={{ backgroundColor: "#f5f5f5" }}
+                    >
+                      <ThemedView
+                        style={{
+                          ...styles.badgeDot,
+                          backgroundColor: getSkillLevelColor(game.skillLevel),
+                        }}
+                      />
+                      <ThemedText type='badge'>{game.skillLevel}</ThemedText>
+                    </ThemedView>
+                  </ThemedView>
+                  <ThemedView style={{ marginBottom: 12 }}>
+                    <ThemedText type='paragraph' style={{ color: "#000" }}>
+                      {game.locationName}
+                    </ThemedText>
+                    <ThemedText type='caption'>
+                      {game.locationAddress}
+                    </ThemedText>
+                  </ThemedView>
+                  <ThemedView type='gameFooter'>
+                    <ThemedView style={{ flex: 1 }}>
+                      <ThemedText type='caption'>Spots</ThemedText>
+                      <SpotsAvailability gameId={game.id} />
+                    </ThemedView>
+                    <TouchableOpacity
+                      disabled={isLoadingStatuses}
+                      onPress={() => {
+                        if (gameStatuses[game.id]?.isBooked) {
+                          handleCancelRegistration(game.id);
+                        } else {
+                          handleGameSelect(game.id);
                         }
+                      }}
+                    >
+                      <ThemedView style={gameStatuses[game.id]?.buttonStyle}>
+                        <ThemedText
+                          type={
+                            gameStatuses[game.id]?.isBooked
+                              ? "buttonCancel"
+                              : gameStatuses[game.id]?.buttonText ===
+                                "Join Waitlist"
+                              ? "buttonWaitlist"
+                              : gameStatuses[game.id]?.buttonText ===
+                                "Unavailable"
+                              ? "buttonDisabled"
+                              : "button"
+                          }
+                        >
+                          {gameStatuses[game.id]?.buttonText}
+                        </ThemedText>
+                      </ThemedView>
+                    </TouchableOpacity>
+                  </ThemedView>
+                </TouchableOpacity>
+              </ThemedView>
+            ))}
+          </ThemedView>
+        ))}
+      </ScrollView>
 
-                        setIsLoading(true);
-                        await cancelBooking(bookedGame.id);
-                        setIsCancelModalVisible(false);
-                        Alert.alert(
-                          "Success",
-                          "Your registration has been cancelled."
-                        );
-                      } catch (error) {
-                        Alert.alert(
-                          "Error",
-                          "Failed to cancel registration. Please try again."
-                        );
-                      } finally {
-                        setIsLoading(false);
-                        setSelectedGame(null);
-                      }
-                    }}
-                    disabled={isLoading}
-                  >
-                    <Text style={styles.confirmCancelText}>
-                      {isLoading ? "Canceling..." : "Yes, Cancel Game"}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-          </View>
-        </View>
+      {/* Modal de cancelación */}
+      <Modal
+        visible={isCancelModalVisible}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setIsCancelModalVisible(false)}
+      >
+        <ThemedView type='modalContentCustom'>
+          <TouchableOpacity
+            style={styles.modalCloseButton}
+            onPress={() => setIsCancelModalVisible(false)}
+          >
+            <IconSymbol name='xmark' size={24} color='#000' />
+          </TouchableOpacity>
+          <ThemedText
+            type='title'
+            style={{ marginTop: 12, marginBottom: 24, textAlign: "center" }}
+          >
+            Cancel Registration
+          </ThemedText>
+          <ThemedView
+            type='card'
+            style={{
+              width: "100%",
+              marginBottom: 20,
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <ThemedView
+              style={{
+                backgroundColor: "#4CAF50",
+                padding: 12,
+                borderRadius: 12,
+                marginRight: 12,
+              }}
+            >
+              <ThemedText type='button'>
+                {selectedGame &&
+                  new Date(selectedGame.startTime).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+              </ThemedText>
+            </ThemedView>
+            <ThemedView style={{ flex: 1 }}>
+              <ThemedText
+                type='paragraph'
+                style={{ fontWeight: "600", color: "#000" }}
+              >
+                {selectedGame?.location.name}
+              </ThemedText>
+              <ThemedText type='caption'>
+                {selectedGame?.location.address}
+              </ThemedText>
+              <ThemedText type='caption'>
+                {selectedGame?.location.city}, {selectedGame?.location.state}
+              </ThemedText>
+            </ThemedView>
+          </ThemedView>
+          <ThemedText type='paragraphCenter' style={{ marginBottom: 24 }}>
+            Are you sure you want to cancel your registration for this game?
+          </ThemedText>
+          <ThemedView style={styles.modalActionRow}>
+            <TouchableOpacity
+              style={styles.modalActionButton}
+              onPress={() => setIsCancelModalVisible(false)}
+            >
+              <ThemedView
+                style={{
+                  backgroundColor: "#4CAF50",
+                  paddingVertical: 16,
+                  borderRadius: 30,
+                  alignItems: "center",
+                }}
+              >
+                <ThemedText type='button'>Keep Booking</ThemedText>
+              </ThemedView>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalActionButton}
+              onPress={async () => {
+                setIsLoading(true);
+                if (selectedGame?.id) {
+                  await cancelBooking(getBookedGameId(selectedGame.id)!);
+                }
+                setIsLoading(false);
+                setIsCancelModalVisible(false);
+              }}
+            >
+              <ThemedView
+                style={{
+                  backgroundColor: "#F44336",
+                  paddingVertical: 16,
+                  borderRadius: 30,
+                  alignItems: "center",
+                }}
+              >
+                <ThemedText type='buttonCancel'>Confirm Cancel</ThemedText>
+              </ThemedView>
+            </TouchableOpacity>
+          </ThemedView>
+        </ThemedView>
       </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  header: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-    zIndex: 1,
-  },
-  locationButton: {
-    alignItems: "center",
+  filterButton: {
     marginBottom: 12,
   },
-  locationText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000000",
-  },
-  filterButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    padding: 12,
-    borderRadius: 12,
-    gap: 8,
-  },
-  filterButtonText: {
-    fontSize: 15,
-    color: "#666666",
-    flex: 1,
-  },
   skillFilterDropdown: {
-    position: "absolute",
-    top: "100%",
+    position: "absolute" as const,
+    top: 60,
     left: 16,
     right: 16,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 8,
-    marginTop: 4,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.15,
-        shadowRadius: 3.84,
-      },
-      android: {
-        elevation: 5,
-      },
-    }),
+    zIndex: 10,
   },
-  skillFilterOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 12,
-    borderRadius: 8,
-  },
-  selectedSkillOption: {
-    backgroundColor: "#F1F8E9",
-  },
-  skillLevelBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  skillLevelDot: {
+  badgeDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
   },
-  skillFilterText: {
-    fontSize: 15,
-    color: "#666666",
+  gameCardMismatch: {
+    opacity: 0.8,
+    borderColor: "#ffcdd2",
   },
-  selectedSkillText: {
-    color: "#000000",
-    fontWeight: "500",
-  },
-  gamesContainer: {
-    padding: 16,
+  scrollViewContent: {
     paddingBottom: Platform.select({
       ios: 100,
       android: 80,
       default: 80,
     }),
   },
-  gameCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  gameCardContent: {
-    flex: 1,
-  },
-  gameHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  timeText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#000000",
-    marginBottom: 4,
-  },
-  courtText: {
-    fontSize: 16,
-    color: "#000000",
-  },
-  skillLevelTag: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    gap: 6,
-  },
-  skillLevelText: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  locationInfo: {
-    marginBottom: 12,
-  },
-  addressText: {
-    color: "#000000",
-    marginBottom: 2,
-  },
-  cityText: {
-    color: "#666666",
-  },
-  gameFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    paddingTop: 12,
-  },
-  spotsContainer: {
-    flex: 1,
-  },
-  labelText: {
-    color: "#666666",
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  valueText: {
-    color: "#000000",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  reserveButton: {
-    backgroundColor: "#4CAF50",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  reserveText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
-  emptyState: {
-    alignItems: "center",
-    padding: 32,
-    backgroundColor: "#f8f9fa",
-    borderRadius: 12,
-    marginTop: 16,
-  },
-  emptyStateIcon: {
-    marginBottom: 16,
-    opacity: 0.5,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000000",
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: "#666666",
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  mismatchedGameCard: {
-    opacity: 0.8,
-    borderColor: "#ffcdd2",
-  },
-  disabledButton: {
-    backgroundColor: "#E0E0E0",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  disabledButtonText: {
-    color: "#666666",
-    fontWeight: "600",
-  },
-  waitlistButton: {
-    backgroundColor: "#FFA000",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  waitlistText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
-  cancelButton: {
-    backgroundColor: "#F44336",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  cancelText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-  },
-  modalContent: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    width: "85%",
-    padding: 24,
-    alignItems: "center",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-      },
-      android: {
-        elevation: 5,
-      },
-    }),
-  },
   modalCloseButton: {
-    position: "absolute",
+    position: "absolute" as const,
     right: 16,
     top: 16,
     padding: 8,
     zIndex: 1,
   },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#000000",
-    marginTop: 12,
-    marginBottom: 24,
-    textAlign: "center",
-  },
-  bookingGameCard: {
-    backgroundColor: "#F8F9FA",
-    borderRadius: 16,
-    padding: 16,
-    width: "100%",
-    marginBottom: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  bookingTimeContainer: {
-    backgroundColor: "#4CAF50",
-    padding: 12,
-    borderRadius: 12,
-    marginRight: 12,
-  },
-  bookingTime: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  bookingLocationContainer: {
-    flex: 1,
-  },
-  bookingLocationName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000000",
-    marginBottom: 4,
-  },
-  bookingLocationAddress: {
-    fontSize: 14,
-    color: "#666666",
-  },
-  bookingSummaryCard: {
-    backgroundColor: "#F8F9FA",
-    borderRadius: 16,
-    padding: 16,
-    width: "100%",
-    marginBottom: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000000",
-    marginBottom: 16,
-  },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: "#666666",
-  },
-  summaryValue: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000000",
-  },
-  bookingNote: {
-    fontSize: 14,
-    color: "#666666",
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 24,
-    paddingHorizontal: 8,
-  },
-  bookingActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  modalActionRow: {
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
     width: "100%",
     gap: 12,
   },
-  keepBookingButton: {
+  modalActionButton: {
     flex: 1,
-    backgroundColor: "#4CAF50",
-    paddingVertical: 16,
     borderRadius: 30,
-    alignItems: "center",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#4CAF50",
-        shadowOffset: {
-          width: 0,
-          height: 4,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 6,
-      },
-    }),
-  },
-  keepBookingText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  confirmCancelButton: {
-    flex: 1,
-    backgroundColor: "#F44336",
+    alignItems: "center" as const,
     paddingVertical: 16,
-    borderRadius: 30,
-    alignItems: "center",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#F44336",
-        shadowOffset: {
-          width: 0,
-          height: 4,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 4.65,
-      },
-      android: {
-        elevation: 6,
-      },
-    }),
-  },
-  confirmCancelText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  // Styles for date sections
-  dateSection: {
-    marginBottom: 16,
-  },
-  dateTitleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 8,
-    backgroundColor: "#F5F5F5",
-    borderRadius: 8,
-    marginHorizontal: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  dateTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#333333",
-    marginRight: 8,
-  },
-  dateSubtitle: {
-    fontSize: 14,
-    color: "#666666",
-    fontWeight: "500",
   },
 });

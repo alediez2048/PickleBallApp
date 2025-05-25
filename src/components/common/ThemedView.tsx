@@ -4,6 +4,7 @@ import {
   StyleSheet,
   type StyleProp,
   type ViewStyle,
+  Platform,
 } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -16,7 +17,14 @@ export type ThemedViewProps = ViewProps & {
     | "rounded"
     | "elevated"
     | "bordered"
-    | "centered";
+    | "centered"
+    | "dateSection"
+    | "dateTitleContainer"
+    | "gameCard"
+    | "gameFooter"
+    | "badgeContainer"
+    | "modalContentCustom"
+    | "emptyStateContainer";
   colorType?:
     | "default"
     | "primary"
@@ -57,6 +65,73 @@ export function ThemedView({
         return styles.bordered;
       case "centered":
         return styles.centered;
+      case "dateSection":
+        return { marginBottom: 16 };
+      case "dateTitleContainer":
+        return {
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          marginBottom: 8,
+          backgroundColor: "#F5F5F5",
+          borderRadius: 8,
+          marginHorizontal: 16,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.1,
+          shadowRadius: 2,
+          elevation: 2,
+        };
+      case "gameCard":
+        return {
+          backgroundColor: "#fff",
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 16,
+          borderWidth: 1,
+          borderColor: "#E5E7EB",
+          shadowColor: Platform.OS === "ios" ? "#000" : undefined,
+          shadowOffset:
+            Platform.OS === "ios" ? { width: 0, height: 2 } : undefined,
+          shadowOpacity: Platform.OS === "ios" ? 0.1 : undefined,
+          shadowRadius: Platform.OS === "ios" ? 3 : undefined,
+          elevation: Platform.OS === "android" ? 2 : undefined,
+        };
+      case "gameFooter":
+        return {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          borderTopWidth: 1,
+          borderTopColor: "#E5E7EB",
+          paddingTop: 12,
+        };
+      case "badgeContainer":
+        return {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          borderRadius: 16,
+        };
+      case "modalContentCustom":
+        return {
+          backgroundColor: "#fff",
+          borderRadius: 24,
+          width: "85%",
+          padding: 24,
+          alignItems: "center",
+        };
+      case "emptyStateContainer":
+        return {
+          alignItems: "center",
+          padding: 32,
+          backgroundColor: "#f8f9fa",
+          borderRadius: 12,
+          marginTop: 16,
+        };
       default:
         return styles.default;
     }

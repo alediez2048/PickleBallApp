@@ -18,7 +18,15 @@ export type ThemedTextProps = TextProps & {
     | "paragraphCenter"
     | "caption"
     | "link"
-    | "bold";
+    | "bold"
+    | "sectionTitle"
+    | "badge"
+    | "emptyStateTitle"
+    | "emptyStateText"
+    | "button"
+    | "buttonDisabled"
+    | "buttonCancel"
+    | "buttonWaitlist";
   colorType?: "default" | "black" | "white" | "primary" | "secondary";
 };
 
@@ -50,6 +58,37 @@ export function ThemedText({
         return [styles.link, { color: colors.primary }];
       case "bold":
         return styles.bold;
+      case "sectionTitle":
+        return {
+          fontSize: 18,
+          fontWeight: "700",
+          color: "#333",
+          marginBottom: 4,
+        };
+      case "badge":
+        return { fontSize: 13, fontWeight: "600" };
+      case "emptyStateTitle":
+        return {
+          fontSize: 18,
+          fontWeight: "600",
+          color: "#000",
+          marginBottom: 8,
+        };
+      case "emptyStateText":
+        return {
+          fontSize: 14,
+          color: "#666",
+          textAlign: "center",
+          lineHeight: 20,
+        };
+      case "button":
+        return { fontSize: 16, fontWeight: "600", color: "#fff" };
+      case "buttonDisabled":
+        return { fontSize: 16, fontWeight: "600", color: "#666" };
+      case "buttonCancel":
+        return { fontSize: 16, fontWeight: "600", color: "#fff" };
+      case "buttonWaitlist":
+        return { fontSize: 16, fontWeight: "600", color: "#fff" };
       default:
         return styles.default;
     }
