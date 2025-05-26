@@ -397,15 +397,15 @@ export default function ExploreScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ThemedView type='section'>
+    <ThemedView style={{ flex: 1 }}>
+      <ThemedView type='section' borderColorType='primary' borderWidth={2}>
         <TouchableOpacity
           style={styles.filterButton}
           onPress={() => setShowSkillFilter((v) => !v)}
         >
           <ThemedView
             type='bordered'
-            style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
           >
             <IconSymbol name='filter' size={20} color='default' />
             <ThemedText
@@ -418,7 +418,7 @@ export default function ExploreScreen() {
           </ThemedView>
         </TouchableOpacity>
         {showSkillFilter && (
-          <ThemedView type='surface' style={styles.skillFilterDropdown}>
+          <ThemedView type='surface' style={styles.scrollFilterDropdown}>
             {skillLevels.map((level) => (
               <TouchableOpacity
                 key={level.value}
@@ -431,7 +431,7 @@ export default function ExploreScreen() {
                   type='badgeContainer'
                   style={
                     selectedSkillLevel === level.value
-                      ? { backgroundColor: "#F1F8E9" }
+                      ? { backgroundColor: "#f1f8e94e" }
                       : {}
                   }
                 >
@@ -683,13 +683,13 @@ export default function ExploreScreen() {
           </ThemedView>
         </ThemedView>
       </Modal>
-    </SafeAreaView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   filterButton: {
-    marginBottom: 12,
+    marginBottom: 2,
   },
   skillFilterDropdown: {
     position: "absolute" as const,
@@ -712,6 +712,13 @@ const styles = StyleSheet.create({
       ios: 100,
       android: 80,
       default: 80,
+    }),
+  },
+  scrollFilterDropdown: {
+    paddingBottom: Platform.select({
+      ios: 100,
+      android: 80,
+      default: 20,
     }),
   },
   modalCloseButton: {

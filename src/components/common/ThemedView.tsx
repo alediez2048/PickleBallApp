@@ -47,6 +47,7 @@ export type ThemedViewProps = ViewProps & {
     | "black";
   lightColor?: string;
   darkColor?: string;
+  borderWidth?: number | "thin" | "normal" | "bold";
 };
 
 const styles = StyleSheet.create({
@@ -63,9 +64,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   section: {
-    paddingVertical: 20,
+    paddingVertical: 5,
     paddingHorizontal: 16,
-    marginVertical: 12,
+    marginVertical: 0,
     borderRadius: 10,
   },
   surface: {
@@ -170,6 +171,7 @@ export function ThemedView({
   borderColorType = "default",
   lightColor,
   darkColor,
+  borderWidth,
   ...otherProps
 }: ThemedViewProps) {
   const { colors } = useTheme();
@@ -225,6 +227,23 @@ export function ThemedView({
     }
   };
 
+  // Add borderWidth logic
+  const getBorderWidthStyle = (): StyleProp<ViewStyle> => {
+    if (typeof borderWidth === "number") {
+      return { borderWidth };
+    }
+    switch (borderWidth) {
+      case "thin":
+        return { borderWidth: 1 };
+      case "normal":
+        return { borderWidth: 2 };
+      case "bold":
+        return { borderWidth: 3 };
+      default:
+        return {};
+    }
+  };
+
   // Compose themed styles only
   const typeStyle = styles[type || "default"] || styles.default;
   const dynamicTypeStyle = getTypeStyle(type, colors);
@@ -233,7 +252,14 @@ export function ThemedView({
 
   return (
     <View
-      style={[colorStyle, typeStyle, dynamicTypeStyle, borderColorStyle, style]}
+      style={[
+        colorStyle,
+        typeStyle,
+        dynamicTypeStyle,
+        borderColorStyle,
+        getBorderWidthStyle(),
+        style,
+      ]}
       {...otherProps}
     />
   );

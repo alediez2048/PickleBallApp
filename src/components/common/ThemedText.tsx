@@ -47,48 +47,33 @@ export function ThemedText({
       case "subtitle":
         return styles.subtitle;
       case "subtitleCenter":
-        return [styles.subtitle, { textAlign: "center" }];
+        return [styles.subtitle, styles.center];
       case "paragraph":
         return styles.paragraph;
       case "paragraphCenter":
-        return [styles.paragraph, { textAlign: "center" }];
+        return [styles.paragraph, styles.center];
       case "caption":
         return styles.caption;
       case "link":
-        return [styles.link, { color: colors.primary }];
+        return styles.link;
       case "bold":
         return styles.bold;
       case "sectionTitle":
-        return {
-          fontSize: 18,
-          fontWeight: "700",
-          color: "#333",
-          marginBottom: 4,
-        };
+        return styles.sectionTitle;
       case "badge":
-        return { fontSize: 13, fontWeight: "600" };
+        return styles.badge;
       case "emptyStateTitle":
-        return {
-          fontSize: 18,
-          fontWeight: "600",
-          color: "#000",
-          marginBottom: 8,
-        };
+        return styles.emptyStateTitle;
       case "emptyStateText":
-        return {
-          fontSize: 14,
-          color: "#666",
-          textAlign: "center",
-          lineHeight: 20,
-        };
+        return styles.emptyStateText;
       case "button":
-        return { fontSize: 16, fontWeight: "600", color: "#fff" };
+        return styles.button;
       case "buttonDisabled":
-        return { fontSize: 16, fontWeight: "600", color: "#666" };
+        return styles.buttonDisabled;
       case "buttonCancel":
-        return { fontSize: 16, fontWeight: "600", color: "#fff" };
+        return styles.buttonCancel;
       case "buttonWaitlist":
-        return { fontSize: 16, fontWeight: "600", color: "#fff" };
+        return styles.buttonWaitlist;
       default:
         return styles.default;
     }
@@ -147,9 +132,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     textDecorationLine: "underline",
+    color: "#007AFF", // fallback, can be overridden by colorType
   },
   bold: {
     fontSize: 16,
     fontWeight: "bold",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  badge: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  button: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  buttonDisabled: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  buttonCancel: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  buttonWaitlist: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  center: {
+    textAlign: "center",
   },
 });
