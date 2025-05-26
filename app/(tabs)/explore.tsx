@@ -22,6 +22,7 @@ import { SpotsAvailability } from "@/components/common/SpotsAvailability";
 import { GAME_CONSTANTS } from "@/types/games";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
+import { SKILL_LEVELS } from "@/constants/skillLevels";
 
 export default function ExploreScreen() {
   const router = useRouter();
@@ -149,8 +150,13 @@ export default function ExploreScreen() {
       acc[game.id] = {
         canReserve: true,
         buttonText: "Reserve",
-        buttonStyle: styles.reserveButton,
-        textStyle: styles.reserveText,
+        buttonStyle: {
+          backgroundColor: "#4CAF50",
+          paddingHorizontal: 20,
+          paddingVertical: 10,
+          borderRadius: 20,
+        },
+        textStyle: { color: "#FFFFFF", fontWeight: "600" },
         isBooked: false,
       };
       return acc;
@@ -312,12 +318,10 @@ export default function ExploreScreen() {
 
   const orderedDateKeys = getOrderedDateKeys();
 
+  // Add 'All Levels' option to the beginning of the skill levels array
   const skillLevels = [
     { value: "all" as const, label: "All Levels" },
-    { value: SkillLevel.Beginner, label: "Beginner" },
-    { value: SkillLevel.Intermediate, label: "Intermediate" },
-    { value: SkillLevel.Advanced, label: "Advanced" },
-    { value: SkillLevel.Open, label: "Open" },
+    ...SKILL_LEVELS,
   ];
 
   const getSkillLevelColor = (level: SkillLevel | "all") => {
@@ -403,7 +407,7 @@ export default function ExploreScreen() {
             type='bordered'
             style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
           >
-            <IconSymbol name='filter' size={20} color='primary' />
+            <IconSymbol name='filter' size={20} color='default' />
             <ThemedText
               type='paragraph'
               colorType='default'
@@ -525,10 +529,13 @@ export default function ExploreScreen() {
                   </ThemedView>
                   <ThemedView style={{ marginBottom: 12 }}>
                     <ThemedText type='paragraph' style={{ color: "#000" }}>
-                      {game.locationName}
+                      {game.location.name}
                     </ThemedText>
                     <ThemedText type='caption'>
-                      {game.locationAddress}
+                      {game.location.address}
+                    </ThemedText>
+                    <ThemedText type='caption'>
+                      {game.location.city}, {game.location.state}
                     </ThemedText>
                   </ThemedView>
                   <ThemedView type='gameFooter'>

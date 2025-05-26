@@ -5,6 +5,8 @@ import { useEffect } from "react";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { StyleProp, TextStyle } from "react-native";
 import { ThemedView } from "@/components/common/ThemedView";
+import { ThemedText } from "@/components/common/ThemedText";
+import { ActivityIndicator } from "react-native";
 
 type IconName =
   | "house.fill"
@@ -53,17 +55,46 @@ export default function TabLayout() {
   const { user } = useAuth();
   const router = useRouter();
 
+  // Redirect as soon as user.email_confirmed_at is available and not set
   useEffect(() => {
-    if (!user?.email_confirmed_at) {
-      router.replace("/verify-email" as const);
-      return;
+    if (
+      user &&
+      typeof user.email_confirmed_at !== "undefined" &&
+      !user.email_confirmed_at
+    ) {
+      router.replace("/verify-email");
     }
+  }, [user?.email_confirmed_at]);
 
-    if (!user?.skill_level) {
-      router.replace("/(skill-select)" as const);
-      return;
-    }
-  }, [user?.email_confirmed_at, user?.skill_level]);
+  // Only render tabs if user is validated
+  if (!user || typeof user.email_confirmed_at === "undefined") {
+    return (
+      <ThemedView
+        style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+      >
+        <ActivityIndicator size='large' color='#4CAF50' />
+        <ThemedText className='mt-4 text-lg text-gray-500'>
+          Checking email confirmation...
+        </ThemedText>
+      </ThemedView>
+    );
+  }
+  if (!user.email_confirmed_at) {
+    // The redirect will happen via useEffect above
+    return null;
+  }
+  if (!user.skill_level) {
+    return (
+      <ThemedView
+        style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+      >
+        <ActivityIndicator size='large' color='#4CAF50' />
+        <ThemedText className='mt-4 text-lg text-gray-500'>
+          Checking skill level...
+        </ThemedText>
+      </ThemedView>
+    );
+  }
 
   // Filter by admin users
   const isAdmin = ADMIN_USERS.includes(user?.email ?? "");
