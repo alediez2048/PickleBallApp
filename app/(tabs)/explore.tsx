@@ -403,7 +403,7 @@ export default function ExploreScreen() {
             type='bordered'
             style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
           >
-            <IconSymbol name='filter' size={20} color='#666' />
+            <IconSymbol name='filter' size={20} color='primary' />
             <ThemedText
               type='paragraph'
               colorType='default'
