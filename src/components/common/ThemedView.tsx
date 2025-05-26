@@ -44,7 +44,8 @@ export type ThemedViewProps = ViewProps & {
     | "tabIconDefault"
     | "tabIconSelected"
     | "white"
-    | "black";
+    | "black"
+    | "text";
   lightColor?: string;
   darkColor?: string;
   borderWidth?: number | "thin" | "normal" | "bold";
@@ -98,11 +99,12 @@ const styles = StyleSheet.create({
   dateTitleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 8,
-    borderRadius: 8,
-    marginHorizontal: 16,
+    paddingHorizontal: 32,
+    paddingVertical: 10,
+    marginHorizontal: 0,
+    marginBottom: 20,
+    marginTop: 20,
+    borderTopWidth: 2,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -222,6 +224,8 @@ export function ThemedView({
         return { borderColor: colors.white };
       case "black":
         return { borderColor: colors.black };
+      case "text":
+        return { borderColor: colors.text };
       default:
         return {};
     }

@@ -473,7 +473,7 @@ export default function ExploreScreen() {
         )}
         {orderedDateKeys.map((dateKey) => (
           <ThemedView key={dateKey} type='dateSection'>
-            <ThemedView type='dateTitleContainer'>
+            <ThemedView type='dateTitleContainer' borderColorType='text'>
               <ThemedText type='sectionTitle'>{dateKey}</ThemedText>
             </ThemedView>
             {groupedGames[dateKey].map((game) => (
