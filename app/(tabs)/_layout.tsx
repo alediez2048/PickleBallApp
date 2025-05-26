@@ -7,6 +7,7 @@ import { StyleProp, TextStyle } from "react-native";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
 import { ActivityIndicator } from "react-native";
+import { useCurrentRouteName } from "@/hooks/useCurrentRouteName";
 
 type IconName =
   | "house.fill"
@@ -54,6 +55,7 @@ const TAB_ITEMS = [
 export default function TabLayout() {
   const { user } = useAuth();
   const router = useRouter();
+  const currentRoute = useCurrentRouteName();
 
   // Redirect as soon as user.email_confirmed_at is available and not set
   useEffect(() => {
@@ -62,9 +64,12 @@ export default function TabLayout() {
       typeof user.email_confirmed_at !== "undefined" &&
       !user.email_confirmed_at
     ) {
-      router.replace("/verify-email");
+      // Prevent redirect loop if already on /verify-email
+      if (currentRoute !== "verify-email") {
+        router.replace("/verify-email");
+      }
     }
-  }, [user?.email_confirmed_at]);
+  }, [user?.email_confirmed_at, currentRoute]);
 
   // Only render tabs if user is validated
   if (!user || typeof user.email_confirmed_at === "undefined") {
@@ -74,7 +79,7 @@ export default function TabLayout() {
       >
         <ActivityIndicator size='large' color='#4CAF50' />
         <ThemedText className='mt-4 text-lg text-gray-500'>
-          Checking email confirmation...
+          Loading...
         </ThemedText>
       </ThemedView>
     );

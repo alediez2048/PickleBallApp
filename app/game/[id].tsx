@@ -55,8 +55,8 @@ export default function GameDetailsScreen() {
   useEffect(() => {
     const loadTotalBookedPlayers = async () => {
       if (game) {
-        const count = await mockApi.getGameBookings(game.id);
-        setTotalBookedPlayers(count);
+        // const count = await mockApi.getGameBookings(game.id);
+        // setTotalBookedPlayers(count);
       }
     };
     loadTotalBookedPlayers();

@@ -9,9 +9,8 @@ import {
   Modal,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { MOCK_GAMES } from "@/utils/mockData";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import { SkillLevel, Game } from "@/types/games";
+import { SkillLevel, Game, GameStatus } from "@/types/games";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useBookedGames,
@@ -23,12 +22,79 @@ import { GAME_CONSTANTS } from "@/types/games";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
 import { SKILL_LEVELS } from "@/constants/skillLevels";
+import { useGames } from "@/contexts/GameContext";
+import { useFixedGames } from "@/contexts/FixedGamesContext";
 
+// Type for merged game (scheduled or fixed)
+type MergedGame = Game & {
+  isFixed?: boolean;
+  dayOfWeek?: string;
+  fixedStartTime?: string;
+  durationMinutes?: number;
+};
+
+// Move allGames and related logic to the top of the ExploreScreen function, before any useEffect or variable that uses it
 export default function ExploreScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const upcomingGames = useUpcomingBookedGames();
   const { cancelBooking } = useBookedGames();
+  const { games, fetchGames, loading: loadingGames } = useGames();
+  const {
+    fixedGames,
+    fetchFixedGames,
+    loading: loadingFixedGames,
+  } = useFixedGames();
+
+  // --- Merged games logic must be here ---
+  const today = new Date();
+  const twoWeeksFromNow = new Date();
+  twoWeeksFromNow.setDate(today.getDate() + 14);
+
+  const scheduledGames: MergedGame[] = games.filter((game) => {
+    const start = new Date(game.startTime);
+    return (
+      start >= today &&
+      start <= twoWeeksFromNow &&
+      Array.isArray(game.players) &&
+      game.players.length > 0
+    );
+  });
+
+  const mappedFixedGames: MergedGame[] = fixedGames.map((fg) => ({
+    id: fg.id,
+    title: fg.title,
+    description: fg.description || "",
+    startTime: "",
+    endTime: "",
+    location: {
+      id: fg.location_id,
+      name: "",
+      address: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      coordinates: { latitude: 0, longitude: 0 },
+    },
+    host: fg.host,
+    players: [],
+    registeredCount: 0,
+    maxPlayers: fg.max_players,
+    skillLevel: fg.skill_level,
+    price: fg.price,
+    imageUrl: fg.image_url,
+    status: GameStatus.Upcoming,
+    createdAt: fg.created_at,
+    updatedAt: fg.updated_at,
+    isFixed: true,
+    dayOfWeek: fg.day_of_week,
+    fixedStartTime: fg.start_time,
+    durationMinutes: fg.duration_minutes,
+  }));
+
+  const allGames: MergedGame[] = [...mappedFixedGames, ...scheduledGames];
+  // --- End merged games logic ---
+
   const [selectedSkillLevel, setSelectedSkillLevel] = useState<
     SkillLevel | "all"
   >("all");
@@ -47,9 +113,7 @@ export default function ExploreScreen() {
   >({});
   const [isLoadingStatuses, setIsLoadingStatuses] = useState(false);
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
-  const [selectedGame, setSelectedGame] = useState<
-    (typeof MOCK_GAMES)[keyof typeof MOCK_GAMES] | null
-  >(null);
+  const [selectedGame, setSelectedGame] = useState<MergedGame | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const statusCache = React.useRef<Map<string, number>>(new Map());
 
@@ -63,8 +127,27 @@ export default function ExploreScreen() {
     [upcomingGames]
   );
 
+  // Replace all usages of MOCK_GAMES with allGames
+  // Example: initialStatuses, getReservationStatus, filteredGames, groupGamesByDate, etc.
+
+  // Update getReservationStatus to accept both scheduled and fixed games
   const getReservationStatus = React.useCallback(
-    async (game: (typeof MOCK_GAMES)[keyof typeof MOCK_GAMES]) => {
+    async (game: MergedGame) => {
+      // If it's a fixed game, always allow reservation (or customize as needed)
+      if (game.isFixed) {
+        return {
+          canReserve: true,
+          buttonText: "Reserve",
+          buttonStyle: {
+            backgroundColor: "#4CAF50",
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            borderRadius: 20,
+          },
+          textStyle: { color: "#FFFFFF", fontWeight: "600" },
+          isBooked: false,
+        };
+      }
       try {
         if (isGameBooked(game.id)) {
           return {
@@ -84,7 +167,8 @@ export default function ExploreScreen() {
         // Default to 0 if getGameBookings is not available
         let bookedPlayersCount = 0;
         try {
-          bookedPlayersCount = await mockApi.getGameBookings(game.id);
+          // TODO: Replace with real API call if available
+          // bookedPlayersCount = await getGameBookings(game.id);
         } catch (error) {
           console.warn(
             `Could not get bookings count for game ${game.id}, using default value`
@@ -143,89 +227,86 @@ export default function ExploreScreen() {
     [isGameBooked]
   );
 
-  // Initialize game statuses
-  useEffect(() => {
-    // Set initial states for all games
-    const initialStatuses = Object.values(MOCK_GAMES).reduce((acc, game) => {
-      acc[game.id] = {
-        canReserve: true,
-        buttonText: "Reserve",
-        buttonStyle: {
-          backgroundColor: "#4CAF50",
-          paddingHorizontal: 20,
-          paddingVertical: 10,
-          borderRadius: 20,
-        },
-        textStyle: { color: "#FFFFFF", fontWeight: "600" },
-        isBooked: false,
-      };
-      return acc;
-    }, {} as Record<string, any>);
+  // Initialize game statuses for allGames
+  // useEffect(() => {
+  //   // Set initial states for all games
+  //   const initialStatuses = allGames.reduce((acc, game) => {
+  //     acc[game.id] = {
+  //       canReserve: true,
+  //       buttonText: "Reserve",
+  //       buttonStyle: {
+  //         backgroundColor: "#4CAF50",
+  //         paddingHorizontal: 20,
+  //         paddingVertical: 10,
+  //         borderRadius: 20,
+  //       },
+  //       textStyle: { color: "#FFFFFF", fontWeight: "600" },
+  //       isBooked: false,
+  //     };
+  //     return acc;
+  //   }, {} as Record<string, any>);
 
-    setGameStatuses(initialStatuses);
-  }, []);
+  //   setGameStatuses(initialStatuses);
+  // }, [allGames]);
 
-  // Load game statuses with improved throttling and caching
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
+  // Load game statuses for allGames
+  // useEffect(() => {
+  //   let isMounted = true;
+  //   const controller = new AbortController();
 
-    const loadGameStatuses = async () => {
-      if (isLoadingStatuses) return;
+  //   const loadGameStatuses = async () => {
+  //     if (isLoadingStatuses) return;
 
-      try {
-        setIsLoadingStatuses(true);
-        const games = Object.values(MOCK_GAMES);
-        const currentTime = Date.now();
-        const updatedStatuses: Record<string, any> = {};
+  //     try {
+  //       setIsLoadingStatuses(true);
+  //       const games = allGames;
+  //       const currentTime = Date.now();
+  //       const updatedStatuses: Record<string, any> = {};
 
-        // Process games in chunks to prevent overwhelming
-        for (let i = 0; i < games.length; i++) {
-          if (!isMounted) break;
+  //       // Process games in chunks to prevent overwhelming
+  //       for (let i = 0; i < games.length; i++) {
+  //         if (!isMounted) break;
 
-          const game = games[i];
-          const lastUpdate = statusCache.current.get(game.id) || 0;
+  //         const game = games[i];
+  //         const lastUpdate = statusCache.current.get(game.id) || 0;
 
-          // Only update if cache is expired (5 seconds)
-          if (currentTime - lastUpdate > 5000) {
-            try {
-              const status = await getReservationStatus(game);
-              updatedStatuses[game.id] = status;
-              statusCache.current.set(game.id, currentTime);
+  //         // Only update if cache is expired (5 seconds)
+  //         if (currentTime - lastUpdate > 5000) {
+  //           try {
+  //             const status = await getReservationStatus(game);
+  //             updatedStatuses[game.id] = status;
+  //             statusCache.current.set(game.id, currentTime);
 
-              // Update state in batches
-              if (isMounted && Object.keys(updatedStatuses).length > 0) {
-                setGameStatuses((prev) => ({
-                  ...prev,
-                  ...updatedStatuses,
-                }));
-              }
+  //             // Update state in batches
+  //             if (isMounted && Object.keys(updatedStatuses).length > 0) {
+  //               setGameStatuses((prev) => ({ ...prev, ...updatedStatuses }));
+  //             }
 
-              // Add delay between requests
-              await new Promise((resolve) => setTimeout(resolve, 200));
-            } catch (error) {
-              console.warn(`Error loading status for game ${game.id}:`, error);
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error loading game statuses:", error);
-      } finally {
-        if (isMounted) {
-          setIsLoadingStatuses(false);
-        }
-      }
-    };
+  //             // Add delay between requests
+  //             await new Promise((resolve) => setTimeout(resolve, 200));
+  //           } catch (error) {
+  //             console.warn(`Error loading status for game ${game.id}:`, error);
+  //           }
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error("Error loading game statuses:", error);
+  //     } finally {
+  //       if (isMounted) {
+  //         setIsLoadingStatuses(false);
+  //       }
+  //     }
+  //   };
 
-    // Load statuses immediately on mount or when dependencies change
-    loadGameStatuses();
+  //   // Load statuses immediately on mount or when dependencies change
+  //   loadGameStatuses();
 
-    // Clean up
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
-  }, [upcomingGames, user?.skill_level, getReservationStatus]);
+  //   // Clean up
+  //   return () => {
+  //     isMounted = false;
+  //     controller.abort();
+  //   };
+  // }, [allGames, upcomingGames, user?.skill_level, getReservationStatus]);
 
   const handleGameSelect = (gameId: string) => {
     router.push({
@@ -234,68 +315,66 @@ export default function ExploreScreen() {
     });
   };
 
-  const filteredGames = Object.values(MOCK_GAMES).filter((game) => {
+  const filteredGames = allGames.filter((game) => {
     if (selectedSkillLevel === "all") return true;
     return game.skillLevel === selectedSkillLevel;
   });
 
   // Function to group games by date
-  const groupGamesByDate = (games: Game[]): Record<string, Game[]> => {
-    const groupedGames: Record<string, Game[]> = {};
-
+  // Grouping: for fixed games, group by day_of_week; for scheduled, by date
+  const groupGamesByDate = (
+    games: MergedGame[]
+  ): Record<string, MergedGame[]> => {
+    const groupedGames: Record<string, MergedGame[]> = {};
     games.forEach((game) => {
-      const gameDate = new Date(game.startTime);
-      const today = new Date();
-
-      // Reset times to midnight for date comparison
-      const gameDateMidnight = new Date(
-        gameDate.getFullYear(),
-        gameDate.getMonth(),
-        gameDate.getDate()
-      );
-      const todayMidnight = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate()
-      );
-
-      const tomorrowMidnight = new Date(todayMidnight);
-      tomorrowMidnight.setDate(tomorrowMidnight.getDate() + 1);
-
-      let dateKey: string;
-
-      if (gameDateMidnight.getTime() === todayMidnight.getTime()) {
-        dateKey = "Today";
-      } else if (gameDateMidnight.getTime() === tomorrowMidnight.getTime()) {
-        dateKey = "Tomorrow";
+      if (game.isFixed) {
+        const key = game.dayOfWeek || "Fixed";
+        if (!groupedGames[key]) groupedGames[key] = [];
+        groupedGames[key].push(game);
       } else {
-        // Format date as "Day of Week, Month Day" for future dates
-        dateKey = gameDate.toLocaleDateString("en-US", {
-          weekday: "long",
-          month: "short",
-          day: "numeric",
-        });
+        const gameDate = new Date(game.startTime);
+        const today = new Date();
+        const gameDateMidnight = new Date(
+          gameDate.getFullYear(),
+          gameDate.getMonth(),
+          gameDate.getDate()
+        );
+        const todayMidnight = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate()
+        );
+        const tomorrowMidnight = new Date(todayMidnight);
+        tomorrowMidnight.setDate(tomorrowMidnight.getDate() + 1);
+        let dateKey: string;
+        if (gameDateMidnight.getTime() === todayMidnight.getTime()) {
+          dateKey = "Today";
+        } else if (gameDateMidnight.getTime() === tomorrowMidnight.getTime()) {
+          dateKey = "Tomorrow";
+        } else {
+          dateKey = gameDate.toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "short",
+            day: "numeric",
+          });
+        }
+        if (!groupedGames[dateKey]) groupedGames[dateKey] = [];
+        groupedGames[dateKey].push(game);
       }
-
-      if (!groupedGames[dateKey]) {
-        groupedGames[dateKey] = [];
-      }
-
-      groupedGames[dateKey].push(game);
     });
-
-    // Sort games by time within each day
     Object.keys(groupedGames).forEach((dateKey) => {
-      groupedGames[dateKey].sort(
-        (a, b) =>
+      groupedGames[dateKey].sort((a, b) => {
+        if (a.isFixed && b.isFixed) return 0;
+        if (a.isFixed) return -1;
+        if (b.isFixed) return 1;
+        return (
           new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-      );
+        );
+      });
     });
-
     return groupedGames;
   };
 
-  // Group filtered games by date
   const groupedGames = groupGamesByDate(filteredGames);
 
   // Get sorted date keys (Today, Tomorrow, then chronological order)
@@ -353,19 +432,16 @@ export default function ExploreScreen() {
 
   const handleCancelRegistration = async (gameId: string) => {
     try {
-      const game = MOCK_GAMES[gameId];
+      const game = allGames.find((g) => g.id === gameId);
       if (!game) {
         throw new Error("Game not found");
       }
-
       const bookedGame = upcomingGames.find(
         (game) => game.gameId === gameId && game.status === "upcoming"
       );
-
       if (!bookedGame) {
         throw new Error("Could not find your registration for this game");
       }
-
       setSelectedGame(game);
       setIsCancelModalVisible(true);
     } catch (error) {
@@ -374,9 +450,8 @@ export default function ExploreScreen() {
   };
 
   const handleGamePress = (gameId: string) => {
-    const game = MOCK_GAMES[gameId];
+    const game = allGames.find((g) => g.id === gameId);
     if (!game) return;
-
     if (!isSkillLevelMatch(game.skillLevel)) {
       Alert.alert(
         "Skill Level Mismatch",
@@ -389,12 +464,18 @@ export default function ExploreScreen() {
       );
       return;
     }
-
     router.push({
       pathname: "/game/[id]",
       params: { id: gameId },
     });
   };
+
+  // Only fetch on mount, not on every change of fetchGames/fetchFixedGames references
+  useEffect(() => {
+    // fetchGames();
+    // fetchFixedGames();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <ThemedView style={{ flex: 1 }}>

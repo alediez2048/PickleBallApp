@@ -37,7 +37,8 @@ export function useGameRegistration(gameId: string) {
       const initialCount = mockGame?.registeredCount || 0;
 
       // Then get the real-time count
-      const count = await mockApi.getGameBookings(gameId);
+      // const count = await mockApi.getGameBookings(gameId);
+      const count = 0;
       const finalCount = count || initialCount; // Use mock data if API returns 0
       const spotsLeft = GAME_CONSTANTS.MAX_PLAYERS - finalCount;
 
@@ -50,7 +51,7 @@ export function useGameRegistration(gameId: string) {
       });
     } catch (error) {
       console.error('Error fetching registration count:', error);
-      
+
       // Fallback to mock data if available
       const mockGame = MOCK_GAMES[gameId];
       if (mockGame) {
@@ -102,4 +103,4 @@ export function useGameRegistration(gameId: string) {
     formatSpotsMessage,
     refresh: fetchRegistrationCount,
   };
-} 
+}
