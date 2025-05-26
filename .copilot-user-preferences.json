@@ -1,0 +1,22 @@
+{
+  "copilotPreferences": {
+    "language": "en",
+    "convertSpanishToEnglish": true,
+    "projectType": "expo-react-native",
+    "backend": "supabase",
+    "webSupport": true,
+    "platformFallbacks": true,
+    "typesDirectory": "src/types",
+    "constantsDirectory": "src/constants",
+    "enforceTypesAndConstants": true,
+    "stopIfTypeOrConstantMissing": true,
+    "themedComponents": [
+      "src/components/common/ThemedView.tsx",
+      "src/components/common/ThemedText.tsx"
+    ],
+    "noRawViewOrText": true,
+    "servicesDirectory": "src/services",
+    "serviceFileMapping": "tableOrFeature",
+    "tailwindEnabled": true
+  }
+}
