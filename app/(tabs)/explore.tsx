@@ -51,75 +51,116 @@ export default function ExploreScreen() {
     loading: loadingFixedGames,
   } = useFixedGames();
 
-  // --- Merged games logic must be here ---
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const sevenDaysFromNow = new Date(today);
-  sevenDaysFromNow.setDate(today.getDate() + 7);
+  // Add state for filter
+  const [actualFilter, setActualFilter] = useState<string>("all");
 
-  // Generate fixed game occurrences for the next 7 days (only for active games)
-  const fixedGameOccurrences: MergedGame[] = [];
-  fixedGames
-    .filter((fg) => fg.status === "active")
-    .forEach((fg) => {
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
-        // fg.day_of_week should match date.getDay() (0=Sunday, 1=Monday, ...)
-        if (DAYS_OF_WEEK[date.getDay()] === fg.day_of_week) {
-          const [hours, minutes] = fg.start_time.split(":").map(Number);
-          const startTime = new Date(date);
-          startTime.setHours(hours, minutes, 0, 0);
-          const endTime = new Date(startTime);
-          endTime.setMinutes(
-            startTime.getMinutes() + (fg.duration_minutes || 90)
-          );
-          fixedGameOccurrences.push({
-            id: `${fg.id}_${startTime.toISOString()}`,
-            title: fg.title,
-            description: fg.description || "",
-            startTime: startTime.toISOString(),
-            endTime: endTime.toISOString(),
-            location: {
-              id: fg.location_id,
-              name: "",
-              address: "",
-              city: "",
-              state: "",
-              zipCode: "",
-              coordinates: { latitude: 0, longitude: 0 },
-            },
-            host: fg.host,
-            players: [],
-            registeredCount: 0,
-            maxPlayers: fg.max_players,
-            skillLevel: fg.skill_level,
-            price: fg.price,
-            imageUrl: fg.image_url,
-            status: "Upcoming",
-            createdAt: fg.created_at,
-            updatedAt: fg.updated_at,
-            isFixed: true,
-            dayOfWeek: fg.day_of_week,
-            fixedStartTime: fg.start_time,
-            durationMinutes: fg.duration_minutes,
-          });
-        }
+  // Function to build the sorted days array based on the current filter
+  const buildSortedDaysArray = (
+    fixedGames: FixedGame[],
+    games: Game[],
+    filter: string
+  ) => {
+    if (!fixedGames || fixedGames.length === 0) return [];
+    const activeFixedGames = fixedGames.filter((fg) => fg.status === "active");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const daysArray: {
+      dateUTC: string;
+      displayDate: string;
+      day: string;
+      fixedGame?: FixedGame;
+      games: MergedGame[];
+    }[] = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      const dateUTC = date.toISOString().split("T")[0];
+      const mm = String(date.getMonth() + 1).padStart(2, "0");
+      const dd = String(date.getDate()).padStart(2, "0");
+      const yyyy = date.getFullYear();
+      const displayDate = `${mm}/${dd}/${yyyy}`;
+      let day = date.toLocaleDateString("en-US", { weekday: "long" });
+      if (i === 0) day = "Today";
+      else if (i === 1) day = "Tomorrow";
+      const fixedGamesForDay = activeFixedGames.filter(
+        (fg) => fg.day_of_week === DAYS_OF_WEEK[date.getDay()]
+      );
+      const fixedGameOccurrences: MergedGame[] = fixedGamesForDay.map((fg) => {
+        const [hours, minutes] = fg.start_time.split(":").map(Number);
+        const startTime = new Date(date);
+        startTime.setHours(hours, minutes, 0, 0);
+        const endTime = new Date(startTime);
+        endTime.setMinutes(
+          startTime.getMinutes() + (fg.duration_minutes || 90)
+        );
+        return {
+          id: `${fg.id}_${startTime.toISOString()}`,
+          title: fg.title,
+          description: fg.description || "",
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+          location: {
+            id: fg.location_id,
+            name: "",
+            address: "",
+            city: "",
+            state: "",
+            zipCode: "",
+            coordinates: { latitude: 0, longitude: 0 },
+          },
+          host: fg.host,
+          players: [],
+          registeredCount: 0,
+          maxPlayers: fg.max_players,
+          skillLevel: fg.skill_level,
+          price: fg.price,
+          imageUrl: fg.image_url,
+          status: "Upcoming",
+          createdAt: fg.created_at,
+          updatedAt: fg.updated_at,
+          isFixed: true,
+          dayOfWeek: fg.day_of_week,
+          fixedStartTime: fg.start_time,
+          durationMinutes: fg.duration_minutes,
+        };
+      });
+      const scheduledGamesForDay = games.filter((game) => {
+        const start = new Date(game.startTime);
+        return (
+          start.getFullYear() === date.getFullYear() &&
+          start.getMonth() === date.getMonth() &&
+          start.getDate() === date.getDate() &&
+          Array.isArray(game.players) &&
+          game.players.length > 0
+        );
+      });
+      const mergedGames: MergedGame[] = [
+        ...fixedGameOccurrences,
+        ...scheduledGamesForDay,
+      ].filter((game) =>
+        filter === "all" ? true : game.skillLevel === filter
+      );
+      if (mergedGames.length > 0) {
+        daysArray.push({
+          dateUTC,
+          displayDate,
+          day,
+          fixedGame: fixedGamesForDay[0],
+          games: mergedGames,
+        });
       }
-    });
+    }
+    return daysArray.sort((a, b) => a.dateUTC.localeCompare(b.dateUTC));
+  };
 
-  const scheduledGames: MergedGame[] = games.filter((game) => {
-    const start = new Date(game.startTime);
-    return (
-      start >= today &&
-      start <= sevenDaysFromNow &&
-      Array.isArray(game.players) &&
-      game.players.length > 0
-    );
-  });
+  // Fetch fixed games on mount, then build the days array after fetch
+  useEffect(() => {
+    fetchFixedGames();
+    // Optionally, fetchGames();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const allGames: MergedGame[] = [...fixedGameOccurrences, ...scheduledGames];
-  // --- End merged games logic ---
+  const sortedDaysArray = buildSortedDaysArray(fixedGames, games, actualFilter);
 
   const [selectedSkillLevel, setSelectedSkillLevel] = useState<
     SkillLevel | "all"
@@ -341,88 +382,6 @@ export default function ExploreScreen() {
     });
   };
 
-  const filteredGames = allGames.filter((game) => {
-    if (selectedSkillLevel === "all") return true;
-    return game.skillLevel === selectedSkillLevel;
-  });
-
-  // Function to group games by date
-  // Grouping: for fixed games, group by day_of_week; for scheduled, by date
-  const groupGamesByDate = (
-    games: MergedGame[]
-  ): Record<string, MergedGame[]> => {
-    const groupedGames: Record<string, MergedGame[]> = {};
-    games.forEach((game) => {
-      if (game.isFixed) {
-        const key = game.dayOfWeek || "Fixed";
-        if (!groupedGames[key]) groupedGames[key] = [];
-        groupedGames[key].push(game);
-      } else {
-        const gameDate = new Date(game.startTime);
-        const today = new Date();
-        const gameDateMidnight = new Date(
-          gameDate.getFullYear(),
-          gameDate.getMonth(),
-          gameDate.getDate()
-        );
-        const todayMidnight = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          today.getDate()
-        );
-        const tomorrowMidnight = new Date(todayMidnight);
-        tomorrowMidnight.setDate(tomorrowMidnight.getDate() + 1);
-        let dateKey: string;
-        if (gameDateMidnight.getTime() === todayMidnight.getTime()) {
-          dateKey = "Today";
-        } else if (gameDateMidnight.getTime() === tomorrowMidnight.getTime()) {
-          dateKey = "Tomorrow";
-        } else {
-          dateKey = gameDate.toLocaleDateString("en-US", {
-            weekday: "long",
-            month: "short",
-            day: "numeric",
-          });
-        }
-        if (!groupedGames[dateKey]) groupedGames[dateKey] = [];
-        groupedGames[dateKey].push(game);
-      }
-    });
-    Object.keys(groupedGames).forEach((dateKey) => {
-      groupedGames[dateKey].sort((a, b) => {
-        if (a.isFixed && b.isFixed) return 0;
-        if (a.isFixed) return -1;
-        if (b.isFixed) return 1;
-        return (
-          new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-        );
-      });
-    });
-    return groupedGames;
-  };
-
-  const groupedGames = groupGamesByDate(filteredGames);
-
-  // Get sorted date keys (Today, Tomorrow, then chronological order)
-  const getOrderedDateKeys = (): string[] => {
-    const dateKeys = Object.keys(groupedGames);
-
-    return dateKeys.sort((a: string, b: string) => {
-      if (a === "Today") return -1;
-      if (b === "Today") return 1;
-      if (a === "Tomorrow") return -1;
-      if (b === "Tomorrow") return 1;
-
-      // For other dates, convert to date objects and compare
-      const dateA = new Date(a.replace(/Today|Tomorrow/g, ""));
-      const dateB = new Date(b.replace(/Today|Tomorrow/g, ""));
-
-      return dateA.getTime() - dateB.getTime();
-    });
-  };
-
-  const orderedDateKeys = getOrderedDateKeys();
-
   // Add 'All Levels' option to the beginning of the skill levels array
   const skillLevels = [
     { value: "all" as const, label: "All Levels", color: "#666666" },
@@ -431,94 +390,46 @@ export default function ExploreScreen() {
 
   const getSkillLevelColor = (level: SkillLevel | "all") => {
     if (level === "all") return "#666666";
-    const found = SKILL_LEVELS.find((s) => s.value === level);
-    return found?.color || "#666666";
+    const skillLevel = SKILL_LEVELS.find((sl) => sl.value === level);
+    return skillLevel ? skillLevel.color : "#666666";
   };
 
   const isSkillLevelMatch = (gameSkillLevel: SkillLevel) => {
-    if (!user?.skill_level) return false;
-    return gameSkillLevel === user.skill_level;
-  };
-
-  const getBookedGameId = (gameId: string) => {
-    const bookedGame = upcomingGames.find(
-      (game) => game.gameId === gameId && game.status === "upcoming"
+    return (
+      selectedSkillLevel === "all" || gameSkillLevel === selectedSkillLevel
     );
-    return bookedGame?.id;
   };
 
   const handleCancelRegistration = async (gameId: string) => {
     try {
-      const game = allGames.find((g) => g.id === gameId);
-      if (!game) {
-        throw new Error("Game not found");
-      }
-      const bookedGame = upcomingGames.find(
-        (game) => game.gameId === gameId && game.status === "upcoming"
-      );
-      if (!bookedGame) {
-        throw new Error("Could not find your registration for this game");
-      }
-      setSelectedGame(game);
-      setIsCancelModalVisible(true);
+      setIsLoading(true);
+      // Call the cancelBooking function from context
+      await cancelBooking(gameId);
+      // Optionally, show a success message or update local state
+      Alert.alert("Success", "Your registration has been cancelled.");
     } catch (error) {
-      Alert.alert("Error", "Failed to cancel registration. Please try again.");
+      console.error("Error cancelling registration:", error);
+      Alert.alert("Error", "There was a problem cancelling your registration.");
+    } finally {
+      setIsLoading(false);
+      setIsCancelModalVisible(false);
     }
   };
 
-  const handleGamePress = (gameId: string) => {
-    const game = allGames.find((g) => g.id === gameId);
-    if (!game) return;
-    if (!isSkillLevelMatch(game.skillLevel)) {
-      Alert.alert(
-        "Skill Level Mismatch",
-        `This game is for ${
-          game.skillLevel
-        } players. Please find a game that matches your skill level (${
-          user?.skill_level || "Not Set"
-        }).`,
-        [{ text: "OK" }]
-      );
-      return;
-    }
-    router.push({
-      pathname: "/game/[id]",
-      params: { id: gameId },
-    });
-  };
-
-  // Only fetch on mount, not on every change of fetchGames/fetchFixedGames references
-  useEffect(() => {
-    fetchFixedGames();
-    // Optionally, fetchGames();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Show loading state if fixed games are loading
-  if (loadingFixedGames) {
-    return (
-      <ThemedView
-        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-      >
-        <ThemedText type='title'>Loading games...</ThemedText>
-      </ThemedView>
-    );
-  }
-
+  // Render using sortedDaysArray
   return (
-    <ThemedView style={{ flex: 1 }}>
+    <SafeAreaView style={styles.container}>
       <ExploreFilter
-        selectedSkillLevel={selectedSkillLevel}
-        setSelectedSkillLevel={setSelectedSkillLevel}
+        selectedSkillLevel={actualFilter}
+        setSelectedSkillLevel={setActualFilter}
         showSkillFilter={showSkillFilter}
         setShowSkillFilter={setShowSkillFilter}
         skillLevels={skillLevels}
         getSkillLevelColor={getSkillLevelColor}
         styles={styles}
       />
-
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        {orderedDateKeys.length === 0 && (
+        {sortedDaysArray.length === 0 && (
           <ThemedView type='emptyStateContainer'>
             <IconSymbol
               name='calendar'
@@ -533,12 +444,21 @@ export default function ExploreScreen() {
             </ThemedText>
           </ThemedView>
         )}
-        {orderedDateKeys.map((dateKey) => (
-          <ThemedView key={dateKey} type='dateSection'>
-            <ThemedView type='dateTitleContainer' borderColorType='text'>
-              <ThemedText type='sectionTitle'>{dateKey}</ThemedText>
+        {sortedDaysArray.map((dayObj: any) => (
+          <ThemedView key={dayObj.dateUTC} type='dateSection'>
+            <ThemedView
+              type='dateTitleContainer'
+              borderColorType='text'
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <ThemedText type='sectionTitle'>{dayObj.day}</ThemedText>
+              <ThemedText type='sectionTitle'>{dayObj.displayDate}</ThemedText>
             </ThemedView>
-            {groupedGames[dateKey].map((game) => (
+            {dayObj.games.map((game: any) => (
               <GameCard
                 key={game.id}
                 game={game}
@@ -547,7 +467,7 @@ export default function ExploreScreen() {
                 isLoadingStatuses={isLoadingStatuses}
                 styles={styles}
                 getSkillLevelColor={getSkillLevelColor}
-                onGamePress={handleGamePress}
+                onGamePress={handleGameSelect}
                 onActionPress={(gameId, isBooked) => {
                   if (isBooked) {
                     handleCancelRegistration(gameId);
@@ -560,166 +480,69 @@ export default function ExploreScreen() {
           </ThemedView>
         ))}
       </ScrollView>
-
-      {/* Modal de cancelación */}
+      {/* Cancel registration modal */}
       <Modal
         visible={isCancelModalVisible}
+        animationType='slide'
         transparent
-        animationType='fade'
         onRequestClose={() => setIsCancelModalVisible(false)}
       >
-        <ThemedView type='modalContentCustom'>
-          <TouchableOpacity
-            style={styles.modalCloseButton}
-            onPress={() => setIsCancelModalVisible(false)}
-          >
-            <IconSymbol name='xmark' size={24} color='#000' />
-          </TouchableOpacity>
-          <ThemedText
-            type='title'
-            style={{ marginTop: 12, marginBottom: 24, textAlign: "center" }}
-          >
-            Cancel Registration
-          </ThemedText>
-          <ThemedView
-            type='card'
-            style={{
-              width: "100%",
-              marginBottom: 20,
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <ThemedView
-              style={{
-                backgroundColor: "#4CAF50",
-                padding: 12,
-                borderRadius: 12,
-                marginRight: 12,
-              }}
-            >
-              <ThemedText type='button'>
-                {selectedGame &&
-                  new Date(selectedGame.startTime).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-              </ThemedText>
-            </ThemedView>
-            <ThemedView style={{ flex: 1 }}>
-              <ThemedText
-                type='paragraph'
-                style={{ fontWeight: "600", color: "#000" }}
-              >
-                {selectedGame?.location.name}
-              </ThemedText>
-              <ThemedText type='caption'>
-                {selectedGame?.location.address}
-              </ThemedText>
-              <ThemedText type='caption'>
-                {selectedGame?.location.city}, {selectedGame?.location.state}
-              </ThemedText>
-            </ThemedView>
-          </ThemedView>
-          <ThemedText type='paragraphCenter' style={{ marginBottom: 24 }}>
+        <ThemedView type='modalContainer' style={styles.modalContainer}>
+          <ThemedText type='modalTitle'>Cancel Registration</ThemedText>
+          <ThemedText type='modalMessage'>
             Are you sure you want to cancel your registration for this game?
           </ThemedText>
-          <ThemedView style={styles.modalActionRow}>
+          <ThemedView type='modalButtonContainer'>
             <TouchableOpacity
-              style={styles.modalActionButton}
+              style={styles.cancelButton}
               onPress={() => setIsCancelModalVisible(false)}
             >
-              <ThemedView
-                style={{
-                  backgroundColor: "#4CAF50",
-                  paddingVertical: 16,
-                  borderRadius: 30,
-                  alignItems: "center",
-                }}
-              >
-                <ThemedText type='button'>Keep Booking</ThemedText>
-              </ThemedView>
+              <ThemedText type='buttonText'>No, go back</ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.modalActionButton}
-              onPress={async () => {
-                setIsLoading(true);
-                if (selectedGame?.id) {
-                  await cancelBooking(getBookedGameId(selectedGame.id)!);
+              style={styles.confirmButton}
+              onPress={() => {
+                if (selectedGame) {
+                  handleCancelRegistration(selectedGame.id);
                 }
-                setIsLoading(false);
-                setIsCancelModalVisible(false);
               }}
             >
-              <ThemedView
-                style={{
-                  backgroundColor: "#F44336",
-                  paddingVertical: 16,
-                  borderRadius: 30,
-                  alignItems: "center",
-                }}
-              >
-                <ThemedText type='buttonCancel'>Confirm Cancel</ThemedText>
-              </ThemedView>
+              <ThemedText type='buttonText'>Yes, cancel</ThemedText>
             </TouchableOpacity>
           </ThemedView>
         </ThemedView>
       </Modal>
-    </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  filterButton: {
-    marginBottom: 2,
-  },
-  skillFilterDropdown: {
-    position: "absolute" as const,
-    top: 60,
-    left: 16,
-    right: 16,
-    zIndex: 10,
-  },
-  badgeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  gameCardMismatch: {
-    opacity: 0.8,
-    borderColor: "#ffcdd2",
+  container: {
+    flex: 1,
+    backgroundColor: "#F9FAFB",
   },
   scrollViewContent: {
-    paddingBottom: Platform.select({
-      ios: 100,
-      android: 80,
-      default: 80,
-    }),
+    paddingBottom: 80,
   },
-  scrollFilterDropdown: {
-    paddingBottom: Platform.select({
-      ios: 100,
-      android: 80,
-      default: 20,
-    }),
-  },
-  modalCloseButton: {
-    position: "absolute" as const,
-    right: 16,
-    top: 16,
-    padding: 8,
-    zIndex: 1,
-  },
-  modalActionRow: {
-    flexDirection: "row" as const,
-    justifyContent: "space-between" as const,
-    width: "100%",
-    gap: 12,
-  },
-  modalActionButton: {
+  modalContainer: {
     flex: 1,
-    borderRadius: 30,
-    alignItems: "center" as const,
-    paddingVertical: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+  },
+  cancelButton: {
+    backgroundColor: "#F44336",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  confirmButton: {
+    backgroundColor: "#4CAF50",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginLeft: 8,
   },
 });
