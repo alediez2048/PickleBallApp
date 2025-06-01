@@ -27,6 +27,8 @@ import { SKILL_LEVELS } from "@/constants/skillLevels";
 import { useGames } from "@/contexts/GameContext";
 import { useFixedGames } from "@/contexts/FixedGamesContext";
 import { DAYS_OF_WEEK } from "@/constants/daysOfWeek";
+import GameCard from "@/components/explore/GameCard";
+import ExploreFilter from "@components/explore/ExploreFilter";
 
 // Type for merged game (scheduled or fixed)
 type MergedGame = Game & {
@@ -69,7 +71,9 @@ export default function ExploreScreen() {
           const startTime = new Date(date);
           startTime.setHours(hours, minutes, 0, 0);
           const endTime = new Date(startTime);
-          endTime.setMinutes(startTime.getMinutes() + (fg.duration_minutes || 90));
+          endTime.setMinutes(
+            startTime.getMinutes() + (fg.duration_minutes || 90)
+          );
           fixedGameOccurrences.push({
             id: `${fg.id}_${startTime.toISOString()}`,
             title: fg.title,
@@ -103,7 +107,6 @@ export default function ExploreScreen() {
         }
       }
     });
-  console.log("[DEBUG] fixedGameOccurrences", fixedGames);
 
   const scheduledGames: MergedGame[] = games.filter((game) => {
     const start = new Date(game.startTime);
@@ -504,62 +507,15 @@ export default function ExploreScreen() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <ThemedView type='section' borderColorType='primary' borderWidth={2}>
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => setShowSkillFilter((v) => !v)}
-        >
-          <ThemedView
-            type='bordered'
-            style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-          >
-            <IconSymbol name='filter' size={20} color='default' />
-            <ThemedText
-              type='paragraph'
-              colorType='default'
-              style={{ flex: 1 }}
-            >
-              {skillLevels.find((s) => s.value === selectedSkillLevel)?.label}
-            </ThemedText>
-          </ThemedView>
-        </TouchableOpacity>
-        {showSkillFilter && (
-          <ThemedView type='surface' style={styles.scrollFilterDropdown}>
-            {skillLevels.map((level) => (
-              <TouchableOpacity
-                key={level.value}
-                onPress={() => {
-                  setSelectedSkillLevel(level.value);
-                  setShowSkillFilter(false);
-                }}
-              >
-                <ThemedView
-                  type='badgeContainer'
-                  style={
-                    selectedSkillLevel === level.value
-                      ? { backgroundColor: "#f1f8e94e" }
-                      : {}
-                  }
-                >
-                  <ThemedView
-                    style={{
-                      ...styles.badgeDot,
-                      backgroundColor: getSkillLevelColor(level.value),
-                    }}
-                  />
-                  <ThemedText
-                    type={
-                      selectedSkillLevel === level.value ? "bold" : "paragraph"
-                    }
-                  >
-                    {level.label}
-                  </ThemedText>
-                </ThemedView>
-              </TouchableOpacity>
-            ))}
-          </ThemedView>
-        )}
-      </ThemedView>
+      <ExploreFilter
+        selectedSkillLevel={selectedSkillLevel}
+        setSelectedSkillLevel={setSelectedSkillLevel}
+        showSkillFilter={showSkillFilter}
+        setShowSkillFilter={setShowSkillFilter}
+        skillLevels={skillLevels}
+        getSkillLevelColor={getSkillLevelColor}
+        styles={styles}
+      />
 
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         {orderedDateKeys.length === 0 && (
@@ -583,103 +539,23 @@ export default function ExploreScreen() {
               <ThemedText type='sectionTitle'>{dateKey}</ThemedText>
             </ThemedView>
             {groupedGames[dateKey].map((game) => (
-              <ThemedView
+              <GameCard
                 key={game.id}
-                type='gameCard'
-                style={
-                  isSkillLevelMatch(game.skillLevel)
-                    ? {}
-                    : styles.gameCardMismatch
-                }
-              >
-                <TouchableOpacity onPress={() => handleGamePress(game.id)}>
-                  <ThemedView
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      marginBottom: 12,
-                    }}
-                  >
-                    <ThemedText
-                      type='title'
-                      style={{ fontSize: 24, marginBottom: 4 }}
-                    >
-                      {new Date(game.startTime).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </ThemedText>
-                    <ThemedText type='paragraph'>{game.title}</ThemedText>
-                    <ThemedText type='paragraph'>
-                      {game.location.name}
-                    </ThemedText>
-                    <ThemedText type='caption'>
-                      {game.location.address}
-                    </ThemedText>
-                    <ThemedText type='caption'>
-                      {game.location.city}, {game.location.state}
-                    </ThemedText>
-                    <ThemedView
-                      type='badgeContainer'
-                      style={{ backgroundColor: "#f5f5f5" }}
-                    >
-                      <ThemedView
-                        style={{
-                          ...styles.badgeDot,
-                          backgroundColor: getSkillLevelColor(game.skillLevel),
-                        }}
-                      />
-                      <ThemedText type='badge'>{game.skillLevel}</ThemedText>
-                    </ThemedView>
-                  </ThemedView>
-                  <ThemedView style={{ marginBottom: 12 }}>
-                    <ThemedText type='paragraph' style={{ color: "#000" }}>
-                      {game.location.name}
-                    </ThemedText>
-                    <ThemedText type='caption'>
-                      {game.location.address}
-                    </ThemedText>
-                    <ThemedText type='caption'>
-                      {game.location.city}, {game.location.state}
-                    </ThemedText>
-                  </ThemedView>
-                  <ThemedView type='gameFooter'>
-                    <ThemedView style={{ flex: 1 }}>
-                      <ThemedText type='caption'>Spots</ThemedText>
-                      <SpotsAvailability gameId={game.id} />
-                    </ThemedView>
-                    <TouchableOpacity
-                      disabled={isLoadingStatuses}
-                      onPress={() => {
-                        if (gameStatuses[game.id]?.isBooked) {
-                          handleCancelRegistration(game.id);
-                        } else {
-                          handleGameSelect(game.id);
-                        }
-                      }}
-                    >
-                      <ThemedView style={gameStatuses[game.id]?.buttonStyle}>
-                        <ThemedText
-                          type={
-                            gameStatuses[game.id]?.isBooked
-                              ? "buttonCancel"
-                              : gameStatuses[game.id]?.buttonText ===
-                                "Join Waitlist"
-                              ? "buttonWaitlist"
-                              : gameStatuses[game.id]?.buttonText ===
-                                "Unavailable"
-                              ? "buttonDisabled"
-                              : "button"
-                          }
-                        >
-                          {gameStatuses[game.id]?.buttonText}
-                        </ThemedText>
-                      </ThemedView>
-                    </TouchableOpacity>
-                  </ThemedView>
-                </TouchableOpacity>
-              </ThemedView>
+                game={game}
+                isSkillLevelMatch={isSkillLevelMatch(game.skillLevel)}
+                gameStatus={gameStatuses[game.id]}
+                isLoadingStatuses={isLoadingStatuses}
+                styles={styles}
+                getSkillLevelColor={getSkillLevelColor}
+                onGamePress={handleGamePress}
+                onActionPress={(gameId, isBooked) => {
+                  if (isBooked) {
+                    handleCancelRegistration(gameId);
+                  } else {
+                    handleGameSelect(gameId);
+                  }
+                }}
+              />
             ))}
           </ThemedView>
         ))}
