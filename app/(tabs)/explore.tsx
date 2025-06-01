@@ -10,7 +10,9 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import { SkillLevel, Game, GameStatus } from "@/types/games";
+import type { FixedGame } from "@/types/fixedGames";
+import { SkillLevel } from "@/constants/skillLevel.types";
+import { Game, GameStatus } from "@/types/games";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useBookedGames,
@@ -24,6 +26,7 @@ import { ThemedText } from "@/components/common/ThemedText";
 import { SKILL_LEVELS } from "@/constants/skillLevels";
 import { useGames } from "@/contexts/GameContext";
 import { useFixedGames } from "@/contexts/FixedGamesContext";
+import { DAYS_OF_WEEK } from "@/constants/daysOfWeek";
 
 // Type for merged game (scheduled or fixed)
 type MergedGame = Game & {
@@ -48,51 +51,71 @@ export default function ExploreScreen() {
 
   // --- Merged games logic must be here ---
   const today = new Date();
-  const twoWeeksFromNow = new Date();
-  twoWeeksFromNow.setDate(today.getDate() + 14);
+  today.setHours(0, 0, 0, 0);
+  const sevenDaysFromNow = new Date(today);
+  sevenDaysFromNow.setDate(today.getDate() + 7);
+
+  // Generate fixed game occurrences for the next 7 days (only for active games)
+  const fixedGameOccurrences: MergedGame[] = [];
+  fixedGames
+    .filter((fg) => fg.status === "active")
+    .forEach((fg) => {
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        // fg.day_of_week should match date.getDay() (0=Sunday, 1=Monday, ...)
+        if (DAYS_OF_WEEK[date.getDay()] === fg.day_of_week) {
+          const [hours, minutes] = fg.start_time.split(":").map(Number);
+          const startTime = new Date(date);
+          startTime.setHours(hours, minutes, 0, 0);
+          const endTime = new Date(startTime);
+          endTime.setMinutes(startTime.getMinutes() + (fg.duration_minutes || 90));
+          fixedGameOccurrences.push({
+            id: `${fg.id}_${startTime.toISOString()}`,
+            title: fg.title,
+            description: fg.description || "",
+            startTime: startTime.toISOString(),
+            endTime: endTime.toISOString(),
+            location: {
+              id: fg.location_id,
+              name: "",
+              address: "",
+              city: "",
+              state: "",
+              zipCode: "",
+              coordinates: { latitude: 0, longitude: 0 },
+            },
+            host: fg.host,
+            players: [],
+            registeredCount: 0,
+            maxPlayers: fg.max_players,
+            skillLevel: fg.skill_level,
+            price: fg.price,
+            imageUrl: fg.image_url,
+            status: "Upcoming",
+            createdAt: fg.created_at,
+            updatedAt: fg.updated_at,
+            isFixed: true,
+            dayOfWeek: fg.day_of_week,
+            fixedStartTime: fg.start_time,
+            durationMinutes: fg.duration_minutes,
+          });
+        }
+      }
+    });
+  console.log("[DEBUG] fixedGameOccurrences", fixedGames);
 
   const scheduledGames: MergedGame[] = games.filter((game) => {
     const start = new Date(game.startTime);
     return (
       start >= today &&
-      start <= twoWeeksFromNow &&
+      start <= sevenDaysFromNow &&
       Array.isArray(game.players) &&
       game.players.length > 0
     );
   });
 
-  const mappedFixedGames: MergedGame[] = fixedGames.map((fg) => ({
-    id: fg.id,
-    title: fg.title,
-    description: fg.description || "",
-    startTime: "",
-    endTime: "",
-    location: {
-      id: fg.location_id,
-      name: "",
-      address: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      coordinates: { latitude: 0, longitude: 0 },
-    },
-    host: fg.host,
-    players: [],
-    registeredCount: 0,
-    maxPlayers: fg.max_players,
-    skillLevel: fg.skill_level,
-    price: fg.price,
-    imageUrl: fg.image_url,
-    status: GameStatus.Upcoming,
-    createdAt: fg.created_at,
-    updatedAt: fg.updated_at,
-    isFixed: true,
-    dayOfWeek: fg.day_of_week,
-    fixedStartTime: fg.start_time,
-    durationMinutes: fg.duration_minutes,
-  }));
-
-  const allGames: MergedGame[] = [...mappedFixedGames, ...scheduledGames];
+  const allGames: MergedGame[] = [...fixedGameOccurrences, ...scheduledGames];
   // --- End merged games logic ---
 
   const [selectedSkillLevel, setSelectedSkillLevel] = useState<
@@ -399,23 +422,14 @@ export default function ExploreScreen() {
 
   // Add 'All Levels' option to the beginning of the skill levels array
   const skillLevels = [
-    { value: "all" as const, label: "All Levels" },
+    { value: "all" as const, label: "All Levels", color: "#666666" },
     ...SKILL_LEVELS,
   ];
 
   const getSkillLevelColor = (level: SkillLevel | "all") => {
-    switch (level) {
-      case SkillLevel.Beginner:
-        return "#4CAF50";
-      case SkillLevel.Intermediate:
-        return "#2196F3";
-      case SkillLevel.Advanced:
-        return "#F44336";
-      case SkillLevel.Open:
-        return "#9C27B0";
-      default:
-        return "#666666";
-    }
+    if (level === "all") return "#666666";
+    const found = SKILL_LEVELS.find((s) => s.value === level);
+    return found?.color || "#666666";
   };
 
   const isSkillLevelMatch = (gameSkillLevel: SkillLevel) => {
@@ -472,10 +486,21 @@ export default function ExploreScreen() {
 
   // Only fetch on mount, not on every change of fetchGames/fetchFixedGames references
   useEffect(() => {
-    // fetchGames();
-    // fetchFixedGames();
+    fetchFixedGames();
+    // Optionally, fetchGames();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Show loading state if fixed games are loading
+  if (loadingFixedGames) {
+    return (
+      <ThemedView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
+        <ThemedText type='title'>Loading games...</ThemedText>
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={{ flex: 1 }}>
