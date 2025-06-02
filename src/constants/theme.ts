@@ -78,3 +78,28 @@ export const shadows = {
     elevation: 5,
   },
 };
+
+export const Colors = {
+  light: {
+    text: colors.text.light,
+    background: colors.background.light,
+    primary: colors.primary.light,
+    secondary: '#f4f4f5', // Not present in theme, kept as is
+    tint: colors.primary.light,
+    tabIconDefault: '#cccccc', // Not present in theme, kept as is
+    tabIconSelected: colors.primary.light,
+    white: '#ffffff', // Not present in theme, kept as is
+    black: '#000000', // Not present in theme, kept as is
+  },
+  dark: {
+    text: colors.text.dark,
+    background: colors.background.dark,
+    primary: colors.primary.light, // Using light for consistency
+    secondary: '#27272a', // Not present in theme, kept as is
+    tint: colors.primary.light,
+    tabIconDefault: '#cccccc', // Not present in theme, kept as is
+    tabIconSelected: '#ffffff', // Not present in theme, kept as is
+    white: '#ffffff', // Not present in theme, kept as is
+    black: '#000000', // Not present in theme, kept as is
+  },
+};

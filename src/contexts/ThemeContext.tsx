@@ -6,6 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import { Appearance, ColorSchemeName } from "react-native";
+import { Colors } from "@constants/theme";
 
 type ThemeContextType = {
   theme: ColorSchemeName;
@@ -21,32 +22,6 @@ export const useTheme = () => {
     throw new Error("useTheme must be used within a ThemeProvider");
   }
   return context;
-};
-
-// Define your light and dark colors
-const Colors = {
-  light: {
-    text: "#000000",
-    background: "#ffffff",
-    primary: "#4CAF50",
-    secondary: "#f4f4f5",
-    tint: "#4CAF50",
-    tabIconDefault: "#cccccc",
-    tabIconSelected: "#4CAF50",
-    white: "#ffffff",
-    black: "#000000",
-  },
-  dark: {
-    text: "#ffffff",
-    background: "#000000",
-    primary: "#4CAF50",
-    secondary: "#27272a",
-    tint: "#4CAF50",
-    tabIconDefault: "#cccccc",
-    tabIconSelected: "#ffffff",
-    white: "#ffffff",
-    black: "#000000",
-  },
 };
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {

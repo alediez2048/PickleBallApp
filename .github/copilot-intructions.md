@@ -37,6 +37,7 @@
    - Use Tailwind classes wherever appropriate for styling.
 
 7. Path Aliases:
+
    - The following path aliases are available and must be used whenever possible for imports:
      - `@/*` → `src/*`
      - `@components/*` → `src/components/*`
@@ -46,3 +47,14 @@
      - `@constants/*` → `src/constants/*`
      - `@types/*` → `src/types/*`
      - `@utils/*` → `src/utils/*`
+
+8. **Component Styles:**
+
+   - All component styles must be defined at the end of the file in a `const styles = StyleSheet.create({ ... })` block for better readability and maintainability.
+
+9. **Color Management:**
+   - All color values must be defined in `src/constants/theme.ts` under the `colors` object or the `Colors` object.
+   - Do not use hardcoded color values in components or styles.
+   - If a new color is needed, add it to both the `light` and `dark` objects in `const Colors = { light: {}, dark: {} }` in `theme.ts`.
+   - Always reference colors from the theme constants.
+   - If you add or update any color, ensure it is present in both the `light` and `dark` theme objects for consistency.
