@@ -30,6 +30,7 @@ import { FirstTimeProfileForm } from "@/components/profile/FirstTimeProfileForm"
 import { MembershipPlanModal } from "@/components/membership/MembershipPlanModal";
 import { PaymentMethodModal } from "@/components/payment/PaymentMethodModal";
 import { MembershipPlan } from "@/types/membership";
+import { IconSymbol } from "@/components/ui/IconSymbol";
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -189,21 +190,17 @@ export default function GameDetailsScreen() {
   const handleBookButtonPress = () => {
     // Check if user has completed their profile
     console.debug("[GameDetails] Platform:", Platform.OS);
-    console.debug("[GameDetails] Book button pressed");
-    console.debug("[GameDetails] User profile status:", {
-      hasCompletedProfile: user?.hasCompletedProfile,
-    });
 
-    if (!user?.hasCompletedProfile) {
-      console.debug("[GameDetails] Showing profile form modal");
-      // Show profile completion modal directly
-      setIsProfileFormVisible(true);
-      return;
-    }
+    // if (!user?.has_completed_profile) {
+    console.debug("[GameDetails] Showing profile form modal");
+    // Show profile completion modal directly
+    setIsProfileFormVisible(true);
+    return;
+    // }
 
     console.debug("[GameDetails] Showing booking confirmation modal");
     // Proceed with booking
-    setIsBookingModalVisible(true);
+    // setIsBookingModalVisible(true);
   };
 
   const handleProfileComplete = () => {
@@ -230,47 +227,95 @@ export default function GameDetailsScreen() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <ThemedView style={styles.header}>
-        <ThemedText style={styles.headerTitle}>Game Details</ThemedText>
+      <ThemedView>
+        <ThemedText
+          type='title'
+          style={{
+            textAlign: "center",
+            paddingVertical: 10,
+            marginVertical: 10,
+          }}
+        >
+          Game Details
+        </ThemedText>
       </ThemedView>
       {/* Game Summary */}
-      <ThemedView style={styles.section}>
-        <ThemedText style={styles.timeText}>
-          {new Date(game.start_time).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </ThemedText>
-        <ThemedText style={styles.courtText}>{game.location?.name}</ThemedText>
-        <ThemedView style={styles.locationInfo}>
-          <ThemedText style={styles.addressText}>
-            {game.location?.address}
+      <ThemedView style={styles.twoRows}>
+        <ThemedView style={styles.oneRowColumn}>
+          <ThemedView>
+            <ThemedText type='badge'>Start</ThemedText>
+            <ThemedText type='sectionTitle'>
+              {new Date(game.start_time).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </ThemedText>
+          </ThemedView>
+          <ThemedView>
+            <ThemedText type='badge'>End</ThemedText>
+            <ThemedText type='sectionTitle'>
+              {new Date(game.end_time).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </ThemedText>
+          </ThemedView>
+        </ThemedView>
+        <ThemedView style={styles.oneRowColumn}>
+          <ThemedText type='sectionTitle' style={styles.alignRight}>
+            {new Date(game.end_time).toLocaleDateString("en-US")}
           </ThemedText>
-          <ThemedText style={styles.cityText}>
-            {game.location?.city}, {game.location?.state}{" "}
-            {game.location?.zip_code}
-          </ThemedText>
+          <ThemedView>
+            <ThemedText
+              type='subtitle'
+              colorType='primary'
+              style={styles.alignRight}
+            >
+              {game.location?.name}
+            </ThemedText>
+            <ThemedView>
+              <ThemedText type='default' style={styles.alignRight}>
+                {game.location?.address}
+              </ThemedText>
+              <ThemedText type='caption' style={styles.alignRight}>
+                {game.location?.city}, {game.location?.state}{" "}
+                {game.location?.zip_code}
+              </ThemedText>
+            </ThemedView>
+          </ThemedView>
         </ThemedView>
       </ThemedView>
       {/* Game Stats */}
-      <ThemedView style={[styles.section, styles.statsSection]}>
+      <ThemedView
+        borderColorType='text'
+        borderWidth='bold'
+        style={[styles.section, styles.statsSection]}
+      >
         <ThemedView style={styles.statItem}>
-          <ThemedText style={styles.statLabel}>Skill Level</ThemedText>
-          <ThemedText style={styles.statValue}>{game.skill_level}</ThemedText>
+          <ThemedText type='label' align='center' colorType='label'>
+            Skill Level
+          </ThemedText>
+          <ThemedText type='value' align='center'>
+            {game.skill_level}
+          </ThemedText>
         </ThemedView>
         <ThemedView style={styles.statDivider} />
         <ThemedView style={styles.statItem}>
-          <ThemedText style={styles.statLabel}>Price</ThemedText>
-          <ThemedText style={styles.statValue}>${game.price}</ThemedText>
+          <ThemedText type='label' align='center' colorType='label'>
+            Price
+          </ThemedText>
+          <ThemedText type='value' align='center'>
+            ${game.price}
+          </ThemedText>
         </ThemedView>
         <ThemedView style={styles.statDivider} />
         <ThemedView style={styles.statItem}>
-          {/* TODO: SpotsAvailability component, ensure it uses ThemedText */}
+          <SpotsAvailability gameId={game.id} />
         </ThemedView>
       </ThemedView>
       {/* Game Host */}
-      <ThemedView style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>Game Host</ThemedText>
+      {/* <ThemedView style={styles.section}>
+        <ThemedText type='sectionTitle'>Game Host</ThemedText>
         <ThemedView style={styles.captainCard}>
           <ThemedView style={styles.captainInfo}>
             <ThemedText style={styles.captainName}>{game.host.name}</ThemedText>
@@ -279,7 +324,7 @@ export default function GameDetailsScreen() {
             </ThemedText>
           </ThemedView>
         </ThemedView>
-      </ThemedView>
+      </ThemedView> */}
       {/* Players */}
       <ThemedView style={styles.section}>
         {/* TODO: RSVPList component, ensure it uses ThemedText/ThemedView */}
@@ -608,9 +653,9 @@ export default function GameDetailsScreen() {
                 onPress={() => !isLoading && setIsProfileFormVisible(false)}
                 style={styles.modalCloseButton}
               >
-                {/* <IconSymbol name='xmark' size={24} color='#666666' /> */}
+                <IconSymbol name='xmark' size={24} />
               </TouchableOpacity>
-              <ThemedText style={styles.modalTitle}>
+              <ThemedText type='defaultSemiBold'>
                 Complete Your Profile
               </ThemedText>
             </ThemedView>
@@ -644,7 +689,9 @@ export default function GameDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
   },
   header: {
     flexDirection: "row",
@@ -653,32 +700,39 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
   },
+  twoRows: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 2,
+    gap: 4,
+  },
+  oneRowColumn: {
+    flex: 1,
+    flexDirection: "column",
+    padding: 8,
+    gap: 8,
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#000000",
   },
   section: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    padding: 10,
+    margin: 10,
   },
-  timeText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#000000",
-    marginBottom: 4,
+  alignRight: {
+    textAlign: "right",
   },
   courtText: {
     fontSize: 18,
-    color: "#000000",
+
     marginBottom: 8,
   },
   locationInfo: {
     marginTop: 8,
   },
   addressText: {
-    color: "#000000",
     marginBottom: 2,
   },
   cityText: {
@@ -701,13 +755,11 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: "#666666",
     marginBottom: 4,
   },
   statValue: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#000000",
   },
   sectionTitle: {
     fontSize: 18,
@@ -737,9 +789,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    backgroundColor: "#FFFFFF",
     gap: 12,
   },
   reserveButton: {
@@ -1209,14 +1258,12 @@ const styles = StyleSheet.create({
   },
   profileFormOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
+    justifyContent: "flex-end",
     alignItems: "center",
   },
   profileFormContainer: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    width: "95%",
+    width: "100%",
     maxWidth: 500,
     height: "90%",
     maxHeight: "90%",

@@ -19,6 +19,8 @@ export type ThemedTextProps = TextProps & {
     | "caption"
     | "link"
     | "bold"
+    | "label"
+    | "value"
     | "sectionTitle"
     | "badge"
     | "emptyStateTitle"
@@ -27,13 +29,15 @@ export type ThemedTextProps = TextProps & {
     | "buttonDisabled"
     | "buttonCancel"
     | "buttonWaitlist";
-  colorType?: "default" | "black" | "white" | "primary" | "secondary";
+  colorType?: "default" | "black" | "white" | "primary" | "secondary" | "label";
+  align?: "left" | "center" | "right" | "justify";
 };
 
 export function ThemedText({
   style,
   type = "default",
   colorType = "default",
+  align,
   ...rest
 }: ThemedTextProps) {
   const { colors } = useTheme();
@@ -74,6 +78,10 @@ export function ThemedText({
         return styles.buttonCancel;
       case "buttonWaitlist":
         return styles.buttonWaitlist;
+      case "label":
+        return styles.label;
+      case "value":
+        return styles.value;
       default:
         return styles.default;
     }
@@ -89,6 +97,8 @@ export function ThemedText({
         return { color: colors.primary };
       case "secondary":
         return { color: colors.secondary };
+      case "label":
+        return { color: colors.label };
       default:
         return { color: colors.text };
     }
@@ -96,8 +106,9 @@ export function ThemedText({
 
   const styleMatch = getTypeStyle();
   const colorMatch = getColorStyle();
+  const alignStyle = align ? { textAlign: align } : undefined;
 
-  return <Text style={[colorMatch, styleMatch, style]} {...rest} />;
+  return <Text style={[colorMatch, styleMatch, alignStyle, style]} {...rest} />;
 }
 
 const styles = StyleSheet.create({
@@ -116,9 +127,9 @@ const styles = StyleSheet.create({
     lineHeight: 36,
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
-    lineHeight: 28,
+    lineHeight: 24,
   },
   paragraph: {
     fontSize: 15,
@@ -175,5 +186,13 @@ const styles = StyleSheet.create({
   },
   center: {
     textAlign: "center",
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  value: {
+    fontSize: 18,
+    fontWeight: "700",
   },
 });

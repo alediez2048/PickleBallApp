@@ -184,7 +184,7 @@ export function FirstTimeProfileForm({
         style={styles.keyboardAvoidingView}
       >
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
-          <ThemedText type='title' style={styles.title}>
+          <ThemedText type='sectionTitle' style={styles.title}>
             Complete Your Profile
           </ThemedText>
           <ThemedText type='subtitle' style={styles.subtitle}>
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     textAlign: "center",
-    marginBottom: 24,
+    marginBottom: 20,
   },
   form: {
     gap: 16,

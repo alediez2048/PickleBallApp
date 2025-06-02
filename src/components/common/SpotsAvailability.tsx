@@ -48,17 +48,17 @@ export function SpotsAvailability({
       ) : (
         <ThemedView style={styles.contentContainer}>
           <ThemedText
-            style={[
-              styles.label,
-              { color: colors.icon },
-              variant === "detail" && styles.detailLabel,
-            ]}
+            type='label'
+            align='center'
+            colorType='label'
+            style={[variant === "detail" && styles.detailLabel]}
           >
             Spots Available
           </ThemedText>
           <ThemedText
+            type='value'
+            align='center'
             style={[
-              styles.value,
               { color: isFull ? colors.error : colors.text },
               variant === "detail" && styles.detailValue,
             ]}
@@ -98,11 +98,6 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-  },
-  value: {
-    fontSize: 18,
-    margin: 0,
-    fontWeight: "600",
   },
   fullValue: {
     // color handled inline

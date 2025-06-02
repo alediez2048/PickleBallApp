@@ -17,6 +17,10 @@ export const colors = {
     light: '#000000',
     dark: '#FFFFFF',
   },
+  label:{
+    light: '#333333',
+    dark: '#E0E0E0',
+  },
   error: '#D32F2F',
   success: '#2E7D32',
   warning: '#ED6C02',
@@ -109,6 +113,7 @@ export const Colors = {
     skillAll: colors.neutral.skillAll,
     waitlist: colors.neutral.waitlist,
     icon: colors.neutral.icon,
+    label: colors.label.light,
   },
   dark: {
     text: colors.text.dark,
@@ -128,5 +133,6 @@ export const Colors = {
     skillAll: colors.neutral.skillAll,
     waitlist: colors.neutral.waitlist,
     icon: colors.neutral.icon,
+    label: colors.label.dark,
   },
 };

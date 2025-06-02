@@ -90,12 +90,12 @@ export function useGameRegistration(gameId: string) {
     if (state.error) {
       // If we have a fallback count, show it even if there's an error
       if (state.registeredCount > 0) {
-        return `${GAME_CONSTANTS.MAX_PLAYERS - state.registeredCount}/${GAME_CONSTANTS.MAX_PLAYERS} spots left`;
+        return `${GAME_CONSTANTS.MAX_PLAYERS - state.registeredCount}/${GAME_CONSTANTS.MAX_PLAYERS}`;
       }
       return 'Unable to load spots';
     }
     if (state.isFull) return 'Game Full';
-    return `${state.spotsLeft}/${GAME_CONSTANTS.MAX_PLAYERS} spots left`;
+    return `${state.spotsLeft}/${GAME_CONSTANTS.MAX_PLAYERS}`;
   }, [state.isLoading, state.error, state.isFull, state.spotsLeft, state.registeredCount]);
 
   return {
