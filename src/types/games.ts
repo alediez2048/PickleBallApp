@@ -8,10 +8,10 @@ export const SkillLevel = {
 export type SkillLevel = typeof SkillLevel[keyof typeof SkillLevel];
 
 export const GameStatus = {
-  Upcoming: 'Upcoming',
-  InProgress: 'InProgress',
-  Completed: 'Completed',
-  Cancelled: 'Cancelled',
+  Upcoming: 'upcoming',
+  Progress: 'progress',
+  Completed: 'completed',
+  Cancelled: 'cancelled',
 } as const;
 
 export type GameStatus = typeof GameStatus[keyof typeof GameStatus];
@@ -53,19 +53,20 @@ export interface Game {
   id: string;
   title: string;
   description: string;
-  startTime: string;
-  endTime: string;
-  location: Location;
+  start_time: string;
+  end_time: string;
+  location_id: string;
   host: User;
   players: User[];
-  registeredCount: number;
-  maxPlayers: number;
-  skillLevel: SkillLevel;
+  registered_count: number;
+  max_players: number;
+  skill_level: SkillLevel;
   price: number;
-  imageUrl?: string;
+  image_url?: string;
   status: GameStatus;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
+  fixed_game_id?: string;
 }
 
 export interface GameFilters {
@@ -73,4 +74,4 @@ export interface GameFilters {
   date?: string;
   location?: string;
   status?: GameStatus;
-} 
+}

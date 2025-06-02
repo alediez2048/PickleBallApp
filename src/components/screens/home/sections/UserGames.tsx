@@ -6,7 +6,7 @@ import { GameCard } from "@/components/common/GameCard";
 
 interface UserGamesProps {
   games: Game[];
-  onGamePress: (gameId: string) => void;
+  onGamePress: (game: Game) => void;
 }
 
 export function UserGames({ games, onGamePress }: UserGamesProps) {
@@ -20,7 +20,7 @@ export function UserGames({ games, onGamePress }: UserGamesProps) {
           <GameCard
             key={game.id}
             game={game}
-            onPress={() => onGamePress(game.id)}
+            onPress={() => onGamePress(game)}
             variant='compact'
           />
         ))}

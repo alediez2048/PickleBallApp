@@ -9,16 +9,39 @@ import { GameCategories } from "./sections/GameCategories";
 import { UserGames } from "./sections/UserGames";
 import { RecentActivity } from "./sections/RecentActivity";
 import { useAppNavigation } from "@/hooks/useAppNavigation";
+import { useGames } from "@/contexts/GameContext";
 
 export function HomeScreen() {
   const navigation = useAppNavigation();
+  const { createGame } = useGames();
   const { data: games = [] } = useQuery<Game[]>({
     queryKey: ["games"],
     queryFn: () => GamesApi.getGames(),
   });
 
-  const handleGamePress = (gameId: string) => {
-    navigation.navigate(`/game/${gameId}`);
+  const handleGamePress = async (game: Game) => {
+    if (
+      game.id &&
+      typeof game.id === "string" &&
+      !game.id.startsWith("undefined") &&
+      !game.id.startsWith("null")
+    ) {
+      navigation.navigate(`/game/${game.id}`);
+      return;
+    }
+    try {
+      const gameData = { ...game };
+      delete gameData.id;
+      const created = await createGame(gameData);
+      if (created && created.id) {
+        navigation.navigate(`/game/${created.id}`);
+      } else {
+        // fallback error
+        alert("Could not create game.");
+      }
+    } catch (err) {
+      alert("Could not create game.");
+    }
   };
 
   const handleCreateGame = () => {

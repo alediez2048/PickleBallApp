@@ -169,7 +169,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "SET_LOADING", payload: true });
     dispatch({ type: "SET_ERROR", payload: null });
     try {
-      const { data, error } = await listGames();
+      // Calculate date range: today to 7 days after
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const endDate = new Date(today);
+      endDate.setDate(today.getDate() + 7);
+      const startDateStr = today.toISOString().split("T")[0];
+      const endDateStr = endDate.toISOString().split("T")[0];
+      // Use listGames with date range filter
+      const { data, error } = await listGames({
+        startDate: startDateStr,
+        endDate: endDateStr,
+      });
       if (error) throw error;
       dispatch({ type: "SET_GAMES", payload: data || [] });
     } catch (error) {
@@ -184,10 +195,43 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: "SET_LOADING", payload: true });
       dispatch({ type: "SET_ERROR", payload: null });
       try {
-        const { data, error } = await createGame(gameData);
+        // Only send the required fields for creation
+        const {
+          title,
+          description,
+          start_time,
+          end_time,
+          location_id,
+          host,
+          players,
+          registered_count,
+          max_players,
+          skill_level,
+          price,
+          image_url,
+          fixed_game_id,
+        } = gameData;
+        const cleanGameData: Omit<Game, "id" | "created_at" | "updated_at"> = {
+          title,
+          description,
+          start_time,
+          end_time,
+          location_id,
+          host,
+          players,
+          registered_count,
+          max_players,
+          skill_level,
+          price,
+          image_url,
+          fixed_game_id,
+          status: "upcoming", // Default status for new games
+        };
+        const { data, error } = await createGame(cleanGameData);
         if (error || !data || !data[0])
           throw error || new Error("No data returned");
         dispatch({ type: "ADD_GAME", payload: data[0] });
+        return data[0]; // Return the created game object
       } catch (error) {
         handleError(error);
         throw error;
@@ -252,7 +296,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (!currentGame) throw new Error("Game not found");
       const optimisticGame = {
         ...currentGame,
-        registeredCount: (currentGame.registeredCount || 0) + 1,
+        registered_count: (currentGame.registered_count || 0) + 1,
       };
       dispatch({
         type: "SET_OPTIMISTIC_UPDATE",
@@ -260,7 +304,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       });
       try {
         const { data, error } = await updateGame(gameId, {
-          registeredCount: optimisticGame.registeredCount,
+          registered_count: optimisticGame.registered_count,
         });
         if (error || !data || !data[0])
           throw error || new Error("No data returned");
@@ -280,7 +324,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (!currentGame) throw new Error("Game not found");
       const optimisticGame = {
         ...currentGame,
-        registeredCount: Math.max((currentGame.registeredCount || 1) - 1, 0),
+        registered_count: Math.max((currentGame.registered_count || 1) - 1, 0),
       };
       dispatch({
         type: "SET_OPTIMISTIC_UPDATE",
@@ -288,7 +332,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       });
       try {
         const { data, error } = await updateGame(gameId, {
-          registeredCount: optimisticGame.registeredCount,
+          registered_count: optimisticGame.registered_count,
         });
         if (error || !data || !data[0])
           throw error || new Error("No data returned");

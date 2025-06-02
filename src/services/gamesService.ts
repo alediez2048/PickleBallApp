@@ -6,9 +6,13 @@ export const createGame = async (gameData: any) => {
   return await supabase.from('games').insert([gameData]);
 };
 
-// List all games
-export const listGames = async () => {
-  return await supabase.from('games').select('*').order('start_time', { ascending: true });
+// List all games with optional date range
+export const listGames = async (dateRange?: { startDate: string; endDate: string }) => {
+  let query = supabase.from('games').select('*').order('start_time', { ascending: true });
+  if (dateRange) {
+    query = query.gte('start_time', dateRange.startDate).lte('start_time', dateRange.endDate);
+  }
+  return await query;
 };
 
 // Update a game by id

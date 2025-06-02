@@ -1,12 +1,12 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Game } from "@/types/games";
-import { ThemedText } from "@/components/ThemedText";
+import { ThemedText } from "@/components/common/ThemedText";
 import { GameCard } from "@/components/common/GameCard";
 
 interface FeaturedGamesProps {
   games: Game[];
-  onGamePress: (gameId: string) => void;
+  onGamePress: (game: Game) => void;
   onViewAll: () => void;
 }
 
@@ -30,7 +30,7 @@ export function FeaturedGames({
           <GameCard
             key={game.id}
             game={game}
-            onPress={() => onGamePress(game.id)}
+            onPress={() => onGamePress(game)}
             variant='compact'
           />
         ))}

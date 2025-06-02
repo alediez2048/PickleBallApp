@@ -37,6 +37,7 @@ type MergedGame = Game & {
   dayOfWeek?: string;
   fixedStartTime?: string;
   durationMinutes?: number;
+  game_id?: string; // Optional for fixed games
 };
 
 // Move allGames and related logic to the top of the ExploreScreen function, before any useEffect or variable that uses it
@@ -46,7 +47,7 @@ export default function ExploreScreen() {
   const { user } = useAuth();
   const upcomingGames = useUpcomingBookedGames();
   const { cancelBooking } = useBookedGames();
-  const { games, fetchGames, loading: loadingGames } = useGames();
+  const { games, fetchGames, loading: loadingGames, createGame } = useGames();
   const {
     fixedGames,
     fetchFixedGames,
@@ -55,6 +56,21 @@ export default function ExploreScreen() {
 
   // Add state for filter
   const [actualFilter, setActualFilter] = useState<string>("all");
+
+  // Fetch fixed games on mount, then build the days array after fetch
+  useEffect(() => {
+    fetchFixedGames();
+    fetchGames();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Map fixed_game_id to scheduled game for quick lookup
+  const fixedGameIdToGame: Record<string, Game> = {};
+  games.forEach((game) => {
+    if (game.fixed_game_id) {
+      fixedGameIdToGame[game.fixed_game_id] = game;
+    }
+  });
 
   // Function to build the sorted days array based on the current filter
   const buildSortedDaysArray = (
@@ -71,7 +87,7 @@ export default function ExploreScreen() {
       displayDate: string;
       day: string;
       fixedGame?: FixedGame;
-      games: MergedGame[];
+      games: { fixedGame: FixedGame; game?: Game }[];
     }[] = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
@@ -87,61 +103,15 @@ export default function ExploreScreen() {
       const fixedGamesForDay = activeFixedGames.filter(
         (fg) => fg.day_of_week === DAYS_OF_WEEK[date.getDay()]
       );
-      const fixedGameOccurrences: MergedGame[] = fixedGamesForDay.map((fg) => {
-        const [hours, minutes] = fg.start_time.split(":").map(Number);
-        const startTime = new Date(date);
-        startTime.setHours(hours, minutes, 0, 0);
-        const endTime = new Date(startTime);
-        endTime.setMinutes(
-          startTime.getMinutes() + (fg.duration_minutes || 90)
+      // For each fixed game, find the scheduled game by fixed_game_id
+      const mergedGames = fixedGamesForDay
+        .map((fg) => {
+          const scheduledGame = fixedGameIdToGame[fg.id];
+          return { fixedGame: fg, game: scheduledGame };
+        })
+        .filter(({ fixedGame }) =>
+          filter === "all" ? true : fixedGame.skill_level === filter
         );
-        return {
-          id: `${fg.id}_${startTime.toISOString()}`,
-          title: fg.title,
-          description: fg.description || "",
-          startTime: startTime.toISOString(),
-          endTime: endTime.toISOString(),
-          location: fg.location || {
-            id: fg.location_id,
-            name: "",
-            address: "",
-            city: "",
-            state: "",
-            zipCode: "",
-            coordinates: { latitude: 0, longitude: 0 },
-          },
-          host: fg.host,
-          players: [],
-          registeredCount: 0,
-          maxPlayers: fg.max_players,
-          skillLevel: fg.skill_level,
-          price: fg.price,
-          imageUrl: fg.image_url,
-          status: "Upcoming",
-          createdAt: fg.created_at,
-          updatedAt: fg.updated_at,
-          isFixed: true,
-          dayOfWeek: fg.day_of_week,
-          fixedStartTime: fg.start_time,
-          durationMinutes: fg.duration_minutes,
-        };
-      });
-      const scheduledGamesForDay = games.filter((game) => {
-        const start = new Date(game.startTime);
-        return (
-          start.getFullYear() === date.getFullYear() &&
-          start.getMonth() === date.getMonth() &&
-          start.getDate() === date.getDate() &&
-          Array.isArray(game.players) &&
-          game.players.length > 0
-        );
-      });
-      const mergedGames: MergedGame[] = [
-        ...fixedGameOccurrences,
-        ...scheduledGamesForDay,
-      ].filter((game) =>
-        filter === "all" ? true : game.skillLevel === filter
-      );
       if (mergedGames.length > 0) {
         daysArray.push({
           dateUTC,
@@ -158,7 +128,7 @@ export default function ExploreScreen() {
   // Fetch fixed games on mount, then build the days array after fetch
   useEffect(() => {
     fetchFixedGames();
-    // Optionally, fetchGames();
+    fetchGames();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -377,11 +347,69 @@ export default function ExploreScreen() {
   //   };
   // }, [allGames, upcomingGames, user?.skill_level, getReservationStatus]);
 
-  const handleGameSelect = (gameId: string) => {
-    router.push({
-      pathname: "/game/[id]",
-      params: { id: gameId },
-    });
+  // Refactored: handleGameSelect receives both fixedGame and game
+  const handleGameSelect = async (fixedGame: FixedGame, game?: Game) => {
+    // If scheduled game exists, navigate to it
+    if (game && game.id) {
+      router.push({ pathname: "/game/[id]", params: { id: game.id } });
+      return;
+    }
+    // If no scheduled game, create one from fixedGame
+    if (fixedGame) {
+      // Calculate the next date for the fixed game's day_of_week
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const daysOfWeek = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
+      let dayDiff = daysOfWeek.indexOf(fixedGame.day_of_week) - today.getDay();
+      if (dayDiff < 0) dayDiff += 7;
+      const gameDate = new Date(today);
+      gameDate.setDate(today.getDate() + dayDiff);
+      // Parse start_time (HH:mm:ss)
+      const [h, m, s] = fixedGame.start_time.split(":").map(Number);
+      gameDate.setHours(h, m, s || 0, 0);
+      const startTime = gameDate.toISOString();
+      // Calculate endTime by adding duration_minutes
+      const endDate = new Date(
+        gameDate.getTime() + fixedGame.duration_minutes * 60000
+      );
+      const endTime = endDate.toISOString();
+      // Prepare gameData for scheduled game creation
+      const gameData = {
+        title: fixedGame.title,
+        description: fixedGame.description || "",
+        start_time: startTime,
+        end_time: endTime,
+        location: fixedGame.location,
+        host: fixedGame.host,
+        players: [],
+        registered_count: 0,
+        max_players: fixedGame.max_players,
+        skill_level: fixedGame.skill_level,
+        price: fixedGame.price,
+        image_url: fixedGame.image_url,
+        fixed_game_id: fixedGame.id,
+        created_at: "", // required by type, ignored by backend
+        updated_at: "", // required by type, ignored by backend
+      };
+      try {
+        const created = await createGame(gameData);
+        if (created && typeof created === "object" && "id" in created) {
+          router.push({ pathname: "/game/[id]", params: { id: created.id } });
+        } else {
+          Alert.alert("Error", "Could not create game.");
+        }
+      } catch (err) {
+        Alert.alert("Error", "Could not create game.");
+      }
+    }
   };
 
   // Add 'All Levels' option to the beginning of the skill levels array
@@ -465,8 +493,9 @@ export default function ExploreScreen() {
             </ThemedView>
             {dayObj.games.map((game: any) => (
               <GameCard
-                key={game.id}
-                game={game}
+                key={game?.fixedGame?.id}
+                game={game.game}
+                fixedGame={game.fixedGame}
                 isSkillLevelMatch={isSkillLevelMatch(game.skillLevel)}
                 gameStatus={gameStatuses[game.id]}
                 isLoadingStatuses={isLoadingStatuses}
@@ -533,6 +562,7 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingVertical: 5,
   },
   scrollViewContent: {
     paddingBottom: 80,
@@ -556,6 +586,3 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
-// All color values are now referenced from the theme and dynamic with useTheme().
-// All styles are at the bottom of the file.
-// ThemedText and ThemedView types are valid and used as per their allowed values.

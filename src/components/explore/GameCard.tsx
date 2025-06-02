@@ -6,17 +6,19 @@ import { SpotsAvailability } from "../common/SpotsAvailability";
 import { useTheme } from "@contexts/ThemeContext";
 
 interface GameCardProps {
-  game: any;
+  fixedGame: any;
+  game?: any;
   isSkillLevelMatch: boolean;
   gameStatus: any;
   isLoadingStatuses: boolean;
   styles: any;
   getSkillLevelColor: (level: any) => string;
-  onGamePress: (gameId: string) => void;
+  onGamePress: (fixedGame: any, game: any) => void;
   onActionPress: (gameId: string, isBooked: boolean) => void;
 }
 
 const GameCard: React.FC<GameCardProps> = ({
+  fixedGame,
   game,
   isSkillLevelMatch,
   gameStatus,
@@ -27,19 +29,37 @@ const GameCard: React.FC<GameCardProps> = ({
   onActionPress,
 }) => {
   const { colors } = useTheme();
-  const startTime = new Date(game.startTime).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const displayGame = game && game?.id ? game : fixedGame;
+  const gameID = game && game?.id ? game.id : false;
+  displayGame.game_id = gameID;
+  // Handle both ISO string and 'HH:mm:ss' format for startTime
+  let startTime = "";
+  if (displayGame.start_time) {
+    if (/^\d{2}:\d{2}:\d{2}$/.test(displayGame.start_time)) {
+      // Format is 'HH:mm:ss', create a Date for today with this time
+      const [h, m, s] = displayGame.start_time.split(":").map(Number);
+      const date = new Date();
+      date.setHours(h, m, s, 0);
+      startTime = date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } else {
+      // Assume ISO string
+      startTime = new Date(displayGame.start_time).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+  }
   return (
     <ThemedView
-      key={game.id}
+      key={displayGame.id}
       type='gameCard'
       borderColorType='text'
       borderWidth={2}
-      style={isSkillLevelMatch ? {} : styles.gameCardMismatch}
     >
-      <TouchableOpacity onPress={() => onGamePress(game.id)}>
+      <TouchableOpacity onPress={() => onGamePress(fixedGame, game)}>
         <View style={cardStyles.rowTop}>
           <View style={cardStyles.leftCol}>
             <ThemedText
@@ -52,18 +72,24 @@ const GameCard: React.FC<GameCardProps> = ({
               type='paragraph'
               style={[cardStyles.durationText, { color: colors.icon }]}
             >
-              Duration: {game.durationMinutes || game.duration_minutes || 0} min
+              Duration:{" "}
+              {displayGame.durationMinutes || displayGame.duration_minutes || 0}{" "}
+              min
             </ThemedText>
           </View>
           <View style={cardStyles.rightCol}>
             <View style={cardStyles.skillLevelBadge}>
               <ThemedText type='bold' style={cardStyles.skillText}>
-                {game.skillLevel}
+                {displayGame.skillLevel || displayGame.skill_level}
               </ThemedText>
               <View
                 style={[
                   cardStyles.badgeDot,
-                  { backgroundColor: getSkillLevelColor(game.skillLevel) },
+                  {
+                    backgroundColor: getSkillLevelColor(
+                      displayGame.skillLevel || displayGame.skill_level
+                    ),
+                  },
                 ]}
               />
             </View>
@@ -71,7 +97,7 @@ const GameCard: React.FC<GameCardProps> = ({
               type='paragraph'
               style={[cardStyles.titleText, { color: colors.text }]}
             >
-              {game.title}
+              {displayGame.title}
             </ThemedText>
           </View>
         </View>
@@ -80,7 +106,7 @@ const GameCard: React.FC<GameCardProps> = ({
             <View style={cardStyles.rowBottom}>
               <View style={cardStyles.spotsCol}>
                 <ThemedText type='subtitle'>Spots</ThemedText>
-                <SpotsAvailability gameId={game.id} />
+                <SpotsAvailability gameId={displayGame.id} />
               </View>
             </View>
           </View>
@@ -90,19 +116,21 @@ const GameCard: React.FC<GameCardProps> = ({
                 type='paragraph'
                 style={[cardStyles.locationName, { color: colors.primary }]}
               >
-                {game.location?.name}
+                {displayGame.location?.name}
               </ThemedText>
               <ThemedText
                 type='caption'
                 style={[cardStyles.locationAddress, { color: colors.icon }]}
               >
-                {game.location?.address} - {game.location?.city},{" "}
-                {game.location?.state}
+                {displayGame.location?.address} - {displayGame.location?.city},{" "}
+                {displayGame.location?.state}
               </ThemedText>
             </View>
             <TouchableOpacity
               disabled={isLoadingStatuses}
-              onPress={() => onActionPress(game.id, gameStatus?.isBooked)}
+              onPress={() =>
+                onActionPress(displayGame.id, gameStatus?.isBooked)
+              }
             >
               <ThemedView style={gameStatus?.buttonStyle}>
                 <ThemedText
