@@ -14,6 +14,7 @@ export type ThemedTextProps = TextProps & {
     | "title"
     | "subtitle"
     | "subtitleCenter"
+    | "miniSubtitle"
     | "paragraph"
     | "paragraphCenter"
     | "caption"
@@ -50,6 +51,8 @@ export function ThemedText({
         return styles.defaultSemiBold;
       case "subtitle":
         return styles.subtitle;
+      case "miniSubtitle":
+        return styles.miniSubtitle;
       case "subtitleCenter":
         return [styles.subtitle, styles.center];
       case "paragraph":
@@ -130,6 +133,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     lineHeight: 24,
+  },
+  miniSubtitle: {
+    fontSize: 14,
+    fontWeight: "bold",
   },
   paragraph: {
     fontSize: 15,

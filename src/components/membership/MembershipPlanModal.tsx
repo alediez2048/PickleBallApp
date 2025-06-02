@@ -1,51 +1,52 @@
-import React from 'react';
+import React from "react";
 import {
-  View,
-  Text,
   StyleSheet,
   Modal,
   TouchableOpacity,
   SafeAreaView,
   Platform,
   ScrollView,
-} from 'react-native';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Button } from '@/components/common/ui/Button';
+} from "react-native";
+import { IconSymbol } from "@/components/ui/IconSymbol";
+import { Button } from "@/components/common/ui/Button";
+import { ThemedView } from "@/components/common/ThemedView";
+import { ThemedText } from "@/components/common/ThemedText";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface MembershipPlan {
   id: string;
   name: string;
   price: number;
-  interval?: 'month' | 'year';
+  interval?: "month" | "year";
   benefits: string[];
   description: string;
 }
 
 const MEMBERSHIP_PLANS: MembershipPlan[] = [
   {
-    id: 'drop-in',
-    name: 'Drop-In Pass',
+    id: "drop-in",
+    name: "Drop-In Pass",
     price: 10,
-    description: 'Perfect for occasional players',
+    description: "Perfect for occasional players",
     benefits: [
-      'Single game access',
-      'No commitment required',
-      'Full access to game features',
-      'Cancel anytime',
+      "Single game access",
+      "No commitment required",
+      "Full access to game features",
+      "Cancel anytime",
     ],
   },
   {
-    id: 'monthly',
-    name: 'Monthly Membership',
+    id: "monthly",
+    name: "Monthly Membership",
     price: 50,
-    interval: 'month',
-    description: 'Best value for regular players',
+    interval: "month",
+    description: "Best value for regular players",
     benefits: [
-      'Unlimited game access',
-      'Priority booking',
-      'Member-only events',
-      'Exclusive discounts',
-      'Cancel anytime',
+      "Unlimited game access",
+      "Priority booking",
+      "Member-only events",
+      "Exclusive discounts",
+      "Cancel anytime",
     ],
   },
 ];
@@ -63,24 +64,25 @@ export function MembershipPlanModal({
   onSelectPlan,
   currentPlanId,
 }: MembershipPlanModalProps) {
+  const { colors } = useTheme();
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType='slide'
       transparent={true}
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
-          <View style={styles.header}>
+        <ThemedView style={styles.content}>
+          <ThemedView style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <IconSymbol name="xmark" size={24} color="#666666" />
+              <IconSymbol name='xmark' size={24} />
             </TouchableOpacity>
-            <Text style={styles.title}>Choose Your Plan</Text>
-            <Text style={styles.subtitle}>
+            <ThemedText type='title'>Choose Your Plan</ThemedText>
+            <ThemedText type='miniSubtitle' colorType='label'>
               Select a membership plan that fits your needs
-            </Text>
-          </View>
+            </ThemedText>
+          </ThemedView>
 
           <ScrollView style={styles.plansContainer}>
             {MEMBERSHIP_PLANS.map((plan) => (
@@ -88,48 +90,68 @@ export function MembershipPlanModal({
                 key={plan.id}
                 style={[
                   styles.planCard,
-                  currentPlanId === plan.id && styles.currentPlanCard
+                  { borderColor: colors.text },
+                  currentPlanId === plan.id && styles.currentPlanCard,
                 ]}
                 onPress={() => onSelectPlan(plan)}
+                activeOpacity={0.9}
               >
                 {currentPlanId === plan.id && (
-                  <View style={styles.currentPlanBadge}>
-                    <Text style={styles.currentPlanBadgeText}>Current Plan</Text>
-                  </View>
+                  <ThemedView
+                    style={styles.currentPlanBadge}
+                    colorType='primary'
+                  >
+                    <ThemedText
+                      type='badge'
+                      colorType='white'
+                      style={styles.currentPlanBadgeText}
+                    >
+                      Current Plan
+                    </ThemedText>
+                  </ThemedView>
                 )}
-                
-                <View style={styles.planHeader}>
-                  <Text style={styles.planName}>{plan.name}</Text>
-                  <View style={styles.priceContainer}>
-                    <Text style={styles.price}>${plan.price}</Text>
+
+                <ThemedView style={styles.planHeader}>
+                  <ThemedText type='sectionTitle'>{plan.name}</ThemedText>
+                  <ThemedView style={styles.priceContainer}>
+                    <ThemedText type='title' colorType='primary'>
+                      ${plan.price}
+                    </ThemedText>
                     {plan.interval && (
-                      <Text style={styles.interval}>/{plan.interval}</Text>
+                      <ThemedText type='default' colorType='label'>
+                        /{plan.interval}
+                      </ThemedText>
                     )}
-                  </View>
-                </View>
+                  </ThemedView>
+                </ThemedView>
 
-                <Text style={styles.planDescription}>{plan.description}</Text>
+                <ThemedText type='paragraph'>{plan.description}</ThemedText>
 
-                <View style={styles.benefitsContainer}>
+                <ThemedView style={styles.benefitsContainer}>
                   {plan.benefits.map((benefit, index) => (
-                    <View key={index} style={styles.benefitRow}>
-                      <IconSymbol name="checkmark" size={16} color="#4CAF50" style={styles.benefitIcon} />
-                      <Text style={styles.benefitText}>{benefit}</Text>
-                    </View>
+                    <ThemedView key={index} style={styles.benefitRow}>
+                      <IconSymbol
+                        name='checkmark'
+                        size={18}
+                        color={colors.success}
+                        style={styles.benefitIcon}
+                      />
+                      <ThemedText type='label'>{benefit}</ThemedText>
+                    </ThemedView>
                   ))}
-                </View>
+                </ThemedView>
 
                 <Button
                   variant={currentPlanId === plan.id ? "outline" : "primary"}
                   style={styles.selectButton}
                   onPress={() => onSelectPlan(plan)}
                 >
-                  {currentPlanId === plan.id ? 'Current Plan' : 'Select Plan'}
+                  {currentPlanId === plan.id ? "Current Plan" : "Select Plan"}
                 </Button>
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </View>
+        </ThemedView>
       </SafeAreaView>
     </Modal>
   );
@@ -138,119 +160,78 @@ export function MembershipPlanModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   content: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    marginTop: Platform.OS === 'ios' ? 50 : 20,
-    overflow: 'hidden',
+    marginTop: Platform.OS === "ios" ? 50 : 30,
+    overflow: "hidden",
   },
   header: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+    borderBottomColor: "#EEEEEE",
   },
   closeButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 20,
     right: 20,
     zIndex: 1,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#333333',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666666',
-    marginBottom: 8,
   },
   plansContainer: {
     padding: 20,
   },
   planCard: {
-    backgroundColor: '#F8F9FA',
     borderRadius: 12,
-    padding: 20,
+    padding: 10,
     marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
-    shadowColor: '#000',
+    borderWidth: 2,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   currentPlanCard: {
-    borderColor: '#4CAF50',
+    borderColor: "#4CAF50",
     borderWidth: 2,
-    backgroundColor: '#F1F8E9',
+    backgroundColor: "#F1F8E9",
   },
   currentPlanBadge: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: "#4CAF50",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    position: 'absolute',
+    position: "absolute",
     top: -12,
     right: 20,
     zIndex: 1,
   },
   currentPlanBadgeText: {
-    color: 'white',
+    color: "white",
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   planHeader: {
     marginBottom: 12,
   },
-  planName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 8,
-  },
   priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  price: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-  },
-  interval: {
-    fontSize: 16,
-    color: '#666666',
-  },
-  planDescription: {
-    fontSize: 16,
-    color: '#666666',
-    marginBottom: 16,
-    lineHeight: 22,
+    flexDirection: "row",
+    alignItems: "baseline",
   },
   benefitsContainer: {
     marginBottom: 20,
   },
   benefitRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 4,
   },
   benefitIcon: {
     marginRight: 10,
   },
-  benefitText: {
-    fontSize: 14,
-    color: '#333333',
-    flex: 1,
-  },
   selectButton: {
-    width: '100%',
+    width: "100%",
   },
-}); 
+});
