@@ -387,7 +387,7 @@ export default function ExploreScreen() {
         description: fixedGame.description || "",
         start_time: startTime,
         end_time: endTime,
-        location: fixedGame.location,
+        location_id: fixedGame.location.location_id,
         host: fixedGame.host,
         players: [],
         registered_count: 0,

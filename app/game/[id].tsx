@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   SafeAreaView,
@@ -11,7 +10,10 @@ import {
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { IconSymbol } from "@/components/ui/IconSymbol";
+import { useGames } from "@contexts/GameContext";
+import { useTheme } from "@contexts/ThemeContext";
+import { ThemedView } from "@components/common/ThemedView";
+import { ThemedText } from "@components/common/ThemedText";
 import { Button } from "@/components/common/ui/Button";
 import { MOCK_GAMES } from "@/utils/mockData";
 import {
@@ -47,9 +49,11 @@ export default function GameDetailsScreen() {
   const [showMembershipModal, setShowMembershipModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
+  const { getGame } = useGames();
+  const { colors } = useTheme();
 
   // Get the correct game based on the ID
-  const game = MOCK_GAMES[id as keyof typeof MOCK_GAMES];
+  const game = getGame(id as string);
 
   // Load total booked players using the global tracking system
   useEffect(() => {
@@ -62,7 +66,10 @@ export default function GameDetailsScreen() {
     loadTotalBookedPlayers();
   }, [game, upcomingGames]);
 
-  const totalPlayers = game?.players.length + totalBookedPlayers;
+  // Defensive: players array may be undefined
+  const totalPlayers =
+    (game?.players?.length || 0) +
+    (typeof totalBookedPlayers !== "undefined" ? totalBookedPlayers : 0);
 
   // Check if user has already registered for this game
   const isRegistered = upcomingGames.some(
@@ -70,29 +77,14 @@ export default function GameDetailsScreen() {
       bookedGame.gameId === id && bookedGame.status === "upcoming"
   );
 
+  console.log(game);
+
   // If game not found, show error or redirect
   if (!game) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <IconSymbol name='xmark' size={24} color='#000000' />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Game Not Found</Text>
-        </View>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>This game could not be found.</Text>
-          <Button
-            onPress={() => router.push("/explore")}
-            style={styles.errorButton}
-          >
-            Back to Explore
-          </Button>
-        </View>
-      </SafeAreaView>
+      <ThemedView style={styles.container}>
+        <ThemedText style={styles.errorText}>Game not found.</ThemedText>
+      </ThemedView>
     );
   }
 
@@ -236,90 +228,71 @@ export default function GameDetailsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ThemedView style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <IconSymbol name='xmark' size={24} color='#000000' />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Game Details</Text>
-      </View>
-
-      <ScrollView style={styles.content}>
-        {/* Game Summary */}
-        <View style={styles.section}>
-          <Text style={styles.timeText}>
-            {new Date(game.startTime).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </Text>
-          <Text style={styles.courtText}>{game.location.name}</Text>
-          <View style={styles.locationInfo}>
-            <Text style={styles.addressText}>{game.location.address}</Text>
-            <Text style={styles.cityText}>
-              {game.location.city}, {game.location.state}{" "}
-              {game.location.zipCode}
-            </Text>
-          </View>
-        </View>
-
-        {/* Game Stats */}
-        <View style={[styles.section, styles.statsSection]}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Skill Level</Text>
-            <Text style={styles.statValue}>{game.skillLevel}</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Price</Text>
-            <Text style={styles.statValue}>${game.price}</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <SpotsAvailability gameId={game.id} variant='detail' />
-          </View>
-        </View>
-
-        {/* Game Captain */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Game Host</Text>
-          <View style={styles.captainCard}>
-            <View style={styles.captainInfo}>
-              <Text style={styles.captainName}>{game.host.name}</Text>
-              <Text style={styles.captainStats}>
-                Skill Level: {game.host.skillLevel}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Players */}
-        <View style={styles.section}>
-          <RSVPList
-            gameId={game.id}
-            players={game.players}
-            maxPlayers={game.maxPlayers}
-            onPlayerPress={(player) => {
-              // TODO: Implement player profile view
-              console.log("Player pressed:", player);
-            }}
-          />
-        </View>
-      </ScrollView>
-
+      <ThemedView style={styles.header}>
+        <ThemedText style={styles.headerTitle}>Game Details</ThemedText>
+      </ThemedView>
+      {/* Game Summary */}
+      <ThemedView style={styles.section}>
+        <ThemedText style={styles.timeText}>
+          {new Date(game.start_time).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </ThemedText>
+        <ThemedText style={styles.courtText}>{game.location?.name}</ThemedText>
+        <ThemedView style={styles.locationInfo}>
+          <ThemedText style={styles.addressText}>
+            {game.location?.address}
+          </ThemedText>
+          <ThemedText style={styles.cityText}>
+            {game.location?.city}, {game.location?.state}{" "}
+            {game.location?.zip_code}
+          </ThemedText>
+        </ThemedView>
+      </ThemedView>
+      {/* Game Stats */}
+      <ThemedView style={[styles.section, styles.statsSection]}>
+        <ThemedView style={styles.statItem}>
+          <ThemedText style={styles.statLabel}>Skill Level</ThemedText>
+          <ThemedText style={styles.statValue}>{game.skill_level}</ThemedText>
+        </ThemedView>
+        <ThemedView style={styles.statDivider} />
+        <ThemedView style={styles.statItem}>
+          <ThemedText style={styles.statLabel}>Price</ThemedText>
+          <ThemedText style={styles.statValue}>${game.price}</ThemedText>
+        </ThemedView>
+        <ThemedView style={styles.statDivider} />
+        <ThemedView style={styles.statItem}>
+          {/* TODO: SpotsAvailability component, ensure it uses ThemedText */}
+        </ThemedView>
+      </ThemedView>
+      {/* Game Host */}
+      <ThemedView style={styles.section}>
+        <ThemedText style={styles.sectionTitle}>Game Host</ThemedText>
+        <ThemedView style={styles.captainCard}>
+          <ThemedView style={styles.captainInfo}>
+            <ThemedText style={styles.captainName}>{game.host.name}</ThemedText>
+            <ThemedText style={styles.captainStats}>
+              Skill Level: {game.host.skillLevel}
+            </ThemedText>
+          </ThemedView>
+        </ThemedView>
+      </ThemedView>
+      {/* Players */}
+      <ThemedView style={styles.section}>
+        {/* TODO: RSVPList component, ensure it uses ThemedText/ThemedView */}
+      </ThemedView>
       {/* Footer with conditional buttons */}
-      <View style={styles.footer}>
+      <ThemedView style={styles.footer}>
         {isRegistered ? (
           <TouchableOpacity
             style={styles.signOutButton}
             onPress={handleCancelRegistration}
             activeOpacity={0.7}
           >
-            <Text style={styles.signOutText}>Cancel</Text>
+            <ThemedText style={styles.signOutText}>Cancel</ThemedText>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -332,7 +305,7 @@ export default function GameDetailsScreen() {
             activeOpacity={0.7}
             disabled={game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS}
           >
-            <Text
+            <ThemedText
               style={[
                 styles.reserveText,
                 game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS &&
@@ -342,10 +315,10 @@ export default function GameDetailsScreen() {
               {game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS
                 ? "Game Full"
                 : "Book"}
-            </Text>
+            </ThemedText>
           </TouchableOpacity>
         )}
-      </View>
+      </ThemedView>
 
       {/* Booking Confirmation Modal */}
       <Modal
@@ -354,66 +327,72 @@ export default function GameDetailsScreen() {
         transparent={true}
         onRequestClose={() => !isLoading && setIsBookingModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <ThemedView style={styles.modalOverlay}>
+          <ThemedView style={styles.modalContent}>
             <TouchableOpacity
               onPress={() => !isLoading && setIsBookingModalVisible(false)}
               style={styles.modalCloseButton}
             >
-              <IconSymbol name='xmark' size={24} color='#666666' />
+              {/* <IconSymbol name='xmark' size={24} color='#666666' /> */}
             </TouchableOpacity>
 
-            <Text style={styles.modalTitle}>Confirm Booking</Text>
+            <ThemedText style={styles.modalTitle}>Confirm Booking</ThemedText>
 
-            <View style={styles.bookingGameCard}>
-              <View style={styles.bookingTimeContainer}>
-                <Text style={styles.bookingTime}>
+            <ThemedView style={styles.bookingGameCard}>
+              <ThemedView style={styles.bookingTimeContainer}>
+                <ThemedText style={styles.bookingTime}>
                   {new Date(game.startTime).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
-                </Text>
-              </View>
-              <View style={styles.bookingLocationContainer}>
-                <Text style={styles.bookingLocationName}>
+                </ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.bookingLocationContainer}>
+                <ThemedText style={styles.bookingLocationName}>
                   {game.location.name}
-                </Text>
-                <Text style={styles.bookingLocationAddress}>
+                </ThemedText>
+                <ThemedText style={styles.bookingLocationAddress}>
                   {game.location.address}
-                </Text>
-              </View>
-            </View>
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
 
-            <View style={styles.bookingSummaryCard}>
-              <Text style={styles.summaryTitle}>Summary</Text>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Price</Text>
-                <Text style={styles.summaryValue}>${game.price}</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Skill Level</Text>
-                <Text style={styles.summaryValue}>{game.skillLevel}</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Available Spots</Text>
-                <Text style={styles.summaryValue}>
+            <ThemedView style={styles.bookingSummaryCard}>
+              <ThemedText style={styles.summaryTitle}>Summary</ThemedText>
+              <ThemedView style={styles.summaryRow}>
+                <ThemedText style={styles.summaryLabel}>Price</ThemedText>
+                <ThemedText style={styles.summaryValue}>
+                  ${game.price}
+                </ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.summaryRow}>
+                <ThemedText style={styles.summaryLabel}>Skill Level</ThemedText>
+                <ThemedText style={styles.summaryValue}>
+                  {game.skillLevel}
+                </ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.summaryRow}>
+                <ThemedText style={styles.summaryLabel}>
+                  Available Spots
+                </ThemedText>
+                <ThemedText style={styles.summaryValue}>
                   {game.maxPlayers - totalPlayers} of {game.maxPlayers}
-                </Text>
-              </View>
-            </View>
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
 
-            <Text style={styles.bookingNote}>
+            <ThemedText style={styles.bookingNote}>
               By booking, you agree to participate in this game and follow court
               rules and etiquette.
-            </Text>
+            </ThemedText>
 
-            <View style={styles.bookingActions}>
+            <ThemedView style={styles.bookingActions}>
               <TouchableOpacity
                 style={styles.cancelBookingButton}
                 onPress={() => !isLoading && setIsBookingModalVisible(false)}
                 disabled={isLoading}
               >
-                <Text style={styles.cancelBookingText}>Cancel</Text>
+                <ThemedText style={styles.cancelBookingText}>Cancel</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
@@ -423,13 +402,13 @@ export default function GameDetailsScreen() {
                 onPress={handleBookingConfirm}
                 disabled={isLoading}
               >
-                <Text style={styles.confirmBookingText}>
+                <ThemedText style={styles.confirmBookingText}>
                   {isLoading ? "Booking..." : "Confirm Booking"}
-                </Text>
+                </ThemedText>
               </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+            </ThemedView>
+          </ThemedView>
+        </ThemedView>
       </Modal>
 
       {/* Success Modal */}
@@ -439,81 +418,87 @@ export default function GameDetailsScreen() {
         transparent={true}
         onRequestClose={() => setIsSuccessModalVisible(false)}
       >
-        <View style={styles.successModalOverlay}>
-          <View style={styles.successModalContent}>
+        <ThemedView style={styles.successModalOverlay}>
+          <ThemedView style={styles.successModalContent}>
             <TouchableOpacity
               onPress={() => setIsSuccessModalVisible(false)}
               style={styles.successCloseButton}
             >
-              <IconSymbol name='xmark' size={24} color='#666666' />
+              {/* <IconSymbol name='xmark' size={24} color='#666666' /> */}
             </TouchableOpacity>
 
-            <View style={styles.successIconContainer}>
-              <View style={styles.successIconCircle}>
-                <IconSymbol name='checkmark' size={40} color='#FFFFFF' />
-              </View>
-            </View>
+            <ThemedView style={styles.successIconContainer}>
+              <ThemedView style={styles.successIconCircle}>
+                {/* <IconSymbol name='checkmark' size={40} color='#FFFFFF' /> */}
+              </ThemedView>
+            </ThemedView>
 
-            <Text style={styles.successTitle}>You're all set!</Text>
-            <Text style={styles.successSubtitle}>Get ready to play!</Text>
+            <ThemedText style={styles.successTitle}>You're all set!</ThemedText>
+            <ThemedText style={styles.successSubtitle}>
+              Get ready to play!
+            </ThemedText>
 
-            <View style={styles.successGameCard}>
-              <View style={styles.successTimeContainer}>
-                <IconSymbol
+            <ThemedView style={styles.successGameCard}>
+              <ThemedView style={styles.successTimeContainer}>
+                {/* <IconSymbol
                   name='calendar'
                   size={20}
                   color='#FFFFFF'
                   style={styles.successTimeIcon}
-                />
-                <Text style={styles.successTime}>
+                /> */}
+                <ThemedText style={styles.successTime}>
                   {new Date(game.startTime).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                     hour12: true,
                   })}
-                </Text>
-              </View>
-              <View style={styles.successLocationContainer}>
-                <Text style={styles.successLocationName}>
+                </ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.successLocationContainer}>
+                <ThemedText style={styles.successLocationName}>
                   {game.location.name}
-                </Text>
-                <View style={styles.successAddressContainer}>
-                  <IconSymbol
+                </ThemedText>
+                <ThemedView style={styles.successAddressContainer}>
+                  {/* <IconSymbol
                     name='location.fill'
                     size={16}
                     color='#666666'
                     style={styles.successLocationIcon}
-                  />
-                  <Text style={styles.successLocationAddress}>
+                  /> */}
+                  <ThemedText style={styles.successLocationAddress}>
                     {game.location.address}
-                  </Text>
-                </View>
-              </View>
-            </View>
+                  </ThemedText>
+                </ThemedView>
+              </ThemedView>
+            </ThemedView>
 
-            <View style={styles.successDetailsContainer}>
-              <View style={styles.successDetailItem}>
-                <IconSymbol name='trophy.fill' size={20} color='#4CAF50' />
-                <Text style={styles.successDetailText}>{game.skillLevel}</Text>
-              </View>
-              <View style={styles.successDetailDivider} />
-              <View style={styles.successDetailItem}>
-                <IconSymbol name='person.2.fill' size={20} color='#4CAF50' />
-                <Text style={styles.successDetailText}>
+            <ThemedView style={styles.successDetailsContainer}>
+              <ThemedView style={styles.successDetailItem}>
+                {/* <IconSymbol name='trophy.fill' size={20} color='#4CAF50' /> */}
+                <ThemedText style={styles.successDetailText}>
+                  {game.skillLevel}
+                </ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.successDetailDivider} />
+              <ThemedView style={styles.successDetailItem}>
+                {/* <IconSymbol name='person.2.fill' size={20} color='#4CAF50' /> */}
+                <ThemedText style={styles.successDetailText}>
                   {game.maxPlayers - (game.players.length + totalBookedPlayers)}{" "}
                   spots left
-                </Text>
-              </View>
-            </View>
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
 
             <TouchableOpacity
               style={styles.findMoreButton}
               onPress={handleExploreMore}
             >
-              <Text style={styles.findMoreButtonText}>Find More Games</Text>
+              <ThemedText style={styles.findMoreButtonText}>
+                Find More Games
+              </ThemedText>
             </TouchableOpacity>
-          </View>
-        </View>
+          </ThemedView>
+        </ThemedView>
       </Modal>
 
       {/* Cancel Registration Modal */}
@@ -523,66 +508,74 @@ export default function GameDetailsScreen() {
         transparent={true}
         onRequestClose={() => !isLoading && setIsCancelModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <ThemedView style={styles.modalOverlay}>
+          <ThemedView style={styles.modalContent}>
             <TouchableOpacity
               onPress={() => !isLoading && setIsCancelModalVisible(false)}
               style={styles.modalCloseButton}
             >
-              <IconSymbol name='xmark' size={24} color='#666666' />
+              {/* <IconSymbol name='xmark' size={24} color='#666666' /> */}
             </TouchableOpacity>
 
-            <Text style={styles.modalTitle}>Cancel Registration</Text>
+            <ThemedText style={styles.modalTitle}>
+              Cancel Registration
+            </ThemedText>
 
-            <View style={styles.bookingGameCard}>
-              <View style={styles.bookingTimeContainer}>
-                <Text style={styles.bookingTime}>
+            <ThemedView style={styles.bookingGameCard}>
+              <ThemedView style={styles.bookingTimeContainer}>
+                <ThemedText style={styles.bookingTime}>
                   {new Date(game.startTime).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
-                </Text>
-              </View>
-              <View style={styles.bookingLocationContainer}>
-                <Text style={styles.bookingLocationName}>
+                </ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.bookingLocationContainer}>
+                <ThemedText style={styles.bookingLocationName}>
                   {game.location.name}
-                </Text>
-                <Text style={styles.bookingLocationAddress}>
+                </ThemedText>
+                <ThemedText style={styles.bookingLocationAddress}>
                   {game.location.address}
-                </Text>
-              </View>
-            </View>
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
 
-            <View style={styles.bookingSummaryCard}>
-              <Text style={styles.summaryTitle}>Game Details</Text>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Skill Level</Text>
-                <Text style={styles.summaryValue}>{game.skillLevel}</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Price</Text>
-                <Text style={styles.summaryValue}>${game.price}</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Booking ID</Text>
-                <Text style={styles.summaryValue}>
+            <ThemedView style={styles.bookingSummaryCard}>
+              <ThemedText style={styles.summaryTitle}>Game Details</ThemedText>
+              <ThemedView style={styles.summaryRow}>
+                <ThemedText style={styles.summaryLabel}>Skill Level</ThemedText>
+                <ThemedText style={styles.summaryValue}>
+                  {game.skillLevel}
+                </ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.summaryRow}>
+                <ThemedText style={styles.summaryLabel}>Price</ThemedText>
+                <ThemedText style={styles.summaryValue}>
+                  ${game.price}
+                </ThemedText>
+              </ThemedView>
+              <ThemedView style={styles.summaryRow}>
+                <ThemedText style={styles.summaryLabel}>Booking ID</ThemedText>
+                <ThemedText style={styles.summaryValue}>
                   {bookedGame?.id ? bookedGame.id.split("_")[0] : "N/A"}
-                </Text>
-              </View>
-            </View>
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
 
-            <Text style={[styles.bookingNote, { color: "#F44336" }]}>
+            <ThemedText style={[styles.bookingNote, { color: "#F44336" }]}>
               By canceling, you will lose your spot in this game. This action
               cannot be undone.
-            </Text>
+            </ThemedText>
 
-            <View style={styles.bookingActions}>
+            <ThemedView style={styles.bookingActions}>
               <TouchableOpacity
                 style={styles.keepBookingButton}
                 onPress={() => !isLoading && setIsCancelModalVisible(false)}
                 disabled={isLoading}
               >
-                <Text style={styles.keepBookingText}>Keep My Spot</Text>
+                <ThemedText style={styles.keepBookingText}>
+                  Keep My Spot
+                </ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
@@ -592,13 +585,13 @@ export default function GameDetailsScreen() {
                 onPress={handleConfirmCancel}
                 disabled={isLoading}
               >
-                <Text style={styles.confirmCancelText}>
+                <ThemedText style={styles.confirmCancelText}>
                   {isLoading ? "Canceling..." : "Yes, Cancel Game"}
-                </Text>
+                </ThemedText>
               </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+            </ThemedView>
+          </ThemedView>
+        </ThemedView>
       </Modal>
 
       {/* Profile Form Modal */}
@@ -609,20 +602,22 @@ export default function GameDetailsScreen() {
         onRequestClose={() => !isLoading && setIsProfileFormVisible(false)}
       >
         <SafeAreaView style={styles.profileFormOverlay}>
-          <View style={styles.profileFormContainer}>
-            <View style={styles.modalHeader}>
+          <ThemedView style={styles.profileFormContainer}>
+            <ThemedView style={styles.modalHeader}>
               <TouchableOpacity
                 onPress={() => !isLoading && setIsProfileFormVisible(false)}
                 style={styles.modalCloseButton}
               >
-                <IconSymbol name='xmark' size={24} color='#666666' />
+                {/* <IconSymbol name='xmark' size={24} color='#666666' /> */}
               </TouchableOpacity>
-              <Text style={styles.modalTitle}>Complete Your Profile</Text>
-            </View>
+              <ThemedText style={styles.modalTitle}>
+                Complete Your Profile
+              </ThemedText>
+            </ThemedView>
             <ScrollView style={styles.profileFormScroll}>
               <FirstTimeProfileForm onComplete={handleProfileComplete} />
             </ScrollView>
-          </View>
+          </ThemedView>
         </SafeAreaView>
       </Modal>
 
@@ -642,7 +637,7 @@ export default function GameDetailsScreen() {
           selectedPlan={selectedPlan}
         />
       )}
-    </SafeAreaView>
+    </ThemedView>
   );
 }
 
@@ -658,17 +653,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
   },
-  backButton: {
-    padding: 8,
-    marginRight: 8,
-  },
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
     color: "#000000",
-  },
-  content: {
-    flex: 1,
   },
   section: {
     padding: 16,
@@ -744,22 +732,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   captainStats: {
-    fontSize: 14,
-    color: "#666666",
-  },
-  playerCard: {
-    backgroundColor: "#F9FAFB",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  playerName: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#000000",
-    marginBottom: 4,
-  },
-  playerRating: {
     fontSize: 14,
     color: "#666666",
   },
@@ -1096,9 +1068,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "flex-start",
   },
-  successTimeIcon: {
-    marginRight: 8,
-  },
   successTime: {
     color: "#FFFFFF",
     fontSize: 16,
@@ -1116,9 +1085,6 @@ const styles = StyleSheet.create({
   successAddressContainer: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  successLocationIcon: {
-    marginRight: 4,
   },
   successLocationAddress: {
     fontSize: 14,
@@ -1176,27 +1142,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   errorText: {
     color: "#000000",
     fontSize: 16,
     marginBottom: 20,
-  },
-  errorButton: {
-    backgroundColor: "#4CAF50",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 20,
-    alignItems: "center",
-  },
-  errorButtonText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-    fontSize: 16,
   },
   disabledButton: {
     opacity: 0.7,

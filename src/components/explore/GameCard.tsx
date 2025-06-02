@@ -34,10 +34,10 @@ const GameCard: React.FC<GameCardProps> = ({
   displayGame.game_id = gameID;
   // Handle both ISO string and 'HH:mm:ss' format for startTime
   let startTime = "";
-  if (displayGame.start_time) {
-    if (/^\d{2}:\d{2}:\d{2}$/.test(displayGame.start_time)) {
+  if (fixedGame.start_time) {
+    if (/^\d{2}:\d{2}:\d{2}$/.test(fixedGame.start_time)) {
       // Format is 'HH:mm:ss', create a Date for today with this time
-      const [h, m, s] = displayGame.start_time.split(":").map(Number);
+      const [h, m, s] = fixedGame.start_time.split(":").map(Number);
       const date = new Date();
       date.setHours(h, m, s, 0);
       startTime = date.toLocaleTimeString([], {
@@ -46,7 +46,7 @@ const GameCard: React.FC<GameCardProps> = ({
       });
     } else {
       // Assume ISO string
-      startTime = new Date(displayGame.start_time).toLocaleTimeString([], {
+      startTime = new Date(fixedGame.start_time).toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       });
@@ -73,21 +73,21 @@ const GameCard: React.FC<GameCardProps> = ({
               style={[cardStyles.durationText, { color: colors.icon }]}
             >
               Duration:{" "}
-              {displayGame.durationMinutes || displayGame.duration_minutes || 0}{" "}
+              {fixedGame.duration_minutes || displayGame.duration_minutes || 0}{" "}
               min
             </ThemedText>
           </View>
           <View style={cardStyles.rightCol}>
             <View style={cardStyles.skillLevelBadge}>
               <ThemedText type='bold' style={cardStyles.skillText}>
-                {displayGame.skillLevel || displayGame.skill_level}
+                {fixedGame.skillLevel || displayGame.skill_level}
               </ThemedText>
               <View
                 style={[
                   cardStyles.badgeDot,
                   {
                     backgroundColor: getSkillLevelColor(
-                      displayGame.skillLevel || displayGame.skill_level
+                      fixedGame.skillLevel || displayGame.skill_level
                     ),
                   },
                 ]}
@@ -116,14 +116,14 @@ const GameCard: React.FC<GameCardProps> = ({
                 type='paragraph'
                 style={[cardStyles.locationName, { color: colors.primary }]}
               >
-                {displayGame.location?.name}
+                {fixedGame.location?.name}
               </ThemedText>
               <ThemedText
                 type='caption'
                 style={[cardStyles.locationAddress, { color: colors.icon }]}
               >
-                {displayGame.location?.address} - {displayGame.location?.city},{" "}
-                {displayGame.location?.state}
+                {fixedGame.location?.address} - {fixedGame.location?.city},{" "}
+                {fixedGame.location?.state}
               </ThemedText>
             </View>
             <TouchableOpacity
