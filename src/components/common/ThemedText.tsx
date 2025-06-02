@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: "700",
     marginBottom: 4,
   },

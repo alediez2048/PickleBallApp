@@ -20,6 +20,7 @@ export interface FixedGame {
   start_time: string; // 'HH:MM:SS' format
   duration_minutes: number;
   location_id: string;
+  location?: any; // Add location for joined data
   host: any; // JSON object, can be typed further if needed
   max_players: number;
   skill_level: SkillLevel;

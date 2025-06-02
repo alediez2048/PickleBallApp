@@ -5,13 +5,19 @@ import { FixedGame, FixedGameInput } from "@/types/fixedGames";
 const TABLE_NAME = "fixed_games";
 
 export async function getFixedGames(): Promise<FixedGame[]> {
-  const { data, error } = await supabase.from(TABLE_NAME).select("*");
+  const { data, error } = await supabase
+    .from(TABLE_NAME)
+    .select(`*, location:location_id(*)`); // Join locations table
   if (error) throw error;
   return data as FixedGame[];
 }
 
 export async function getFixedGame(id: string): Promise<FixedGame | null> {
-  const { data, error } = await supabase.from(TABLE_NAME).select("*").eq("id", id).single();
+  const { data, error } = await supabase
+    .from(TABLE_NAME)
+    .select(`*, location:location_id(*)`)
+    .eq("id", id)
+    .single();
   if (error) return null;
   return data as FixedGame;
 }

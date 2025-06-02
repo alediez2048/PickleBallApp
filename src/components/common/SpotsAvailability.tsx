@@ -1,60 +1,73 @@
-import React from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { useGameRegistration } from '@/hooks/useGameRegistration';
+import React from "react";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { useGameRegistration } from "@/hooks/useGameRegistration";
+import { useTheme } from "@contexts/ThemeContext";
+import { ThemedText } from "../common/ThemedText";
+import { ThemedView } from "@/components/common/ThemedView";
 
 interface SpotsAvailabilityProps {
   gameId: string;
-  variant?: 'card' | 'detail';
+  variant?: "card" | "detail";
   showLoadingState?: boolean;
 }
 
-export function SpotsAvailability({ 
-  gameId, 
-  variant = 'card',
-  showLoadingState = true 
+export function SpotsAvailability({
+  gameId,
+  variant = "card",
+  showLoadingState = true,
 }: SpotsAvailabilityProps) {
-  const { 
-    isLoading, 
-    error, 
-    isFull, 
-    spotsLeft, 
-    formatSpotsMessage 
-  } = useGameRegistration(gameId);
+  const { isLoading, error, isFull, spotsLeft, formatSpotsMessage } =
+    useGameRegistration(gameId);
+  const { colors } = useTheme();
 
   if (!showLoadingState && isLoading) {
     return null;
   }
 
   return (
-    <View style={[
-      styles.container,
-      variant === 'detail' && styles.detailContainer
-    ]}>
+    <ThemedView
+      style={[
+        styles.container,
+        variant === "detail" && {
+          ...styles.detailContainer,
+          backgroundColor: colors.background,
+        },
+      ]}
+    >
       {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#666666" />
-          <Text style={styles.loadingText}>Checking availability...</Text>
-        </View>
+        <ThemedView style={styles.loadingContainer}>
+          <ActivityIndicator size='small' color={colors.icon} />
+          <ThemedText style={[styles.loadingText, { color: colors.icon }]}>
+            Checking availability...
+          </ThemedText>
+        </ThemedView>
       ) : error ? (
-        <Text style={styles.errorText}>Unable to check availability</Text>
+        <ThemedText style={[styles.errorText, { color: colors.error }]}>
+          Unable to check availability
+        </ThemedText>
       ) : (
-        <View style={styles.contentContainer}>
-          <Text style={[
-            styles.label,
-            variant === 'detail' && styles.detailLabel
-          ]}>
+        <ThemedView style={styles.contentContainer}>
+          <ThemedText
+            style={[
+              styles.label,
+              { color: colors.icon },
+              variant === "detail" && styles.detailLabel,
+            ]}
+          >
             Spots Available
-          </Text>
-          <Text style={[
-            styles.value,
-            isFull && styles.fullValue,
-            variant === 'detail' && styles.detailValue
-          ]}>
+          </ThemedText>
+          <ThemedText
+            style={[
+              styles.value,
+              { color: isFull ? colors.error : colors.text },
+              variant === "detail" && styles.detailValue,
+            ]}
+          >
             {formatSpotsMessage()}
-          </Text>
-        </View>
+          </ThemedText>
+        </ThemedView>
       )}
-    </View>
+    </ThemedView>
   );
 }
 
@@ -63,42 +76,38 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   detailContainer: {
-    backgroundColor: '#F8F9FA',
     borderRadius: 12,
     padding: 16,
   },
   loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   loadingText: {
-    color: '#666666',
     fontSize: 14,
   },
   errorText: {
-    color: '#F44336',
     fontSize: 14,
   },
   contentContainer: {
-    gap: 4,
+    gap: 2,
   },
   label: {
     fontSize: 12,
-    color: '#666666',
   },
   detailLabel: {
     fontSize: 14,
   },
   value: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
+    fontSize: 18,
+    margin: 0,
+    fontWeight: "600",
   },
   fullValue: {
-    color: '#F44336',
+    // color handled inline
   },
   detailValue: {
     fontSize: 18,
   },
-}); 
+});

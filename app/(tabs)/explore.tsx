@@ -101,7 +101,7 @@ export default function ExploreScreen() {
           description: fg.description || "",
           startTime: startTime.toISOString(),
           endTime: endTime.toISOString(),
-          location: {
+          location: fg.location || {
             id: fg.location_id,
             name: "",
             address: "",

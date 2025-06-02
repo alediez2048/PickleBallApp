@@ -24,6 +24,10 @@
      - `src/components/common/ThemedView.tsx`
      - `src/components/common/ThemedText.tsx`
    - Do not use raw `View` or `Text` unless wrapped or extended via these themed components.
+   - To import ThemedView, use:
+     `import { ThemedView } from "@/components/common/ThemedView";`
+   - To import ThemedText, use:
+     `import { ThemedText } from "@/components/common/ThemedText";`
 
 5. Backend:
 
