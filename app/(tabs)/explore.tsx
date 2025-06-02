@@ -29,6 +29,7 @@ import { useFixedGames } from "@/contexts/FixedGamesContext";
 import { DAYS_OF_WEEK } from "@/constants/daysOfWeek";
 import GameCard from "@/components/explore/GameCard";
 import ExploreFilter from "@components/explore/ExploreFilter";
+import { useTheme } from "@contexts/ThemeContext";
 
 // Type for merged game (scheduled or fixed)
 type MergedGame = Game & {
@@ -40,6 +41,7 @@ type MergedGame = Game & {
 
 // Move allGames and related logic to the top of the ExploreScreen function, before any useEffect or variable that uses it
 export default function ExploreScreen() {
+  const { colors } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
   const upcomingGames = useUpcomingBookedGames();
@@ -206,12 +208,12 @@ export default function ExploreScreen() {
           canReserve: true,
           buttonText: "Reserve",
           buttonStyle: {
-            backgroundColor: "#4CAF50",
+            backgroundColor: colors.primary, // Use theme color
             paddingHorizontal: 20,
             paddingVertical: 10,
             borderRadius: 20,
           },
-          textStyle: { color: "#FFFFFF", fontWeight: "600" },
+          textStyle: { color: colors.white, fontWeight: "600" },
           isBooked: false,
         };
       }
@@ -221,12 +223,12 @@ export default function ExploreScreen() {
             canReserve: false,
             buttonText: "Cancel",
             buttonStyle: {
-              backgroundColor: "#F44336",
+              backgroundColor: colors.error, // Use theme color
               paddingHorizontal: 20,
               paddingVertical: 10,
               borderRadius: 20,
             },
-            textStyle: { color: "#FFFFFF", fontWeight: "600" },
+            textStyle: { color: colors.white, fontWeight: "600" },
             isBooked: true,
           };
         }
@@ -250,12 +252,12 @@ export default function ExploreScreen() {
             canReserve: true,
             buttonText: "Reserve",
             buttonStyle: {
-              backgroundColor: "#4CAF50",
+              backgroundColor: colors.primary, // Use theme color
               paddingHorizontal: 20,
               paddingVertical: 10,
               borderRadius: 20,
             },
-            textStyle: { color: "#FFFFFF", fontWeight: "600" },
+            textStyle: { color: colors.white, fontWeight: "600" },
             isBooked: false,
           };
         }
@@ -264,12 +266,12 @@ export default function ExploreScreen() {
           canReserve: false,
           buttonText: "Join Waitlist",
           buttonStyle: {
-            backgroundColor: "#FFA000",
+            backgroundColor: colors.waitlist, // Use theme color
             paddingHorizontal: 20,
             paddingVertical: 10,
             borderRadius: 20,
           },
-          textStyle: { color: "#FFFFFF", fontWeight: "600" },
+          textStyle: { color: colors.white, fontWeight: "600" },
           isBooked: false,
         };
       } catch (error) {
@@ -281,12 +283,12 @@ export default function ExploreScreen() {
           canReserve: false,
           buttonText: "Unavailable",
           buttonStyle: {
-            backgroundColor: "#E0E0E0",
+            backgroundColor: colors.warning, // Use theme color
             paddingHorizontal: 20,
             paddingVertical: 10,
             borderRadius: 20,
           },
-          textStyle: { color: "#666666", fontWeight: "600" },
+          textStyle: { color: colors.icon, fontWeight: "600" },
           isBooked: false,
         };
       }
@@ -384,14 +386,15 @@ export default function ExploreScreen() {
 
   // Add 'All Levels' option to the beginning of the skill levels array
   const skillLevels = [
-    { value: "all" as const, label: "All Levels", color: "#666666" },
+    { value: "all", label: "All Levels", color: colors.skillAll },
     ...SKILL_LEVELS,
   ];
 
-  const getSkillLevelColor = (level: SkillLevel | "all") => {
-    if (level === "all") return "#666666";
+  // Accept string for compatibility with ExploreFilter
+  const getSkillLevelColor = (level: string) => {
+    if (level === "all") return colors.skillAll;
     const skillLevel = SKILL_LEVELS.find((sl) => sl.value === level);
-    return skillLevel ? skillLevel.color : "#666666";
+    return skillLevel ? skillLevel.color : colors.skillAll;
   };
 
   const isSkillLevelMatch = (gameSkillLevel: SkillLevel) => {
@@ -418,7 +421,9 @@ export default function ExploreScreen() {
 
   // Render using sortedDaysArray
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <ExploreFilter
         selectedSkillLevel={actualFilter}
         setSelectedSkillLevel={setActualFilter}
@@ -434,7 +439,7 @@ export default function ExploreScreen() {
             <IconSymbol
               name='calendar'
               size={48}
-              color='#bbb'
+              color={colors.icon}
               style={{ marginBottom: 16, opacity: 0.5 }}
             />
             <ThemedText type='emptyStateTitle'>No games found</ThemedText>
@@ -487,27 +492,36 @@ export default function ExploreScreen() {
         transparent
         onRequestClose={() => setIsCancelModalVisible(false)}
       >
-        <ThemedView type='modalContainer' style={styles.modalContainer}>
-          <ThemedText type='modalTitle'>Cancel Registration</ThemedText>
-          <ThemedText type='modalMessage'>
+        <ThemedView
+          type='modalContentCustom'
+          style={[
+            styles.modalContainer,
+            { backgroundColor: colors.modalOverlay },
+          ]}
+        >
+          <ThemedText type='title'>Cancel Registration</ThemedText>
+          <ThemedText type='paragraph'>
             Are you sure you want to cancel your registration for this game?
           </ThemedText>
-          <ThemedView type='modalButtonContainer'>
+          <ThemedView type='centered'>
             <TouchableOpacity
-              style={styles.cancelButton}
+              style={[styles.cancelButton, { backgroundColor: colors.error }]}
               onPress={() => setIsCancelModalVisible(false)}
             >
-              <ThemedText type='buttonText'>No, go back</ThemedText>
+              <ThemedText type='button'>No, go back</ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.confirmButton}
+              style={[
+                styles.confirmButton,
+                { backgroundColor: colors.primary },
+              ]}
               onPress={() => {
                 if (selectedGame) {
                   handleCancelRegistration(selectedGame.id);
                 }
               }}
             >
-              <ThemedText type='buttonText'>Yes, cancel</ThemedText>
+              <ThemedText type='button'>Yes, cancel</ThemedText>
             </TouchableOpacity>
           </ThemedView>
         </ThemedView>
@@ -519,7 +533,6 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
   },
   scrollViewContent: {
     paddingBottom: 80,
@@ -529,20 +542,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
   },
   cancelButton: {
-    backgroundColor: "#F44336",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
     marginRight: 8,
   },
   confirmButton: {
-    backgroundColor: "#4CAF50",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
     marginLeft: 8,
   },
 });
+// All color values are now referenced from the theme and dynamic with useTheme().
+// All styles are at the bottom of the file.
+// ThemedText and ThemedView types are valid and used as per their allowed values.

@@ -21,6 +21,17 @@ export const colors = {
   success: '#2E7D32',
   warning: '#ED6C02',
   info: '#0288D1',
+  neutral: {
+    light: '#F9FAFB',
+    dark: '#18181b',
+    mid: '#E0E0E0',
+    midDark: '#27272a',
+    border: '#cccccc',
+    icon: '#bbb',
+    modalOverlay: 'rgba(0, 0, 0, 0.7)',
+    skillAll: '#666666',
+    waitlist: '#FFA000',
+  },
 };
 
 export const spacing = {
@@ -84,22 +95,38 @@ export const Colors = {
     text: colors.text.light,
     background: colors.background.light,
     primary: colors.primary.light,
-    secondary: '#f4f4f5', // Not present in theme, kept as is
+    secondary: colors.neutral.light,
     tint: colors.primary.light,
-    tabIconDefault: '#cccccc', // Not present in theme, kept as is
+    tabIconDefault: colors.neutral.border,
     tabIconSelected: colors.primary.light,
-    white: '#ffffff', // Not present in theme, kept as is
-    black: '#000000', // Not present in theme, kept as is
+    white: '#ffffff',
+    black: '#000000',
+    error: colors.error,
+    success: colors.success,
+    warning: colors.warning,
+    info: colors.info,
+    modalOverlay: colors.neutral.modalOverlay,
+    skillAll: colors.neutral.skillAll,
+    waitlist: colors.neutral.waitlist,
+    icon: colors.neutral.icon,
   },
   dark: {
     text: colors.text.dark,
     background: colors.background.dark,
-    primary: colors.primary.light, // Using light for consistency
-    secondary: '#27272a', // Not present in theme, kept as is
+    primary: colors.primary.light,
+    secondary: colors.neutral.midDark,
     tint: colors.primary.light,
-    tabIconDefault: '#cccccc', // Not present in theme, kept as is
-    tabIconSelected: '#ffffff', // Not present in theme, kept as is
-    white: '#ffffff', // Not present in theme, kept as is
-    black: '#000000', // Not present in theme, kept as is
+    tabIconDefault: colors.neutral.border,
+    tabIconSelected: '#ffffff',
+    white: '#ffffff',
+    black: '#000000',
+    error: colors.error,
+    success: colors.success,
+    warning: colors.warning,
+    info: colors.info,
+    modalOverlay: colors.neutral.modalOverlay,
+    skillAll: colors.neutral.skillAll,
+    waitlist: colors.neutral.waitlist,
+    icon: colors.neutral.icon,
   },
 };
