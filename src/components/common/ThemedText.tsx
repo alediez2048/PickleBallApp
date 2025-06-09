@@ -23,6 +23,7 @@ export type ThemedTextProps = TextProps & {
     | "bold"
     | "label"
     | "value"
+    | "timeText"
     | "sectionTitle"
     | "badge"
     | "emptyStateTitle"
@@ -68,6 +69,8 @@ export function ThemedText({
         return styles.bold;
       case "sectionTitle":
         return styles.sectionTitle;
+      case "timeText":
+        return styles.timeText;
       case "badge":
         return styles.badge;
       case "emptyStateTitle":
@@ -167,12 +170,19 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontSize: 16 + fontSizeOffset,
+    lineHeight: 16 + fontSizeOffset,
     fontWeight: "bold",
   },
   sectionTitle: {
     fontSize: 24 + fontSizeOffset,
+    lineHeight: 24 + fontSizeOffset,
     fontWeight: "700",
     marginBottom: 4,
+  },
+  timeText: {
+    fontSize: 24 + fontSizeOffset,
+    lineHeight: 24 + fontSizeOffset,
+    fontWeight: "700",
   },
   badge: {
     fontSize: 13 + fontSizeOffset,
@@ -209,10 +219,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14 + fontSizeOffset,
+    lineHeight: 14 + fontSizeOffset,
     fontWeight: "500",
   },
   value: {
     fontSize: 18 + fontSizeOffset,
+    lineHeight: 18 + fontSizeOffset,
     fontWeight: "700",
   },
 });

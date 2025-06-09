@@ -21,6 +21,8 @@ import { useRouter } from "expo-router";
 import { MembershipManagementSection } from "@/components/membership/MembershipManagementSection";
 import { MembershipPlan, MembershipTier } from "@/types/membership";
 import { ThemedText } from "@/components/common/ThemedText";
+import { ThemedView } from "@/components/common/ThemedView";
+import ThemeToggleButton from "@/components/common/ThemeToggleButton";
 
 interface GameHistory {
   id: string;
@@ -441,6 +443,10 @@ export default function ProfileScreen() {
             Sign Out
           </Button>
         </View>
+
+        <ThemedView style={styles.toggleContainer}>
+          <ThemeToggleButton />
+        </ThemedView>
       </ScrollView>
 
       {/* Profile Form Modal */}
@@ -754,6 +760,10 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   signOutContainer: {
+    marginTop: 8,
+    marginBottom: 20,
+  },
+  toggleContainer: {
     marginTop: 8,
     marginBottom: 80,
   },

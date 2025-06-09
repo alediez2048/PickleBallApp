@@ -62,12 +62,7 @@ const GameCard: React.FC<GameCardProps> = ({
       <TouchableOpacity onPress={() => onGamePress(fixedGame, game)}>
         <View style={cardStyles.rowTop}>
           <View style={cardStyles.leftCol}>
-            <ThemedText
-              type='title'
-              style={[cardStyles.timeText, { color: colors.text }]}
-            >
-              {startTime}
-            </ThemedText>
+            <ThemedText type='timeText'>{startTime}</ThemedText>
             <ThemedText
               type='paragraph'
               style={[cardStyles.durationText, { color: colors.icon }]}
@@ -79,7 +74,7 @@ const GameCard: React.FC<GameCardProps> = ({
           </View>
           <View style={cardStyles.rightCol}>
             <View style={cardStyles.skillLevelBadge}>
-              <ThemedText type='bold' style={cardStyles.skillText}>
+              <ThemedText type='bold'>
                 {fixedGame.skillLevel || displayGame.skill_level}
               </ThemedText>
               <View
@@ -93,10 +88,7 @@ const GameCard: React.FC<GameCardProps> = ({
                 ]}
               />
             </View>
-            <ThemedText
-              type='paragraph'
-              style={[cardStyles.titleText, { color: colors.text }]}
-            >
+            <ThemedText type='label' align='right'>
               {displayGame.title}
             </ThemedText>
           </View>
@@ -104,13 +96,13 @@ const GameCard: React.FC<GameCardProps> = ({
         <View style={cardStyles.rowMid}>
           <View style={cardStyles.leftCol}>
             <View style={cardStyles.rowBottom}>
-              <View style={cardStyles.spotsCol}>
+              <View>
                 <ThemedText type='subtitle'>Spots</ThemedText>
                 <SpotsAvailability gameId={displayGame.id} />
               </View>
             </View>
           </View>
-          <View style={cardStyles.leftCol}>
+          <View style={cardStyles.rightCol}>
             <View>
               <ThemedText
                 type='paragraph'
@@ -164,23 +156,12 @@ const cardStyles = StyleSheet.create({
   },
   leftCol: {
     flexDirection: "column",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 0,
     margin: 0,
   },
   rightCol: {
-    flex: 1,
     alignItems: "flex-end",
-  },
-  timeText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    margin: 0,
-  },
-  skillText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    margin: 0,
   },
   skillLevelBadge: {
     flexDirection: "row",
@@ -219,9 +200,6 @@ const cardStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginTop: 0,
-  },
-  spotsCol: {
-    flex: 1,
   },
 });
 

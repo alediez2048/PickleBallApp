@@ -8,6 +8,8 @@ import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
 import { ActivityIndicator } from "react-native";
 import { useCurrentRouteName } from "@/hooks/useCurrentRouteName";
+import { StyleSheet } from "react-native";
+import { useTheme } from "@/contexts/ThemeContext";
 
 type IconName =
   | "house.fill"
@@ -56,27 +58,23 @@ export default function TabLayout() {
   const { user } = useAuth();
   const router = useRouter();
   const currentRoute = useCurrentRouteName();
+  const { colors } = useTheme();
 
-  // Redirect as soon as user.email_confirmed_at is available and not set
   useEffect(() => {
     if (
       user &&
       typeof user.email_confirmed_at !== "undefined" &&
       !user.email_confirmed_at
     ) {
-      // Prevent redirect loop if already on /verify-email
       if (currentRoute !== "verify-email") {
         router.replace("/verify-email");
       }
     }
   }, [user?.email_confirmed_at, currentRoute]);
 
-  // Only render tabs if user is validated
   if (!user || typeof user.email_confirmed_at === "undefined") {
     return (
-      <ThemedView
-        style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-      >
+      <ThemedView style={styles.centeredContainer}>
         <ActivityIndicator size='large' color='#4CAF50' />
         <ThemedText className='mt-4 text-lg text-gray-500'>
           Loading...
@@ -85,14 +83,11 @@ export default function TabLayout() {
     );
   }
   if (!user.email_confirmed_at) {
-    // The redirect will happen via useEffect above
     return null;
   }
   if (!user.skill_level) {
     return (
-      <ThemedView
-        style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-      >
+      <ThemedView style={styles.centeredContainer}>
         <ActivityIndicator size='large' color='#4CAF50' />
         <ThemedText className='mt-4 text-lg text-gray-500'>
           Checking skill level...
@@ -101,64 +96,70 @@ export default function TabLayout() {
     );
   }
 
-  // Filter by admin users
   const isAdmin = ADMIN_USERS.includes(user?.email ?? "");
   const visibleTabs = TAB_ITEMS.filter((tab) => !tab.adminOnly || isAdmin);
 
-  // ThemedView is used as the main container for consistent theming
   return (
-    <ThemedView
-      style={{
-        flex: 1,
-        margin: 0,
-        padding: 0,
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.text,
+        tabBarStyle: {
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: -45,
+          borderTopWidth: 1,
+          elevation: 0,
+          height: 100,
+          margin: 0,
+          padding: 0,
+          zIndex: 1,
+          backgroundColor: colors.background,
+        },
       }}
     >
-      {/* Example ThemedText header, can be customized or removed */}
-      {/* <ThemedText type="title">Main Navigation</ThemedText> */}
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarShowLabel: true,
-          tabBarActiveTintColor: "#4CAF50",
-          tabBarInactiveTintColor: "#666666",
-          tabBarStyle: {
-            position: "relative",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            borderTopWidth: 0,
-            elevation: 0,
-            borderColor: "red",
-            borderWidth: 2,
-            height: 65,
-            // ThemedView handles background color
-          },
-          tabBarItemStyle: {
-            // ThemedView handles background color
-          },
-        }}
-      >
-        {visibleTabs.map((tab) => (
-          <Tabs.Screen
-            key={tab.route}
-            name={tab.name}
-            options={{
-              tabBarIcon: ({ color, focused }) => (
-                <IconSymbol
-                  name={tab.icon}
-                  size={24}
-                  color={color}
-                  style={{
-                    opacity: focused ? 1 : 0.8,
-                  }}
-                />
-              ),
-              tabBarLabel: tab.label,
-            }}
-          />
-        ))}
-      </Tabs>
-    </ThemedView>
+      {visibleTabs.map((tab) => (
+        <Tabs.Screen
+          key={tab.route}
+          name={tab.name}
+          options={{
+            tabBarIcon: ({ color, focused }) => (
+              <IconSymbol
+                name={tab.icon}
+                size={28}
+                color={color}
+                style={{
+                  opacity: focused ? 1 : 0.8,
+                  padding: 0,
+                  margin: 0,
+                }}
+              />
+            ),
+            tabBarLabel: tab.label,
+            tabBarLabelStyle: {
+              fontSize: 12,
+              padding: 0,
+              margin: 0,
+            }, // Style for the tab label
+          }}
+        />
+      ))}
+    </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    margin: 0,
+    padding: 0,
+  },
+  centeredContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

@@ -20,5 +20,9 @@
     "fs",
     "http",
     "net"
+  ],
+  "cSpell.words": [
+    "gamecontroller",
+    "gearshape"
   ]
 }

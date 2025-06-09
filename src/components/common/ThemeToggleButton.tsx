@@ -38,8 +38,8 @@ export default function ThemeToggleButton() {
         disabled={isDark}
         style={[
           styles.button,
-          isDark && { backgroundColor: colors.primary }, // use info as highlight
-          !isDark && { backgroundColor: colors.text }, // use info as highlight
+          isDark && { backgroundColor: colors.primary },
+          !isDark && { backgroundColor: colors.text },
         ]}
       >
         <MaterialCommunityIcons
