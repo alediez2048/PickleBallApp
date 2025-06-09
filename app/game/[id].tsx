@@ -31,6 +31,7 @@ import { MembershipPlanModal } from "@/components/membership/MembershipPlanModal
 import { PaymentMethodModal } from "@/components/payment/PaymentMethodModal";
 import { MembershipPlan } from "@/types/membership";
 import { IconSymbol } from "@/components/common/IconSymbol";
+import BackButton from "@/components/common/BackButton";
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -78,8 +79,6 @@ export default function GameDetailsScreen() {
       bookedGame.gameId === id && bookedGame.status === "upcoming"
   );
 
-  console.log(game);
-
   // If game not found, show error or redirect
   if (!game) {
     return (
@@ -120,11 +119,11 @@ export default function GameDetailsScreen() {
           minute: "2-digit",
           hour12: true,
         }),
-        courtName: game.location.name,
+        courtName: game.location?.name,
         location: {
-          address: game.location.address,
-          area: game.location.name,
-          city: game.location.city,
+          address: game.location?.address,
+          area: game.location?.name,
+          city: game.location?.city,
         },
         skillRating: 3.7,
         price: game.price,
@@ -226,6 +225,7 @@ export default function GameDetailsScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <BackButton />
       {/* Header */}
       <ThemedView>
         <ThemedText
@@ -394,10 +394,10 @@ export default function GameDetailsScreen() {
               </ThemedView>
               <ThemedView style={styles.bookingLocationContainer}>
                 <ThemedText style={styles.bookingLocationName}>
-                  {game.location.name}
+                  {game.location?.name}
                 </ThemedText>
                 <ThemedText style={styles.bookingLocationAddress}>
-                  {game.location.address}
+                  {game.location?.address}
                 </ThemedText>
               </ThemedView>
             </ThemedView>
@@ -501,7 +501,7 @@ export default function GameDetailsScreen() {
               </ThemedView>
               <ThemedView style={styles.successLocationContainer}>
                 <ThemedText style={styles.successLocationName}>
-                  {game.location.name}
+                  {game.location?.name}
                 </ThemedText>
                 <ThemedView style={styles.successAddressContainer}>
                   {/* <IconSymbol
@@ -511,7 +511,7 @@ export default function GameDetailsScreen() {
                     style={styles.successLocationIcon}
                   /> */}
                   <ThemedText style={styles.successLocationAddress}>
-                    {game.location.address}
+                    {game.location?.address}
                   </ThemedText>
                 </ThemedView>
               </ThemedView>
@@ -577,10 +577,10 @@ export default function GameDetailsScreen() {
               </ThemedView>
               <ThemedView style={styles.bookingLocationContainer}>
                 <ThemedText style={styles.bookingLocationName}>
-                  {game.location.name}
+                  {game.location?.name}
                 </ThemedText>
                 <ThemedText style={styles.bookingLocationAddress}>
-                  {game.location.address}
+                  {game.location?.address}
                 </ThemedText>
               </ThemedView>
             </ThemedView>
@@ -674,14 +674,14 @@ export default function GameDetailsScreen() {
       />
 
       {/* Payment Method Modal */}
-      {selectedPlan && (
+      {/* {selectedPlan && (
         <PaymentMethodModal
           visible={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
           onComplete={handlePaymentComplete}
           selectedPlan={selectedPlan}
         />
-      )}
+      )} */}
     </ThemedView>
   );
 }

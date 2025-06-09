@@ -354,6 +354,7 @@ export default function ExploreScreen() {
       router.push({ pathname: "/game/[id]", params: { id: game.id } });
       return;
     }
+    console.log("Selected fixed game:", fixedGame);
     // If no scheduled game, create one from fixedGame
     if (fixedGame) {
       // Calculate the next date for the fixed game's day_of_week
@@ -387,7 +388,7 @@ export default function ExploreScreen() {
         description: fixedGame.description || "",
         start_time: startTime,
         end_time: endTime,
-        location_id: fixedGame.location.location_id,
+        location_id: fixedGame.location_id,
         host: fixedGame.host,
         players: [],
         registered_count: 0,
@@ -399,6 +400,7 @@ export default function ExploreScreen() {
         created_at: "", // required by type, ignored by backend
         updated_at: "", // required by type, ignored by backend
       };
+      console.log("Creating game with data:", gameData);
       try {
         const created = await createGame(gameData);
         if (created && typeof created === "object" && "id" in created) {

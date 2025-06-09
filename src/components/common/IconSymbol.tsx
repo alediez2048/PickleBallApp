@@ -3,6 +3,7 @@
 import React from "react";
 import { Platform, StyleProp, TextStyle } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+const { useTheme } = require("@/contexts/ThemeContext");
 
 // Only import SFSymbols on iOS
 let SFSymbol: any;
@@ -30,6 +31,26 @@ const ICON_MAPPING = {
   "gearshape.fill": "settings",
   filter: "filter-list", // <-- Add Material Icon for 'filter'
 } as const;
+
+const SF_SYMBOL_MAPPING: Record<IconName, string> = {
+  "house.fill": "house.fill",
+  "gamecontroller.fill": "gamecontroller.fill",
+  "person.fill.badge.plus": "person.fill.badge.plus",
+  "exclamationmark.triangle.fill": "exclamationmark.triangle.fill",
+  "trophy.fill": "trophy.fill",
+  "person.fill": "person.fill",
+  pencil: "pencil",
+  xmark: "xmark",
+  checkmark: "checkmark",
+  "location.fill": "location.fill",
+  calendar: "calendar",
+  "person.2.fill": "person.2.fill",
+  "star.fill": "star.fill",
+  "chevron.down": "chevron.down",
+  "creditcard.fill": "creditcard.fill",
+  "gearshape.fill": "gearshape.fill",
+  filter: "line.3.horizontal.decrease", // <-- SF Symbol for filter
+};
 
 type IconName =
   | "person.fill"
@@ -72,6 +93,7 @@ export function IconSymbol({
 }: IconSymbolProps) {
   // Determine the color to use
   let themedColor = color;
+  const { colors } = useTheme();
   // Accept colorType or a valid hex color string
   const isHexColor = (val: string) => /^#([0-9A-Fa-f]{6})$/.test(val);
 
@@ -79,8 +101,6 @@ export function IconSymbol({
     themedColor = color;
   } else {
     try {
-      const { useTheme } = require("@/contexts/ThemeContext");
-      const { colors } = useTheme();
       switch (color) {
         case "black":
           themedColor = colors.black;
@@ -106,9 +126,14 @@ export function IconSymbol({
   }
 
   // Use SF Symbols on iOS, Material Icons elsewhere
-  if (Platform.OS === "ios" && SFSymbol) {
+  if (Platform.OS === "ios") {
     return (
-      <SFSymbol name={name} size={size} color={themedColor} style={style} />
+      <SFSymbol
+        name={SF_SYMBOL_MAPPING[name]}
+        size={size}
+        color={themedColor}
+        style={style}
+      />
     );
   }
 

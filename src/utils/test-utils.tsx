@@ -8,10 +8,6 @@ import { View } from "react-native";
 
 // Mock components that might cause issues in tests
 jest.mock("expo-image", () => "Image");
-jest.mock(
-  "react-native/Libraries/Components/TextInput/TextInput",
-  () => "TextInput"
-);
 
 // Mock implementations
 jest.mock("@/contexts/AuthContext", () => {

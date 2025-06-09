@@ -38,7 +38,7 @@ const ExploreFilter: React.FC<ExploreFilterProps> = ({
             gap: 10,
           }}
         >
-          <IconSymbol name='filter' size={20} color={colors.icon} />
+          <IconSymbol name='filter' size={25} />
           <ThemedText type='paragraph' style={{ flex: 1, color: colors.text }}>
             {skillLevels.find((s) => s.value === selectedSkillLevel)?.label}
           </ThemedText>

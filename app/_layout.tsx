@@ -73,6 +73,14 @@ function RootLayoutNav() {
         options={{ headerShown: false, statusBarTranslucent: true }}
       />
       <Stack.Screen
+        name='game'
+        options={{ headerShown: false, statusBarTranslucent: true }}
+      />
+      <Stack.Screen
+        name='game/[id]'
+        options={{ headerShown: false, statusBarTranslucent: true }}
+      />
+      <Stack.Screen
         name='(profile-setup)'
         options={{ headerShown: false, statusBarTranslucent: true }}
       />

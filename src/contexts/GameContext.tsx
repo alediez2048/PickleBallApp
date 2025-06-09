@@ -227,6 +227,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           fixed_game_id,
           status: "upcoming", // Default status for new games
         };
+        console.log("Creating game with data:", cleanGameData);
         const { data, error } = await createGame(cleanGameData);
         if (error || !data || !data[0])
           throw error || new Error("No data returned");
