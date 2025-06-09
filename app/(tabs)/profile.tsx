@@ -204,11 +204,19 @@ export default function ProfileScreen() {
 
   if (!user) {
     return (
-      <View style={styles.container}>
+      <ThemedView style={styles.container}>
         <ThemedText>Loading...</ThemedText>
-      </View>
+      </ThemedView>
     );
   }
+
+  // Helper for image source
+  const getProfileImageSource = (profile_image: any) => {
+    if (!profile_image) return undefined;
+    if (typeof profile_image === "string") return { uri: profile_image };
+    if (profile_image?.uri) return { uri: profile_image.uri };
+    return undefined;
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -217,46 +225,46 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Header Card with Solid Background */}
-        <View style={styles.headerCard}>
-          <View style={styles.headerBackground}>
+        <ThemedView style={styles.headerCard}>
+          <ThemedView style={styles.headerBackground}>
             <TouchableOpacity
               style={styles.profileImageContainer}
               onPress={handleImagePick}
               accessibilityLabel='Change profile picture'
             >
-              {user?.profileImage ? (
+              {user?.profile_image ? (
                 <Image
-                  source={getImageSource(user.profileImage)}
+                  source={getProfileImageSource(user.profile_image)}
                   style={styles.profileImage}
                   key={refreshKey}
                 />
               ) : (
-                <View style={styles.defaultAvatar}>
+                <ThemedView style={styles.defaultAvatar}>
                   <IconSymbol name='person.fill' size={48} color='#4CAF50' />
-                </View>
+                </ThemedView>
               )}
-              <View style={styles.editImageButton}>
+              <ThemedView style={styles.editImageButton}>
                 <IconSymbol name='pencil' size={14} color='#FFFFFF' />
-              </View>
+              </ThemedView>
             </TouchableOpacity>
-            <ThemedText variant='title' style={styles.name}>
-              {user.name}
+            <ThemedText type='title' style={styles.name}>
+              {user.display_name || user.name || user.email}
             </ThemedText>
-            <ThemedText variant='caption' style={styles.email}>
+            <ThemedText type='caption' style={styles.email}>
               {user.email}
             </ThemedText>
-          </View>
-        </View>
+          </ThemedView>
+        </ThemedView>
 
         {/* Quick Actions */}
-        <View style={styles.quickActions}>
+        <ThemedView style={styles.quickActions}>
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => setIsProfileFormVisible(true)}
           >
-            <View style={styles.actionIconContainer}>
+            <ThemedView style={styles.actionIconContainer}>
               <IconSymbol name='person.fill' size={24} color='#4CAF50' />
-            </View>
+            </ThemedView>
             <ThemedText style={styles.actionText}>Edit Profile</ThemedText>
           </TouchableOpacity>
 
@@ -264,9 +272,9 @@ export default function ProfileScreen() {
             style={styles.actionButton}
             onPress={() => setIsSkillModalVisible(true)}
           >
-            <View style={styles.actionIconContainer}>
+            <ThemedView style={styles.actionIconContainer}>
               <IconSymbol name='trophy.fill' size={24} color='#4CAF50' />
-            </View>
+            </ThemedView>
             <ThemedText style={styles.actionText}>Skill Level</ThemedText>
           </TouchableOpacity>
 
@@ -274,27 +282,27 @@ export default function ProfileScreen() {
             style={styles.actionButton}
             onPress={() => console.log("Navigate to membership")}
           >
-            <View style={styles.actionIconContainer}>
+            <ThemedView style={styles.actionIconContainer}>
               <IconSymbol name='star.fill' size={24} color='#4CAF50' />
-            </View>
+            </ThemedView>
             <ThemedText style={styles.actionText}>Membership</ThemedText>
           </TouchableOpacity>
-        </View>
+        </ThemedView>
 
         {/* Skill Level Card - Redesigned */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardTitleContainer}>
+        <ThemedView style={styles.card}>
+          <ThemedView style={styles.cardHeader}>
+            <ThemedView style={styles.cardTitleContainer}>
               <IconSymbol
                 name='trophy.fill'
                 size={20}
                 color='#4CAF50'
                 style={styles.cardIcon}
               />
-              <ThemedText variant='subtitle' style={styles.cardTitle}>
+              <ThemedText type='subtitle' style={styles.cardTitle}>
                 Skill Level
               </ThemedText>
-            </View>
+            </ThemedView>
             <Button
               variant='outline'
               size='small'
@@ -302,62 +310,62 @@ export default function ProfileScreen() {
             >
               Edit
             </Button>
-          </View>
-          <View style={styles.skillLevelContainer}>
-            <View
+          </ThemedView>
+          <ThemedView style={styles.skillLevelContainer}>
+            <ThemedView
               style={[
                 styles.skillBadge,
-                user.skillLevel === "advanced" && styles.advancedBadge,
-                user.skillLevel === "pro" && styles.proBadge,
+                user.skill_level === "Advanced" && styles.advancedBadge,
+                user.skill_level === "Open" && styles.proBadge,
               ]}
             >
               <ThemedText style={styles.skillLevelText}>
-                {user.skillLevel || "Not set"}
+                {user.skill_level || "Not set"}
               </ThemedText>
-            </View>
-            <ThemedText variant='caption' style={styles.skillLevelDescription}>
-              {SKILL_LEVELS.find((level) => level.value === user.skillLevel)
+            </ThemedView>
+            <ThemedText type='caption' style={styles.skillLevelDescription}>
+              {SKILL_LEVELS.find((level) => level.value === user.skill_level)
                 ?.description || "Please set your skill level"}
             </ThemedText>
-          </View>
-        </View>
+          </ThemedView>
+        </ThemedView>
 
         {/* Membership Card - Redesigned */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardTitleContainer}>
+        <ThemedView style={styles.card}>
+          <ThemedView style={styles.cardHeader}>
+            <ThemedView style={styles.cardTitleContainer}>
               <IconSymbol
                 name='star.fill'
                 size={20}
                 color='#4CAF50'
                 style={styles.cardIcon}
               />
-              <ThemedText variant='subtitle' style={styles.cardTitle}>
+              <ThemedText type='subtitle' style={styles.cardTitle}>
                 Membership
               </ThemedText>
-            </View>
-          </View>
+            </ThemedView>
+          </ThemedView>
           <MembershipManagementSection
             key={currentPlan?.id || "no-plan"}
             currentPlan={currentPlan}
             onUpdatePlan={handleUpdateMembership}
           />
-        </View>
+        </ThemedView>
 
         {/* Profile Information Card - Redesigned */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardTitleContainer}>
+        <ThemedView style={styles.card}>
+          <ThemedView style={styles.cardHeader}>
+            <ThemedView style={styles.cardTitleContainer}>
               <IconSymbol
                 name='person.fill'
                 size={20}
                 color='#4CAF50'
                 style={styles.cardIcon}
               />
-              <ThemedText variant='subtitle' style={styles.cardTitle}>
+              <ThemedText type='subtitle' style={styles.cardTitle}>
                 Profile Information
               </ThemedText>
-            </View>
+            </ThemedView>
             <Button
               variant='outline'
               size='small'
@@ -365,51 +373,51 @@ export default function ProfileScreen() {
             >
               Edit
             </Button>
-          </View>
-          <View style={styles.profileInfo}>
-            <View style={styles.infoItem}>
+          </ThemedView>
+          <ThemedView style={styles.profileInfo}>
+            <ThemedView style={styles.infoItem}>
               <IconSymbol
                 name='person.fill'
                 size={18}
                 color='#666666'
                 style={styles.infoIcon}
               />
-              <View style={styles.infoContent}>
-                <ThemedText variant='caption' style={styles.infoLabel}>
+              <ThemedView style={styles.infoContent}>
+                <ThemedText type='caption' style={styles.infoLabel}>
                   Phone
                 </ThemedText>
                 <ThemedText style={styles.infoValue}>
-                  {user?.phoneNumber || "Not set"}
+                  {user?.phone_number || "Not set"}
                 </ThemedText>
-              </View>
-            </View>
+              </ThemedView>
+            </ThemedView>
 
-            <View style={styles.infoItem}>
+            <ThemedView style={styles.infoItem}>
               <IconSymbol
                 name='calendar'
                 size={18}
                 color='#666666'
                 style={styles.infoIcon}
               />
-              <View style={styles.infoContent}>
-                <ThemedText variant='caption' style={styles.infoLabel}>
+              <ThemedView style={styles.infoContent}>
+                <ThemedText type='caption' style={styles.infoLabel}>
                   Date of Birth
                 </ThemedText>
                 <ThemedText style={styles.infoValue}>
-                  {user?.dateOfBirth || "Not set"}
+                  {user?.date_of_birth || "Not set"}
                 </ThemedText>
-              </View>
-            </View>
+              </ThemedView>
+            </ThemedView>
 
-            <View style={styles.infoItem}>
+            <ThemedView style={styles.infoItem}>
               <IconSymbol
                 name='location.fill'
                 size={18}
                 color='#666666'
                 style={styles.infoIcon}
               />
-              <View style={styles.infoContent}>
-                <ThemedText variant='caption' style={styles.infoLabel}>
+              <ThemedView style={styles.infoContent}>
+                <ThemedText type='caption' style={styles.infoLabel}>
                   Address
                 </ThemedText>
                 <ThemedText style={styles.infoValue}>
@@ -419,13 +427,13 @@ export default function ProfileScreen() {
                       }`
                     : "Not set"}
                 </ThemedText>
-              </View>
-            </View>
-          </View>
-        </View>
+              </ThemedView>
+            </ThemedView>
+          </ThemedView>
+        </ThemedView>
 
         {/* Sign Out Button */}
-        <View style={styles.signOutContainer}>
+        <ThemedView style={styles.signOutContainer}>
           <Button
             variant='outline'
             onPress={async () => {
@@ -442,7 +450,7 @@ export default function ProfileScreen() {
           >
             Sign Out
           </Button>
-        </View>
+        </ThemedView>
 
         <ThemedView style={styles.toggleContainer}>
           <ThemeToggleButton />
@@ -457,28 +465,27 @@ export default function ProfileScreen() {
         onRequestClose={() => setIsProfileFormVisible(false)}
       >
         <SafeAreaView style={styles.profileFormOverlay}>
-          <View style={styles.profileFormContainer}>
-            <View style={styles.modalHeader}>
+          <ThemedView style={styles.profileFormContainer}>
+            <ThemedView style={styles.modalHeader}>
               <TouchableOpacity
                 onPress={() => setIsProfileFormVisible(false)}
                 style={styles.modalCloseButton}
               >
                 <IconSymbol name='xmark' size={24} color='#666666' />
               </TouchableOpacity>
-              <ThemedText variant='title' style={styles.modalTitle}>
+              <ThemedText type='title' style={styles.modalTitle}>
                 Update Profile
               </ThemedText>
-            </View>
+            </ThemedView>
             <ScrollView style={styles.profileFormScroll}>
               <FirstTimeProfileForm
                 onComplete={() => {
                   setIsProfileFormVisible(false);
-                  // Force a refresh of the profile data
                   setRefreshKey((prev) => prev + 1);
                 }}
               />
             </ScrollView>
-          </View>
+          </ThemedView>
         </SafeAreaView>
       </Modal>
 
@@ -489,10 +496,10 @@ export default function ProfileScreen() {
         transparent={true}
         onRequestClose={() => setIsSkillModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <ThemedText variant='title' style={styles.modalTitle}>
+        <ThemedView style={styles.modalOverlay}>
+          <ThemedView style={styles.modalContent}>
+            <ThemedView style={styles.modalHeader}>
+              <ThemedText type='title' style={styles.modalTitle}>
                 Update Skill Level
               </ThemedText>
               <TouchableOpacity
@@ -501,37 +508,34 @@ export default function ProfileScreen() {
               >
                 <IconSymbol name='xmark' size={24} color='#666666' />
               </TouchableOpacity>
-            </View>
+            </ThemedView>
             <ScrollView style={styles.modalScroll}>
               {SKILL_LEVELS.map((level) => (
                 <TouchableOpacity
                   key={level.value}
                   style={[
                     styles.skillOption,
-                    user.skillLevel === level.value && styles.selectedSkill,
+                    user.skill_level === level.value && styles.selectedSkill,
                   ]}
                   onPress={() => handleSkillUpdate(level.value)}
                   disabled={isLoading}
                 >
-                  <View style={styles.skillOptionContent}>
+                  <ThemedView style={styles.skillOptionContent}>
                     <ThemedText style={styles.skillOptionText}>
                       {level.label}
                     </ThemedText>
-                    <ThemedText
-                      variant='caption'
-                      style={styles.skillDescription}
-                    >
+                    <ThemedText type='caption' style={styles.skillDescription}>
                       {level.description}
                     </ThemedText>
-                  </View>
-                  {user.skillLevel === level.value && (
+                  </ThemedView>
+                  {user.skill_level === level.value ? (
                     <IconSymbol name='checkmark' size={20} color='#4CAF50' />
-                  )}
+                  ) : null}
                 </TouchableOpacity>
               ))}
             </ScrollView>
-          </View>
-        </View>
+          </ThemedView>
+        </ThemedView>
       </Modal>
     </SafeAreaView>
   );
