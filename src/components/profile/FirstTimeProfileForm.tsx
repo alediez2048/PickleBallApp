@@ -8,8 +8,8 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
-import { Button } from "@components/common/ui/Button";
-import { TextInput } from "@components/common/ui/TextInput";
+import { Button } from "@/components/common/Button";
+import { TextInput } from "@/components/common/TextInput";
 import { ThemedText } from "@/components/common/ThemedText";
 import { useAuth } from "@/contexts/AuthContext";
 import { SkillLevel } from "@/types/games";

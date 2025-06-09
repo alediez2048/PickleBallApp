@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { View, SafeAreaView, StyleSheet } from "react-native";
 import { router } from "expo-router";
-import { Button } from "@/components/common/ui/Button";
-import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
+import { Button } from "@/components/common/Button";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
 import { VerifyEmailIcon } from "@/components/common/icons/VerifyEmailIcon";
 import { ThemedText } from "@/components/common/ThemedText";

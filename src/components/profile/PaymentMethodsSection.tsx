@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Button } from '@/components/common/ui/Button';
-import { PaymentMethodModal } from '@/components/payment/PaymentMethodModal';
+import React, { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { IconSymbol } from "@/components/common/IconSymbol";
+import { Button } from "@/components/common/Button";
+import { PaymentMethodModal } from "@/components/payment/PaymentMethodModal";
 
 interface PaymentMethod {
   id: string;
@@ -23,7 +23,8 @@ export function PaymentMethodsSection({
   onUpdatePaymentMethods,
 }: PaymentMethodsSectionProps) {
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<PaymentMethod | null>(null);
 
   const handleAddPayment = () => {
     setShowAddPaymentModal(true);
@@ -35,17 +36,17 @@ export function PaymentMethodsSection({
     // For now, we'll simulate adding a new payment method
     const newPaymentMethod: PaymentMethod = {
       id: `pm_${Date.now()}`,
-      last4: '4242',
-      brand: 'Visa',
-      expiryMonth: '12',
-      expiryYear: '25',
+      last4: "4242",
+      brand: "Visa",
+      expiryMonth: "12",
+      expiryYear: "25",
       isDefault: paymentMethods.length === 0,
     };
     onUpdatePaymentMethods([...paymentMethods, newPaymentMethod]);
   };
 
   const handleSetDefault = (methodId: string) => {
-    const updatedMethods = paymentMethods.map(method => ({
+    const updatedMethods = paymentMethods.map((method) => ({
       ...method,
       isDefault: method.id === methodId,
     }));
@@ -53,7 +54,9 @@ export function PaymentMethodsSection({
   };
 
   const handleRemove = (methodId: string) => {
-    const updatedMethods = paymentMethods.filter(method => method.id !== methodId);
+    const updatedMethods = paymentMethods.filter(
+      (method) => method.id !== methodId
+    );
     onUpdatePaymentMethods(updatedMethods);
   };
 
@@ -64,7 +67,7 @@ export function PaymentMethodsSection({
         <Button
           onPress={handleAddPayment}
           style={styles.addButton}
-          variant="secondary"
+          variant='secondary'
         >
           Add New
         </Button>
@@ -72,7 +75,7 @@ export function PaymentMethodsSection({
 
       {paymentMethods.length === 0 ? (
         <View style={styles.emptyState}>
-          <IconSymbol name="creditcard.fill" size={24} color="#666666" />
+          <IconSymbol name='creditcard.fill' size={24} color='#666666' />
           <Text style={styles.emptyText}>No payment methods added</Text>
           <Text style={styles.emptySubtext}>
             Add a payment method to easily book games
@@ -85,9 +88,9 @@ export function PaymentMethodsSection({
               <View style={styles.cardInfo}>
                 <View style={styles.cardBrand}>
                   <IconSymbol
-                    name="creditcard.fill"
+                    name='creditcard.fill'
                     size={24}
-                    color="#000000"
+                    color='#000000'
                   />
                   <Text style={styles.cardBrandText}>{method.brand}</Text>
                 </View>
@@ -114,7 +117,7 @@ export function PaymentMethodsSection({
                   onPress={() => handleRemove(method.id)}
                   style={[styles.actionButton, styles.removeButton]}
                 >
-                  <IconSymbol name="xmark" size={20} color="#F44336" />
+                  <IconSymbol name='xmark' size={20} color='#F44336' />
                 </TouchableOpacity>
               </View>
             </View>
@@ -127,11 +130,11 @@ export function PaymentMethodsSection({
         onClose={() => setShowAddPaymentModal(false)}
         onComplete={handlePaymentComplete}
         selectedPlan={{
-          id: 'update',
-          name: 'Update Payment Method',
+          id: "update",
+          name: "Update Payment Method",
           price: 0,
           benefits: [],
-          description: 'Add a new payment method'
+          description: "Add a new payment method",
         }}
       />
     </View>
@@ -143,41 +146,41 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
+    fontWeight: "600",
+    color: "#000000",
   },
   addButton: {
     paddingHorizontal: 16,
   },
   emptyState: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 24,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
     borderRadius: 12,
   },
   emptyText: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
+    fontWeight: "500",
+    color: "#000000",
     marginTop: 12,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#666666',
+    color: "#666666",
     marginTop: 4,
   },
   cardList: {
     gap: 12,
   },
   card: {
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
     borderRadius: 12,
     padding: 16,
   },
@@ -185,51 +188,51 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   cardBrand: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
   },
   cardBrandText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     marginLeft: 8,
-    color: '#000000',
+    color: "#000000",
   },
   cardNumber: {
     fontSize: 16,
-    color: '#000000',
+    color: "#000000",
     marginBottom: 4,
   },
   cardExpiry: {
     fontSize: 14,
-    color: '#666666',
+    color: "#666666",
   },
   cardActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
     gap: 12,
   },
   actionButton: {
     padding: 8,
   },
   actionButtonText: {
-    color: '#4CAF50',
+    color: "#4CAF50",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   removeButton: {
     marginLeft: 8,
   },
   defaultBadge: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: "#E8F5E9",
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
   },
   defaultText: {
-    color: '#4CAF50',
+    color: "#4CAF50",
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
-}); 
+});

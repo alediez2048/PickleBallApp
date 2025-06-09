@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Platform,
 } from "react-native";
-import { IconSymbol } from "@/components/ui/IconSymbol";
+import { IconSymbol } from "@/components/common/IconSymbol";
 import type { User, SkillLevel } from "@/types/games";
 import { useGameRegistration } from "@/hooks/useGameRegistration";
 import { useBookedGames } from "@/contexts/BookedGamesContext";

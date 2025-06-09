@@ -4,6 +4,7 @@ import {
   StyleSheet,
   type StyleProp,
   type TextStyle,
+  Platform,
 } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -110,96 +111,108 @@ export function ThemedText({
   const styleMatch = getTypeStyle();
   const colorMatch = getColorStyle();
   const alignStyle = align ? { textAlign: align } : undefined;
+  const allText = styles.all;
 
-  return <Text style={[colorMatch, styleMatch, alignStyle, style]} {...rest} />;
+  return (
+    <Text
+      style={[allText, colorMatch, styleMatch, alignStyle, style]}
+      {...rest}
+    />
+  );
 }
 
+const fontSizeOffset = Platform.OS === "ios" ? -2 : 0;
+
 const styles = StyleSheet.create({
+  all: {
+    fontSize: 16 + fontSizeOffset,
+    lineHeight: 16 + fontSizeOffset,
+  },
   default: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 16 + fontSizeOffset,
+    lineHeight: 24 + fontSizeOffset,
   },
   defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 16 + fontSizeOffset,
+    lineHeight: 24 + fontSizeOffset,
     fontWeight: "600",
   },
   title: {
-    fontSize: 32,
+    fontSize: 32 + fontSizeOffset,
     fontWeight: "bold",
-    lineHeight: 36,
+    lineHeight: 32 + fontSizeOffset,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 18 + fontSizeOffset,
     fontWeight: "bold",
-    lineHeight: 24,
+    lineHeight: 24 + fontSizeOffset,
   },
   miniSubtitle: {
-    fontSize: 14,
+    fontSize: 14 + fontSizeOffset,
     fontWeight: "bold",
   },
   paragraph: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 15 + fontSizeOffset,
+    lineHeight: 22 + fontSizeOffset,
   },
   caption: {
-    fontSize: 12,
+    fontSize: 12 + fontSizeOffset,
     color: "#999",
   },
   link: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 16 + fontSizeOffset,
+    lineHeight: 24 + fontSizeOffset,
     textDecorationLine: "underline",
     color: "#007AFF", // fallback, can be overridden by colorType
   },
   bold: {
-    fontSize: 16,
+    fontSize: 16 + fontSizeOffset,
     fontWeight: "bold",
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: 24 + fontSizeOffset,
     fontWeight: "700",
     marginBottom: 4,
   },
   badge: {
-    fontSize: 13,
+    fontSize: 13 + fontSizeOffset,
     fontWeight: "600",
   },
   emptyStateTitle: {
-    fontSize: 18,
+    fontSize: 18 + fontSizeOffset,
     fontWeight: "600",
     marginBottom: 8,
   },
   emptyStateText: {
-    fontSize: 14,
+    fontSize: 14 + fontSizeOffset,
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: 20 + fontSizeOffset,
   },
   button: {
-    fontSize: 16,
+    fontSize: 16 + fontSizeOffset,
     fontWeight: "600",
   },
   buttonDisabled: {
-    fontSize: 16,
+    fontSize: 16 + fontSizeOffset,
     fontWeight: "600",
   },
   buttonCancel: {
-    fontSize: 16,
+    fontSize: 16 + fontSizeOffset,
     fontWeight: "600",
   },
   buttonWaitlist: {
-    fontSize: 16,
+    fontSize: 16 + fontSizeOffset,
     fontWeight: "600",
   },
   center: {
     textAlign: "center",
   },
   label: {
-    fontSize: 14,
+    fontSize: 14 + fontSizeOffset,
     fontWeight: "500",
   },
   value: {
-    fontSize: 18,
+    fontSize: 18 + fontSizeOffset,
     fontWeight: "700",
   },
 });

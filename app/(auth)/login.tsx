@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import { View, TouchableOpacity, SafeAreaView, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { Link, router } from "expo-router";
-import { Button } from "@/components/common/ui/Button";
+import { Button } from "@/components/common/Button";
 import { AntDesign } from "@expo/vector-icons";
 import { GoogleIcon } from "@/components/common/icons/GoogleIcon";
 import { useAuth } from "@/contexts/AuthContext";
-import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ThemedText } from "@/components/common/ThemedText";
+import { ThemedView } from "@/components/common/ThemedView";
 import ThemeToggleButton from "@/components/common/ThemeToggleButton";
 
 export default function LoginScreen() {
@@ -34,12 +35,12 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.innerContainer}>
-        <View style={styles.content}>
+    <ThemedView type='default' style={styles.container}>
+      <ThemedView style={styles.innerContainer}>
+        <ThemedView style={styles.content}>
           {/* Logo */}
           <View style={styles.logoContainer}>
-            <ThemedText style={styles.logo}>PicklePass</ThemedText>
+            <ThemedText type='title'>PicklePass</ThemedText>
           </View>
 
           {/* Title */}
@@ -123,38 +124,37 @@ export default function LoginScreen() {
               </ThemedText>
             </ThemedText>
           </View>
-        </View>
-        <View>
           <ThemeToggleButton />
-        </View>
-      </View>
-    </SafeAreaView>
+        </ThemedView>
+      </ThemedView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 0,
+    margin: 0,
   },
   innerContainer: {
     flex: 1,
+    backgroundColor: "transparent",
   },
   content: {
     flex: 1,
     justifyContent: "center",
     alignItems: "stretch",
-    paddingHorizontal: 24,
+    padding: 0,
+    paddingHorizontal: 10,
+    margin: 0,
     maxWidth: 400,
     alignSelf: "center",
     width: "100%",
   },
   logoContainer: {
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  logo: {
-    fontSize: 32,
-    fontWeight: "bold",
+    alignSelf: "center",
+    marginBottom: 2,
   },
   title: {
     textAlign: "center",

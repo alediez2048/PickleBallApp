@@ -24,6 +24,7 @@ export type ThemedViewProps = ViewProps & {
     | "gameFooter"
     | "badgeContainer"
     | "modalContentCustom"
+    | "none"
     | "emptyStateContainer";
   colorType?:
     | "default"
@@ -34,6 +35,7 @@ export type ThemedViewProps = ViewProps & {
     | "tabIconDefault"
     | "tabIconSelected"
     | "white"
+    | "none"
     | "black";
   borderColorType?:
     | "default"
@@ -200,8 +202,12 @@ export function ThemedView({
         return { backgroundColor: colors.white };
       case "black":
         return { backgroundColor: colors.black };
-      default:
+      case "default":
         return { backgroundColor: colors.background };
+      case "none":
+        return {};
+      default:
+        return {};
     }
   };
 

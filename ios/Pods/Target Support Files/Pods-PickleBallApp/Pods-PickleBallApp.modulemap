@@ -1,6 +1,0 @@
-module Pods_PickleBallApp {
-  umbrella header "Pods-PickleBallApp-umbrella.h"
-
-  export *
-  module * { export * }
-}

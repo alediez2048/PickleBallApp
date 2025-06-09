@@ -1,44 +1,44 @@
-import '@testing-library/jest-native/extend-expect';
-import { setupTestingLibrary } from './src/utils/testing/renderWithoutUnmounting';
+import "@testing-library/jest-native/extend-expect";
+import { setupTestingLibrary } from "./src/utils/testing/renderWithoutUnmounting";
 
 // Initialize our custom testing library
 setupTestingLibrary();
 
 // Mock Expo modules
-jest.mock('expo-font');
-jest.mock('expo-asset');
-jest.mock('expo-image', () => 'Image');
-jest.mock('expo-constants', () => ({
+jest.mock("expo-font");
+jest.mock("expo-asset");
+jest.mock("expo-image", () => "Image");
+jest.mock("expo-constants", () => ({
   expoConfig: {
     extra: {
-      apiUrl: 'https://api.test.com',
+      apiUrl: "https://api.test.com",
     },
   },
 }));
-jest.mock('expo-secure-store', () => ({
+jest.mock("expo-secure-store", () => ({
   getItemAsync: jest.fn(),
   setItemAsync: jest.fn(),
   deleteItemAsync: jest.fn(),
 }));
 
 // Mock expo-symbols
-jest.mock('expo-symbols', () => ({
-  SymbolView: 'SymbolView',
+jest.mock("expo-symbols", () => ({
+  SymbolView: "SymbolView",
   SymbolWeight: {
-    REGULAR: 'REGULAR',
-    BOLD: 'BOLD',
-    SEMIBOLD: 'SEMIBOLD',
+    REGULAR: "REGULAR",
+    BOLD: "BOLD",
+    SEMIBOLD: "SEMIBOLD",
   },
 }));
 
 // Mock web-browser and auth-session
-jest.mock('expo-web-browser', () => ({
+jest.mock("expo-web-browser", () => ({
   openAuthSessionAsync: jest.fn(),
   dismissAuthSession: jest.fn(),
   maybeCompleteAuthSession: jest.fn(),
 }));
 
-jest.mock('expo-auth-session', () => ({
+jest.mock("expo-auth-session", () => ({
   exchangeCodeAsync: jest.fn(),
   makeRedirectUri: jest.fn(),
   useAuthRequest: jest.fn(),
@@ -86,12 +86,12 @@ jest.mock('react-native-css-interop/src/runtime/jsx-runtime', () => ({}));
 */
 
 // Mock AsyncStorage
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
+jest.mock("@react-native-async-storage/async-storage", () =>
+  require("@react-native-async-storage/async-storage/jest/async-storage-mock")
 );
 
 // Mock expo-router with more complete implementation
-jest.mock('expo-router', () => ({
+jest.mock("expo-router", () => ({
   router: {
     push: jest.fn(),
     replace: jest.fn(),
@@ -102,162 +102,181 @@ jest.mock('expo-router', () => ({
     replace: jest.fn(),
     back: jest.fn(),
   }),
-  useLocalSearchParams: () => ({ id: 'test-id' }),
-  Link: 'Link',
-  Slot: 'Slot',
-  Stack: 'Stack',
-  Tabs: 'Tabs',
+  useLocalSearchParams: () => ({ id: "test-id" }),
+  Link: "Link",
+  Slot: "Slot",
+  Stack: "Stack",
+  Tabs: "Tabs",
 }));
 
 // Simple React Native component mocks
-jest.mock('react-native/Libraries/Components/Touchable/TouchableOpacity', () => 'TouchableOpacity');
-jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => 'TextInput');
+jest.mock(
+  "react-native/Libraries/Components/Touchable/TouchableOpacity",
+  () => "TouchableOpacity"
+);
+jest.mock(
+  "react-native/Libraries/Components/TextInput/TextInput",
+  () => "TextInput"
+);
 
 // Mock useColorScheme hook
-jest.mock('@/hooks/useColorScheme', () => ({
-  useColorScheme: () => 'light',
-  default: () => 'light',
+jest.mock("@/hooks/useColorScheme", () => ({
+  useColorScheme: () => "light",
+  default: () => "light",
 }));
 
 // Mock component files directly with more complete implementations
-jest.mock('@/components/ThemedText', () => ({
+jest.mock("@/components/ThemedText", () => ({
   ThemedText: ({ children, style, variant, ...props }) => {
     return {
-      type: 'ThemedText',
+      type: "ThemedText",
       props: { children, style, variant, ...props },
-      $$typeof: Symbol.for('react.element'),
+      $$typeof: Symbol.for("react.element"),
     };
-  }
+  },
 }));
 
-jest.mock('@/components/ThemedView', () => ({
+jest.mock("@/components/ThemedView", () => ({
   ThemedView: ({ children, style, ...props }) => {
     return {
-      type: 'ThemedView',
+      type: "ThemedView",
       props: { children, style, ...props },
-      $$typeof: Symbol.for('react.element'),
+      $$typeof: Symbol.for("react.element"),
     };
-  }
+  },
 }));
 
-jest.mock('@/components/ui/IconSymbol', () => ({
+jest.mock("@/components/ui/IconSymbol", () => ({
   IconSymbol: ({ name, size, color, ...props }) => {
     return {
-      type: 'IconSymbol',
+      type: "IconSymbol",
       props: { name, size, color, ...props },
-      $$typeof: Symbol.for('react.element'),
+      $$typeof: Symbol.for("react.element"),
     };
-  }
+  },
 }));
 
 // Mock common UI components
-jest.mock('@/components/common/ui/Button', () => ({
+jest.mock("@/components/common/ui/Button", () => ({
   Button: ({ children, variant, size, onPress, ...props }) => {
     return {
-      type: 'Button',
+      type: "Button",
       props: { children, variant, size, onPress, ...props },
-      $$typeof: Symbol.for('react.element'),
+      $$typeof: Symbol.for("react.element"),
     };
-  }
+  },
 }));
 
-jest.mock('@/components/common/ui/TextInput', () => ({
+jest.mock("@/components/common/ui/TextInput", () => ({
   TextInput: ({ value, onChangeText, placeholder, ...props }) => {
     return {
-      type: 'TextInput',
+      type: "TextInput",
       props: { value, onChangeText, placeholder, ...props },
-      $$typeof: Symbol.for('react.element'),
+      $$typeof: Symbol.for("react.element"),
     };
-  }
+  },
 }));
 
-jest.mock('@/components/common/ui/LoadingSpinner', () => ({
+jest.mock("@/components/common/ui/LoadingSpinner", () => ({
   LoadingSpinner: ({ message, ...props }) => {
     return {
-      type: 'LoadingSpinner',
+      type: "LoadingSpinner",
       props: { message, ...props },
-      $$typeof: Symbol.for('react.element'),
+      $$typeof: Symbol.for("react.element"),
     };
-  }
+  },
 }));
 
-// Mock hooks 
-jest.mock('@/hooks/useColorScheme', () => ({
-  useColorScheme: jest.fn(() => 'light'),
-  default: jest.fn(() => 'light'),
+// Mock hooks
+jest.mock("@/hooks/useColorScheme", () => ({
+  useColorScheme: jest.fn(() => "light"),
+  default: jest.fn(() => "light"),
 }));
 
 // Mock context consumers
-jest.mock('@/contexts/selectors/uiSelectors', () => ({
-  useUIState: jest.fn(() => ({ colorScheme: 'light', theme: 'default' })),
+jest.mock("@/contexts/selectors/uiSelectors", () => ({
+  useUIState: jest.fn(() => ({ colorScheme: "light", theme: "default" })),
   useToastState: jest.fn(() => ({ toasts: [] })),
-  useThemedColor: jest.fn(() => ({ primary: '#000000', background: '#FFFFFF' })),
+  useThemedColor: jest.fn(() => ({
+    primary: "#000000",
+    background: "#FFFFFF",
+  })),
 }));
 
-jest.mock('@/contexts/selectors/authSelectors', () => ({
+jest.mock("@/contexts/selectors/authSelectors", () => ({
   useAuthState: jest.fn(() => ({ user: null, isAuthenticated: false })),
   useSocialAuthState: jest.fn(() => ({ socialAuthInProgress: false })),
 }));
 
-jest.mock('@/contexts/selectors/gameSelectors', () => ({
+jest.mock("@/contexts/selectors/gameSelectors", () => ({
   useGamesState: jest.fn(() => ({ games: [], isLoading: false })),
-  usePaginatedGames: jest.fn(() => ({ games: [], loadMore: jest.fn(), isLoading: false })),
+  usePaginatedGames: jest.fn(() => ({
+    games: [],
+    loadMore: jest.fn(),
+    isLoading: false,
+  })),
 }));
 
 // Mock safe-area-context
-jest.mock('react-native-safe-area-context', () => ({
+jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: ({ children }) => children,
   useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
 }));
 
 // Mock image picker
-jest.mock('expo-image-picker', () => ({
-  requestMediaLibraryPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
-  launchImageLibraryAsync: jest.fn(() => Promise.resolve({
-    canceled: false,
-    assets: [{
-      uri: 'test-uri',
-      base64: 'test-base64'
-    }]
-  })),
-  MediaTypeOptions: { Images: 'images' }
+jest.mock("expo-image-picker", () => ({
+  requestMediaLibraryPermissionsAsync: jest.fn(() =>
+    Promise.resolve({ status: "granted" })
+  ),
+  launchImageLibraryAsync: jest.fn(() =>
+    Promise.resolve({
+      canceled: false,
+      assets: [
+        {
+          uri: "test-uri",
+          base64: "test-base64",
+        },
+      ],
+    })
+  ),
+  MediaTypeOptions: { Images: "images" },
 }));
 
 // Enhanced mockApi with more complete implementation
-jest.mock('@/services/mockApi', () => ({
+jest.mock("@/services/mockApi", () => ({
   mockApi: {
     login: jest.fn().mockResolvedValue({
-      token: 'test-token',
+      token: "test-token",
       user: {
-        id: '1',
-        email: 'test@example.com',
-        name: 'Test User',
-        hasCompletedProfile: true
-      }
+        id: "1",
+        email: "test@example.com",
+        name: "Test User",
+        hasCompletedProfile: true,
+      },
     }),
     register: jest.fn().mockResolvedValue({
-      token: 'test-token',
+      token: "test-token",
       user: {
-        id: '1',
-        email: 'test@example.com',
-        name: 'Test User',
-        hasCompletedProfile: false
-      }
+        id: "1",
+        email: "test@example.com",
+        name: "Test User",
+        hasCompletedProfile: false,
+      },
     }),
     updateProfile: jest.fn().mockResolvedValue({
       user: {
-        id: '1',
-        email: 'test@example.com',
-        name: 'Test User',
-        hasCompletedProfile: true
-      }
+        id: "1",
+        email: "test@example.com",
+        name: "Test User",
+        hasCompletedProfile: true,
+      },
     }),
     getGameBookings: jest.fn().mockResolvedValue(5),
     updatePaymentMethod: jest.fn().mockResolvedValue(true),
     bookGame: jest.fn().mockResolvedValue({
-      id: 'booking-1',
-      gameId: 'game-1',
-      status: 'upcoming'
+      id: "booking-1",
+      gameId: "game-1",
+      status: "upcoming",
     }),
   },
 }));
@@ -288,25 +307,24 @@ global.console = {
   error: jest.fn(),
 };
 
-// More specific mocks for HOCs
-jest.mock('@/components/hoc/withMemo', () => ({
-  withMemo: (Component) => Component,
-}));
-
 // Add more specific hook mocks
-jest.mock('@/hooks/useColorScheme', () => ({
-  useColorScheme: jest.fn().mockReturnValue('light'),
-  default: jest.fn().mockReturnValue('light'),
+jest.mock("@/hooks/useColorScheme", () => ({
+  useColorScheme: jest.fn().mockReturnValue("light"),
+  default: jest.fn().mockReturnValue("light"),
 }));
 
 // Mock @hooks/useColorScheme for path alias resolution
-jest.mock('@hooks/useColorScheme', () => ({
-  useColorScheme: jest.fn().mockReturnValue('light'),
-  default: jest.fn().mockReturnValue('light'),
-}), { virtual: true });
+jest.mock(
+  "@hooks/useColorScheme",
+  () => ({
+    useColorScheme: jest.fn().mockReturnValue("light"),
+    default: jest.fn().mockReturnValue("light"),
+  }),
+  { virtual: true }
+);
 
-// Mock appearance hooks more extensively 
-jest.mock('react-native', () => {
+// Mock appearance hooks more extensively
+jest.mock("react-native", () => {
   // Use a simple mock instead of referencing a non-existent module
   return {
     StyleSheet: {
@@ -322,7 +340,7 @@ jest.mock('react-native', () => {
       removeEventListener: jest.fn(),
     },
     Platform: {
-      OS: 'ios',
+      OS: "ios",
       select: jest.fn((obj) => obj.ios),
       Version: 14,
       isPad: false,
@@ -339,31 +357,35 @@ jest.mock('react-native', () => {
         stopAnimation: jest.fn(),
         __getValue: jest.fn(() => 0),
       })),
-      timing: jest.fn(() => ({ start: jest.fn((callback) => callback && callback({ finished: true })) })),
-      spring: jest.fn(() => ({ start: jest.fn((callback) => callback && callback({ finished: true })) })),
+      timing: jest.fn(() => ({
+        start: jest.fn((callback) => callback && callback({ finished: true })),
+      })),
+      spring: jest.fn(() => ({
+        start: jest.fn((callback) => callback && callback({ finished: true })),
+      })),
       decay: jest.fn(() => ({ start: jest.fn() })),
-      View: 'Animated.View',
-      Text: 'Animated.Text',
-      Image: 'Animated.Image',
-      ScrollView: 'Animated.ScrollView',
+      View: "Animated.View",
+      Text: "Animated.Text",
+      Image: "Animated.Image",
+      ScrollView: "Animated.ScrollView",
       createAnimatedComponent: jest.fn((component) => `Animated.${component}`),
       event: jest.fn(() => jest.fn()),
     },
-    useColorScheme: jest.fn().mockReturnValue('light'),
+    useColorScheme: jest.fn().mockReturnValue("light"),
     Appearance: {
-      getColorScheme: jest.fn().mockReturnValue('light'),
+      getColorScheme: jest.fn().mockReturnValue("light"),
       addChangeListener: jest.fn(() => ({ remove: jest.fn() })),
     },
-    View: 'View',
-    Text: 'Text',
-    Image: 'Image',
-    ScrollView: 'ScrollView',
-    FlatList: 'FlatList',
-    SectionList: 'SectionList',
-    ActivityIndicator: 'ActivityIndicator',
-    TouchableOpacity: 'TouchableOpacity',
-    TouchableHighlight: 'TouchableHighlight',
-    Modal: 'Modal',
+    View: "View",
+    Text: "Text",
+    Image: "Image",
+    ScrollView: "ScrollView",
+    FlatList: "FlatList",
+    SectionList: "SectionList",
+    ActivityIndicator: "ActivityIndicator",
+    TouchableOpacity: "TouchableOpacity",
+    TouchableHighlight: "TouchableHighlight",
+    Modal: "Modal",
     Alert: {
       alert: jest.fn(),
     },
@@ -371,10 +393,10 @@ jest.mock('react-native', () => {
       openURL: jest.fn(),
       canOpenURL: jest.fn(() => Promise.resolve(true)),
     },
-    KeyboardAvoidingView: 'KeyboardAvoidingView',
-    SafeAreaView: 'SafeAreaView',
-    Pressable: 'Pressable',
+    KeyboardAvoidingView: "KeyboardAvoidingView",
+    SafeAreaView: "SafeAreaView",
+    Pressable: "Pressable",
     ColorSchemeName: {},
-    TextInput: 'TextInput',
+    TextInput: "TextInput",
   };
-}); 
+});

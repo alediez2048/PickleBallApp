@@ -8,14 +8,14 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import { Button } from "@components/common/ui/Button";
+import { Button } from "@/components/common/Button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
 import {
   useUpcomingBookedGames,
   useBookedGames,
 } from "@/contexts/BookedGamesContext";
-import { IconSymbol } from "@/components/ui/IconSymbol";
+import { IconSymbol } from "@/components/common/IconSymbol";
 
 export default function TabHomeScreen() {
   const { user } = useAuth();

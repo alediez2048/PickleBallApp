@@ -9,12 +9,13 @@ import {
   Platform,
 } from "react-native";
 import { router } from "expo-router";
-import { Button } from "@/components/common/ui/Button";
-import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
+import { Button } from "@/components/common/Button";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { validateEmail } from "@/utils/validation";
 import { mockApi } from "@/services/mockApi";
 import { ThemedText } from "@/components/common/ThemedText";
 import Logo from "@/components/common/Logo";
+import { ThemedView } from "@/components/common/ThemedView";
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
@@ -54,7 +55,7 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ThemedView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
@@ -132,14 +133,13 @@ export default function ForgotPasswordScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   keyboardView: {
     flex: 1,

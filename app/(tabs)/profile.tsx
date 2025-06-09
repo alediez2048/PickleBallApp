@@ -11,9 +11,9 @@ import {
   ScrollView,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { IconSymbol } from "@/components/ui/IconSymbol";
+import { IconSymbol } from "@/components/common/IconSymbol";
 import { useUpcomingGames } from "@/contexts/selectors/gameSelectors";
-import { Button } from "@/components/common/ui/Button";
+import { Button } from "@/components/common/Button";
 import { SkillLevel } from "@/types/games";
 import { useAuth } from "@/contexts/AuthContext";
 import { FirstTimeProfileForm } from "@/components/profile/FirstTimeProfileForm";

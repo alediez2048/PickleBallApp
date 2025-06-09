@@ -2,7 +2,7 @@ import React from "react";
 import { TouchableOpacity, StyleSheet } from "react-native";
 import { ThemedView } from "@components/common/ThemedView";
 import { ThemedText } from "@components/common/ThemedText";
-import { IconSymbol } from "@components/ui/IconSymbol";
+import { IconSymbol } from "@/components/common/IconSymbol";
 import { useTheme } from "@contexts/ThemeContext";
 
 interface ExploreFilterProps {

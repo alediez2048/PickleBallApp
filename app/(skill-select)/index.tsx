@@ -9,7 +9,7 @@ import {
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { IconSymbol } from "@/components/ui/IconSymbol";
+import { IconSymbol } from "@/components/common/IconSymbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { SkillLevel } from "@/types/games";
 import { SKILL_LEVELS } from "@/constants/skillLevels";

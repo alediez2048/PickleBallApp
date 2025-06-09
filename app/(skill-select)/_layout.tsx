@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { StyleSheet } from "react-native";
-import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ThemedView } from "@/components/common/ThemedView";

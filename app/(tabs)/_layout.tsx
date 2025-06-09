@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
-import { IconSymbol } from "@/components/ui/IconSymbol";
+import { IconSymbol } from "@/components/common/IconSymbol";
 import { StyleProp, TextStyle } from "react-native";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
@@ -107,7 +107,13 @@ export default function TabLayout() {
 
   // ThemedView is used as the main container for consistent theming
   return (
-    <ThemedView style={{ flex: 1 }}>
+    <ThemedView
+      style={{
+        flex: 1,
+        margin: 0,
+        padding: 0,
+      }}
+    >
       {/* Example ThemedText header, can be customized or removed */}
       {/* <ThemedText type="title">Main Navigation</ThemedText> */}
       <Tabs
@@ -117,12 +123,14 @@ export default function TabLayout() {
           tabBarActiveTintColor: "#4CAF50",
           tabBarInactiveTintColor: "#666666",
           tabBarStyle: {
-            position: "absolute",
+            position: "relative",
             bottom: 0,
             left: 0,
             right: 0,
             borderTopWidth: 0,
             elevation: 0,
+            borderColor: "red",
+            borderWidth: 2,
             height: 65,
             // ThemedView handles background color
           },
@@ -141,7 +149,9 @@ export default function TabLayout() {
                   name={tab.icon}
                   size={24}
                   color={color}
-                  style={{ opacity: focused ? 1 : 0.8 }}
+                  style={{
+                    opacity: focused ? 1 : 0.8,
+                  }}
                 />
               ),
               tabBarLabel: tab.label,

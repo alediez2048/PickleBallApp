@@ -9,10 +9,10 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import { Button } from "@/components/common/ui/Button";
+import { IconSymbol } from "@/components/common/IconSymbol";
+import { Button } from "@/components/common/Button";
 import { MembershipPlan } from "@/types/membership";
-import { CardField, useConfirmPayment } from "@stripe/stripe-react-native";
+// import { CardField, useConfirmPayment } from "@stripe/stripe-react-native";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
 
@@ -29,17 +29,17 @@ export function PaymentMethodModal({
   onComplete,
   selectedPlan,
 }: PaymentMethodModalProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [cardDetails, setCardDetails] = useState<any>(null);
-  const { confirmPayment } = useConfirmPayment();
+  // const [isLoading, setIsLoading] = useState(false);
+  // const [isSuccess, setIsSuccess] = useState(false);
+  // const [cardDetails, setCardDetails] = useState<any>(null);
+  // const { confirmPayment } = useConfirmPayment();
 
-  useEffect(() => {
-    if (visible) {
-      setIsSuccess(false);
-      setCardDetails(null);
-    }
-  }, [visible]);
+  // useEffect(() => {
+  //   if (visible) {
+  //     setIsSuccess(false);
+  //     setCardDetails(null);
+  //   }
+  // }, [visible]);
 
   // TODO: Replace with your backend call to create a PaymentIntent and return clientSecret
   const fetchPaymentIntentClientSecret = async () => {
@@ -51,38 +51,38 @@ export function PaymentMethodModal({
   };
 
   const handleSubmit = async () => {
-    if (Platform.OS !== "web" && (!cardDetails || !cardDetails.complete)) {
-      Alert.alert("Invalid Card", "Please enter complete card details.");
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const clientSecret = await fetchPaymentIntentClientSecret();
-      if (
-        !clientSecret ||
-        clientSecret === "REPLACE_WITH_CLIENT_SECRET_FROM_BACKEND"
-      ) {
-        setIsLoading(false);
-        Alert.alert(
-          "Error",
-          "You must implement the backend to create a PaymentIntent and return clientSecret."
-        );
-        return;
-      }
-      const { error, paymentIntent } = await confirmPayment(clientSecret);
-      setIsLoading(false);
-      if (error) {
-        Alert.alert("Payment failed", error.message);
-      } else if (paymentIntent) {
-        setIsSuccess(true);
-        setTimeout(() => {
-          onComplete();
-        }, 1500);
-      }
-    } catch (e: any) {
-      setIsLoading(false);
-      Alert.alert("Error", e.message || "Something went wrong");
-    }
+    // if (Platform.OS !== "web" && (!cardDetails || !cardDetails.complete)) {
+    //   Alert.alert("Invalid Card", "Please enter complete card details.");
+    //   return;
+    // }
+    // setIsLoading(true);
+    // try {
+    //   const clientSecret = await fetchPaymentIntentClientSecret();
+    //   if (
+    //     !clientSecret ||
+    //     clientSecret === "REPLACE_WITH_CLIENT_SECRET_FROM_BACKEND"
+    //   ) {
+    //     setIsLoading(false);
+    //     Alert.alert(
+    //       "Error",
+    //       "You must implement the backend to create a PaymentIntent and return clientSecret."
+    //     );
+    //     return;
+    //   }
+    //   const { error, paymentIntent } = await confirmPayment(clientSecret);
+    //   setIsLoading(false);
+    //   if (error) {
+    //     Alert.alert("Payment failed", error.message);
+    //   } else if (paymentIntent) {
+    //     setIsSuccess(true);
+    //     setTimeout(() => {
+    //       onComplete();
+    //     }, 1500);
+    //   }
+    // } catch (e: any) {
+    //   setIsLoading(false);
+    //   Alert.alert("Error", e.message || "Something went wrong");
+    // }
   };
 
   return (
@@ -99,15 +99,15 @@ export function PaymentMethodModal({
               <IconSymbol name='xmark' size={24} color='#666666' />
             </TouchableOpacity>
             <ThemedText style={styles.title}>Payment Method</ThemedText>
-            <ThemedText style={styles.subtitle}>
+            {/* <ThemedText style={styles.subtitle}>
               {isSuccess
                 ? "Payment method added successfully!"
                 : `Add a payment method for ${selectedPlan.name}`}
-            </ThemedText>
+            </ThemedText> */}
           </ThemedView>
 
-          {isSuccess ? (
-            <ThemedView style={styles.successContainer}>
+          {/* {isSuccess ? ( */}
+          {/* <ThemedView style={styles.successContainer}>
               <ThemedView style={styles.successIconContainer}>
                 <IconSymbol name='checkmark' size={40} color='#FFFFFF' />
               </ThemedView>
@@ -117,10 +117,10 @@ export function PaymentMethodModal({
               <ThemedText style={styles.successSubtext}>
                 Your subscription to {selectedPlan.name} has been activated.
               </ThemedText>
-            </ThemedView>
-          ) : (
-            <ScrollView style={styles.formContainer}>
-              <ThemedView style={styles.planSummary}>
+            </ThemedView> */}
+          {/* ) : ( */}
+          {/* <ScrollView style={styles.formContainer}> */}
+          {/* <ThemedView style={styles.planSummary}>
                 <ThemedText style={styles.planSummaryTitle}>
                   Plan Summary
                 </ThemedText>
@@ -133,9 +133,9 @@ export function PaymentMethodModal({
                     {selectedPlan.interval ? `/${selectedPlan.interval}` : ""}
                   </ThemedText>
                 </ThemedView>
-              </ThemedView>
+              </ThemedView> */}
 
-              {Platform.OS === "web" ? (
+          {/* {Platform.OS === "web" ? (
                 <ThemedView style={{ marginVertical: 24 }}>
                   <ThemedText style={{ color: "red", textAlign: "center" }}>
                     Stripe React Native does not support web. Please implement
@@ -159,9 +159,9 @@ export function PaymentMethodModal({
                     onCardChange={setCardDetails}
                   />
                 </ThemedView>
-              )}
+              )} */}
 
-              <Button
+          {/* <Button
                 onPress={handleSubmit}
                 variant='primary'
                 style={styles.submitButton}
@@ -170,7 +170,7 @@ export function PaymentMethodModal({
                 {isLoading ? "Processing..." : "Add Payment Method"}
               </Button>
             </ScrollView>
-          )}
+          )} */}
         </ThemedView>
       </SafeAreaView>
     </Modal>

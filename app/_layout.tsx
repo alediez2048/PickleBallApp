@@ -1,22 +1,18 @@
-import { Slot, useRouter, useSegments } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useRef } from "react";
-import { StyleSheet } from "react-native";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { GameProvider } from "@/contexts/GameContext";
-import { UIProvider } from "@/contexts/UIContext";
-import { BookedGamesProvider } from "@/contexts/BookedGamesContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LocationsProvider } from "@/contexts/LocationsContext";
 import { FixedGamesProvider } from "@/contexts/FixedGamesContext";
-import { ThemedView } from "@/components/common/ThemedView";
-import { ThemedText } from "@/components/common/ThemedText";
+import { GameProvider } from "@/contexts/GameContext";
+import { BookedGamesProvider } from "@/contexts/BookedGamesContext";
+import "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter, useSegments } from "expo-router";
+import { useEffect, useRef } from "react";
+import { StyleSheet, useColorScheme } from "react-native";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-// This component handles protected routes and authentication state
 function RootLayoutNav() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const segments = useSegments();
@@ -31,45 +27,21 @@ function RootLayoutNav() {
     const inProfileSetup = segments[0] === "(profile-setup)";
     const inMainApp = segments[0] === "(tabs)";
 
-    // Debug navigation state
-    console.log("[Navigation Debug]", {
-      currentSegment: segments[0],
-      isAuthenticated,
-      hasCompletedProfile: user?.has_completed_profile,
-      inAuthGroup,
-      inSkillGroup,
-      inProfileSetup,
-      inMainApp,
-    });
-
-    // Determine the target route based on current state
-    let targetRoute:
-      | "/(auth)/login"
-      | "/(profile-setup)"
-      | "/(skill-select)"
-      | "/(tabs)"
-      | null = null;
-
+    let targetRoute = null;
     if (!isAuthenticated) {
-      // If not authenticated, always go to login unless already in auth group
       if (!inAuthGroup) {
         targetRoute = "/(auth)/login";
       }
     } else {
-      // User is authenticated, check skill level first
       if (!user?.skill_level && !inSkillGroup) {
         targetRoute = "/(skill-select)";
-      }
-      // Then check profile completion
-      else if (
+      } else if (
         user?.skill_level &&
         !user?.has_completed_profile &&
         !inProfileSetup
       ) {
         targetRoute = "/(profile-setup)";
-      }
-      // Only redirect to main app if all requirements are met
-      else if (
+      } else if (
         user?.skill_level &&
         user?.has_completed_profile &&
         !inMainApp &&
@@ -78,20 +50,9 @@ function RootLayoutNav() {
         targetRoute = "/(tabs)";
       }
     }
-
-    // Only navigate if we have a target and it's different from our last navigation
     if (targetRoute && targetRoute !== lastNavigationRef.current) {
-      console.log("[Navigation] Redirecting:", {
-        from: segments.join("/"),
-        to: targetRoute,
-        auth: isAuthenticated,
-        profile: user?.has_completed_profile,
-        skill: user?.skill_level,
-        inMainApp,
-      });
-
       lastNavigationRef.current = targetRoute;
-      router.replace(targetRoute);
+      router.replace(targetRoute as any);
     }
   }, [
     isAuthenticated,
@@ -101,39 +62,78 @@ function RootLayoutNav() {
     user?.has_completed_profile,
   ]);
 
-  return <Slot />;
+  return (
+    <Stack>
+      <Stack.Screen
+        name='(auth)'
+        options={{ headerShown: false, statusBarTranslucent: true }}
+      />
+      <Stack.Screen
+        name='(tabs)'
+        options={{ headerShown: false, statusBarTranslucent: true }}
+      />
+      <Stack.Screen
+        name='(profile-setup)'
+        options={{ headerShown: false, statusBarTranslucent: true }}
+      />
+      <Stack.Screen
+        name='(skill-select)'
+        options={{ headerShown: false, statusBarTranslucent: true }}
+      />
+      <Stack.Screen name='+not-found' options={{ headerShown: false }} />
+    </Stack>
+  );
 }
 
-// Root layout wraps the app with all necessary providers and themed containers
 export default function RootLayout() {
+  const scheme = useColorScheme();
+  const isDark = scheme === "dark";
+  const [loaded] = useFonts({
+    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+  });
+
+  if (!loaded) {
+    return null;
+  }
+
   return (
     <ThemeProvider>
       <AuthProvider>
-        <UIProvider>
-          <GameProvider>
-            <BookedGamesProvider>
-              <LocationsProvider>
-                <FixedGamesProvider>
-                  {/* ThemedView is used as the main container for consistent theming */}
-                  <ThemedView style={styles.container}>
-                    {/* Example ThemedText header, can be customized or removed */}
-                    {/* <ThemedText type="title">PickleBall App</ThemedText> */}
-                    <RootLayoutNav />
-                    <StatusBar style='dark' />
-                  </ThemedView>
-                </FixedGamesProvider>
-              </LocationsProvider>
-            </BookedGamesProvider>
-          </GameProvider>
-        </UIProvider>
+        <LocationsProvider>
+          <FixedGamesProvider>
+            <GameProvider>
+              <BookedGamesProvider>
+                <SafeAreaView
+                  style={[
+                    styles.global,
+                    isDark
+                      ? { backgroundColor: "#121212" }
+                      : { backgroundColor: "#FFFFFF" },
+                  ]}
+                  edges={["top", "left", "right", "bottom"]}
+                >
+                  <RootLayoutNav />
+                  <StatusBar
+                    style='auto'
+                    backgroundColor='transparent'
+                    translucent
+                    hidden={false}
+                  />
+                </SafeAreaView>
+              </BookedGamesProvider>
+            </GameProvider>
+          </FixedGamesProvider>
+        </LocationsProvider>
       </AuthProvider>
     </ThemeProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  global: {
     flex: 1,
-    // The background color will be set by ThemedView according to the theme
+    padding: 0,
+    margin: 0,
+    backgroundColor: "transparent",
   },
 });

@@ -10,10 +10,11 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/common/ui/Button";
-import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
+import { Button } from "@/components/common/Button";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { validateRegisterForm } from "@/utils/validation";
 import { ThemedText } from "@/components/common/ThemedText";
+import { ThemedView } from "@/components/common/ThemedView";
 import { useTheme } from "@/contexts/ThemeContext";
 import Logo from "@/components/common/Logo";
 
@@ -57,7 +58,7 @@ export default function RegisterScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container]}>
+    <ThemedView style={[styles.container]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
@@ -154,10 +155,10 @@ export default function RegisterScreen() {
               </Button>
 
               <View style={styles.signInContainer}>
-                <ThemedText variant='caption' style={styles.signInText}>
+                <ThemedText type='caption' style={styles.signInText}>
                   Already have an account?{" "}
                   <ThemedText
-                    variant='caption'
+                    type='caption'
                     style={styles.signInLink}
                     onPress={() => router.push("/(auth)/login")}
                   >
@@ -169,7 +170,7 @@ export default function RegisterScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ThemedView>
   );
 }
 

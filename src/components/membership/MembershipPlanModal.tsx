@@ -7,8 +7,8 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import { Button } from "@/components/common/ui/Button";
+import { IconSymbol } from "@/components/common/IconSymbol";
+import { Button } from "@/components/common/Button";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
 import { useTheme } from "@/contexts/ThemeContext";

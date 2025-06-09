@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
@@ -6,12 +6,12 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Alert,
-} from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
-import { TextInput } from '@/components/common/ui/TextInput';
-import { Button } from '@/components/common/ui/Button';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import { useAuth } from '@/contexts/AuthContext';
+} from "react-native";
+import { ThemedText } from "@/components/ThemedText";
+import { TextInput } from "@/components/common/TextInput";
+import { Button } from "@/components/common/Button";
+import { IconSymbol } from "@/components/common/IconSymbol";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PaymentMethodFormProps {
   onComplete: () => void;
@@ -19,12 +19,16 @@ interface PaymentMethodFormProps {
   isFirstTime?: boolean;
 }
 
-export function PaymentMethodForm({ onComplete, onCancel, isFirstTime = false }: PaymentMethodFormProps) {
+export function PaymentMethodForm({
+  onComplete,
+  onCancel,
+  isFirstTime = false,
+}: PaymentMethodFormProps) {
   const { updatePaymentMethods, user } = useAuth();
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [cvv, setCvv] = useState('');
-  const [name, setName] = useState('');
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -32,25 +36,25 @@ export function PaymentMethodForm({ onComplete, onCancel, isFirstTime = false }:
     const newErrors: Record<string, string> = {};
 
     if (!cardNumber.trim()) {
-      newErrors.cardNumber = 'Card number is required';
-    } else if (!/^\d{16}$/.test(cardNumber.replace(/\s/g, ''))) {
-      newErrors.cardNumber = 'Invalid card number';
+      newErrors.cardNumber = "Card number is required";
+    } else if (!/^\d{16}$/.test(cardNumber.replace(/\s/g, ""))) {
+      newErrors.cardNumber = "Invalid card number";
     }
 
     if (!expiryDate.trim()) {
-      newErrors.expiryDate = 'Expiry date is required';
+      newErrors.expiryDate = "Expiry date is required";
     } else if (!/^\d{2}\/\d{2}$/.test(expiryDate)) {
-      newErrors.expiryDate = 'Invalid expiry date (MM/YY)';
+      newErrors.expiryDate = "Invalid expiry date (MM/YY)";
     }
 
     if (!cvv.trim()) {
-      newErrors.cvv = 'CVV is required';
+      newErrors.cvv = "CVV is required";
     } else if (!/^\d{3,4}$/.test(cvv)) {
-      newErrors.cvv = 'Invalid CVV';
+      newErrors.cvv = "Invalid CVV";
     }
 
     if (!name.trim()) {
-      newErrors.name = 'Cardholder name is required';
+      newErrors.name = "Cardholder name is required";
     }
 
     setErrors(newErrors);
@@ -62,41 +66,42 @@ export function PaymentMethodForm({ onComplete, onCancel, isFirstTime = false }:
 
     setIsLoading(true);
     try {
-      const last4 = cardNumber.replace(/\s/g, '').slice(-4);
-      const [expiryMonth, expiryYear] = expiryDate.split('/');
-      
+      const last4 = cardNumber.replace(/\s/g, "").slice(-4);
+      const [expiryMonth, expiryYear] = expiryDate.split("/");
+
       const newPaymentMethod = {
         id: `pm_${Date.now()}`,
         last4,
         brand: getCardBrand(cardNumber),
         expiryMonth,
         expiryYear,
-        isDefault: true
+        isDefault: true,
       };
 
       // Update with the new payment method
-      await updatePaymentMethods([...(user?.paymentMethods || []), newPaymentMethod]);
-      
+      await updatePaymentMethods([
+        ...(user?.paymentMethods || []),
+        newPaymentMethod,
+      ]);
+
       onComplete();
     } catch (error) {
-      Alert.alert(
-        'Error',
-        'Failed to save payment method. Please try again.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert("Error", "Failed to save payment method. Please try again.", [
+        { text: "OK" },
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const formatCardNumber = (text: string) => {
-    const cleaned = text.replace(/\s/g, '');
+    const cleaned = text.replace(/\s/g, "");
     const groups = cleaned.match(/.{1,4}/g);
-    return groups ? groups.join(' ') : cleaned;
+    return groups ? groups.join(" ") : cleaned;
   };
 
   const formatExpiryDate = (text: string) => {
-    const cleaned = text.replace(/\D/g, '');
+    const cleaned = text.replace(/\D/g, "");
     if (cleaned.length >= 2) {
       return `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}`;
     }
@@ -104,42 +109,43 @@ export function PaymentMethodForm({ onComplete, onCancel, isFirstTime = false }:
   };
 
   const getCardBrand = (cardNum: string): string => {
-    const cleanedNum = cardNum.replace(/\s/g, '');
-    
-    if (/^4/.test(cleanedNum)) return 'Visa';
-    if (/^5[1-5]/.test(cleanedNum)) return 'Mastercard';
-    if (/^3[47]/.test(cleanedNum)) return 'American Express';
-    if (/^6(?:011|5)/.test(cleanedNum)) return 'Discover';
-    
-    return 'Credit Card';
+    const cleanedNum = cardNum.replace(/\s/g, "");
+
+    if (/^4/.test(cleanedNum)) return "Visa";
+    if (/^5[1-5]/.test(cleanedNum)) return "Mastercard";
+    if (/^3[47]/.test(cleanedNum)) return "American Express";
+    if (/^6(?:011|5)/.test(cleanedNum)) return "Discover";
+
+    return "Credit Card";
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
           {isFirstTime && (
             <View style={styles.welcomeSection}>
-              <IconSymbol name="creditcard.fill" size={40} color="#4CAF50" />
-              <ThemedText variant="title" style={styles.welcomeTitle}>
+              <IconSymbol name='creditcard.fill' size={40} color='#4CAF50' />
+              <ThemedText variant='title' style={styles.welcomeTitle}>
                 Add Payment Method
               </ThemedText>
-              <ThemedText variant="body" style={styles.welcomeText}>
-                To complete your game booking, please add a payment method. This will be securely saved for future bookings.
+              <ThemedText variant='body' style={styles.welcomeText}>
+                To complete your game booking, please add a payment method. This
+                will be securely saved for future bookings.
               </ThemedText>
             </View>
           )}
 
           <View style={styles.form}>
             <TextInput
-              label="Card Number"
+              label='Card Number'
               value={cardNumber}
               onChangeText={(text) => setCardNumber(formatCardNumber(text))}
-              placeholder="1234 5678 9012 3456"
-              keyboardType="numeric"
+              placeholder='1234 5678 9012 3456'
+              keyboardType='numeric'
               maxLength={19}
               error={errors.cardNumber}
               editable={!isLoading}
@@ -148,11 +154,11 @@ export function PaymentMethodForm({ onComplete, onCancel, isFirstTime = false }:
             <View style={styles.row}>
               <View style={styles.halfWidth}>
                 <TextInput
-                  label="Expiry Date"
+                  label='Expiry Date'
                   value={expiryDate}
                   onChangeText={(text) => setExpiryDate(formatExpiryDate(text))}
-                  placeholder="MM/YY"
-                  keyboardType="numeric"
+                  placeholder='MM/YY'
+                  keyboardType='numeric'
                   maxLength={5}
                   error={errors.expiryDate}
                   editable={!isLoading}
@@ -160,11 +166,11 @@ export function PaymentMethodForm({ onComplete, onCancel, isFirstTime = false }:
               </View>
               <View style={styles.halfWidth}>
                 <TextInput
-                  label="CVV"
+                  label='CVV'
                   value={cvv}
                   onChangeText={setCvv}
-                  placeholder="123"
-                  keyboardType="numeric"
+                  placeholder='123'
+                  keyboardType='numeric'
                   maxLength={4}
                   error={errors.cvv}
                   editable={!isLoading}
@@ -173,11 +179,11 @@ export function PaymentMethodForm({ onComplete, onCancel, isFirstTime = false }:
             </View>
 
             <TextInput
-              label="Cardholder Name"
+              label='Cardholder Name'
               value={name}
               onChangeText={setName}
-              placeholder="JOHN DOE"
-              autoCapitalize="characters"
+              placeholder='JOHN DOE'
+              autoCapitalize='characters'
               error={errors.name}
               editable={!isLoading}
             />
@@ -185,7 +191,7 @@ export function PaymentMethodForm({ onComplete, onCancel, isFirstTime = false }:
 
           <View style={styles.footer}>
             <Button
-              variant="secondary"
+              variant='secondary'
               onPress={onCancel}
               disabled={isLoading}
               style={styles.footerButton}
@@ -193,7 +199,7 @@ export function PaymentMethodForm({ onComplete, onCancel, isFirstTime = false }:
               Cancel
             </Button>
             <Button
-              variant="primary"
+              variant='primary'
               onPress={handleSubmit}
               loading={isLoading}
               disabled={isLoading}
@@ -211,7 +217,7 @@ export function PaymentMethodForm({ onComplete, onCancel, isFirstTime = false }:
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   scrollView: {
     flex: 1,
@@ -220,23 +226,23 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   welcomeSection: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 32,
   },
   welcomeTitle: {
     marginTop: 16,
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   welcomeText: {
-    textAlign: 'center',
-    color: '#666666',
+    textAlign: "center",
+    color: "#666666",
   },
   form: {
     gap: 16,
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 16,
   },
   halfWidth: {
@@ -244,10 +250,10 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: 32,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   footerButton: {
     flex: 1,
   },
-}); 
+});

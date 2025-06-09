@@ -14,7 +14,7 @@ import { useGames } from "@contexts/GameContext";
 import { useTheme } from "@contexts/ThemeContext";
 import { ThemedView } from "@components/common/ThemedView";
 import { ThemedText } from "@components/common/ThemedText";
-import { Button } from "@/components/common/ui/Button";
+import { Button } from "@/components/common/Button";
 import { MOCK_GAMES } from "@/utils/mockData";
 import {
   useBookedGames,
@@ -30,7 +30,7 @@ import { FirstTimeProfileForm } from "@/components/profile/FirstTimeProfileForm"
 import { MembershipPlanModal } from "@/components/membership/MembershipPlanModal";
 import { PaymentMethodModal } from "@/components/payment/PaymentMethodModal";
 import { MembershipPlan } from "@/types/membership";
-import { IconSymbol } from "@/components/ui/IconSymbol";
+import { IconSymbol } from "@/components/common/IconSymbol";
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();

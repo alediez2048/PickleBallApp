@@ -9,10 +9,11 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/common/ui/Button";
-import { LoadingSpinner } from "@/components/common/ui/LoadingSpinner";
+import { Button } from "@/components/common/Button";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { validateLoginForm } from "@/utils/validation";
 import { ThemedText } from "@/components/common/ThemedText";
+import { ThemedView } from "@/components/common/ThemedView";
 import { useTheme } from "@/contexts/ThemeContext";
 import Logo from "@/components/common/Logo";
 
@@ -53,7 +54,7 @@ export default function EmailLoginScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
@@ -146,7 +147,7 @@ export default function EmailLoginScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </ThemedView>
   );
 }
 

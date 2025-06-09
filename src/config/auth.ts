@@ -34,4 +34,4 @@ export const OAUTH_SCOPES = {
 export const redirectUri = AuthSession.makeRedirectUri({
   scheme: 'pickleballapp',
   path: 'auth',
-}); 
+});

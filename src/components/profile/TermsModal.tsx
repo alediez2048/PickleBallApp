@@ -8,8 +8,8 @@ import {
   Platform,
 } from "react-native";
 import { ThemedText } from "@/components/common/ThemedText";
-import { IconSymbol } from "@components/ui/IconSymbol";
-import { Button } from "@components/common/ui/Button";
+import { IconSymbol } from "@/components/common/IconSymbol";
+import { Button } from "@/components/common/Button";
 
 interface TermsModalProps {
   visible: boolean;

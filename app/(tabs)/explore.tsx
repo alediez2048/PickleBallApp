@@ -9,7 +9,7 @@ import {
   Modal,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { IconSymbol } from "@/components/ui/IconSymbol";
+import { IconSymbol } from "@/components/common/IconSymbol";
 import type { FixedGame } from "@/types/fixedGames";
 import { SkillLevel } from "@/constants/skillLevel.types";
 import { Game, GameStatus } from "@/types/games";
