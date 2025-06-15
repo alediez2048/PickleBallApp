@@ -1,3 +1,7 @@
+---
+applyTo: "**"
+---
+
 # Copilot Instructions for This Project
 
 1. All code, documentation, and comments must be written in English.

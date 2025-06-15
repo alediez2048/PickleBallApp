@@ -63,23 +63,23 @@ export function ProfileScreen() {
         <TouchableOpacity
           style={styles.profileImageContainer}
           onPress={handleImagePick}
-          accessibilityLabel='Change profile picture'
+          accessibilityLabel="Change profile picture"
         >
           {profileImage ? (
             <Image source={{ uri: profileImage }} style={styles.profileImage} />
           ) : (
             <View style={styles.defaultAvatar}>
-              <IconSymbol name='person.fill' size={48} color='#FFFFFF' />
+              <IconSymbol name="person.fill" size={48} color="#FFFFFF" />
             </View>
           )}
           <View style={styles.editImageButton}>
-            <IconSymbol name='pencil' size={14} color='#FFFFFF' />
+            <IconSymbol name="pencil" size={14} color="#FFFFFF" />
           </View>
         </TouchableOpacity>
-        <ThemedText variant='title' style={styles.name}>
+        <ThemedText variant="title" style={styles.name}>
           {user.name}
         </ThemedText>
-        <ThemedText variant='caption' style={styles.email}>
+        <ThemedText variant="caption" style={styles.email}>
           {user.email}
         </ThemedText>
       </View>
@@ -87,12 +87,12 @@ export function ProfileScreen() {
       {/* Skill Level Card */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <ThemedText variant='subtitle' style={styles.cardTitle}>
+          <ThemedText variant="subtitle" style={styles.cardTitle}>
             Skill Level
           </ThemedText>
           <Button
-            variant='outline'
-            size='small'
+            variant="outline"
+            size="small"
             onPress={() => {
               /* TODO: Implement edit skill level */
             }}
@@ -106,7 +106,7 @@ export function ProfileScreen() {
               {user.skillLevel || SkillLevel.Beginner}
             </ThemedText>
           </View>
-          <ThemedText variant='caption' style={styles.skillLevelDescription}>
+          <ThemedText variant="caption" style={styles.skillLevelDescription}>
             {user.skillLevel === SkillLevel.Beginner
               ? "New to pickleball or playing for less than 6 months"
               : user.skillLevel === SkillLevel.Intermediate
@@ -120,7 +120,7 @@ export function ProfileScreen() {
 
       {/* Upcoming Games Card */}
       <View style={styles.card}>
-        <ThemedText variant='subtitle' style={styles.cardTitle}>
+        <ThemedText variant="subtitle" style={styles.cardTitle}>
           Upcoming Games
         </ThemedText>
         {upcomingGames.length > 0 ? (
@@ -128,23 +128,23 @@ export function ProfileScreen() {
             <View key={game.id} style={styles.gameItem}>
               <View style={styles.gameHeader}>
                 <ThemedText style={styles.gameTitle}>{game.title}</ThemedText>
-                <ThemedText variant='caption' style={styles.gameDate}>
+                <ThemedText variant="caption" style={styles.gameDate}>
                   {new Date(game.startTime).toLocaleDateString()}
                 </ThemedText>
               </View>
               <View style={styles.gameDetails}>
                 <View style={styles.gameDetailRow}>
-                  <IconSymbol name='location.fill' size={16} color='#4CAF50' />
-                  <ThemedText variant='caption' style={styles.gameDetailText}>
+                  <IconSymbol name="location.fill" size={16} color="#4CAF50" />
+                  <ThemedText variant="caption" style={styles.gameDetailText}>
                     {typeof game.location === "string"
                       ? game.location
                       : "Location not specified"}
                   </ThemedText>
                 </View>
                 <View style={styles.gameDetailRow}>
-                  <IconSymbol name='calendar' size={16} color='#4CAF50' />
-                  <ThemedText variant='caption' style={styles.gameDetailText}>
-                    {new Date(game.startTime).toLocaleTimeString([], {
+                  <IconSymbol name="calendar" size={16} color="#4CAF50" />
+                  <ThemedText variant="caption" style={styles.gameDetailText}>
+                    {new Date(game.start_time).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
@@ -156,7 +156,7 @@ export function ProfileScreen() {
         ) : (
           <View style={styles.emptyState}>
             <ThemedText style={styles.emptyText}>No upcoming games</ThemedText>
-            <ThemedText variant='caption' style={styles.emptySubtext}>
+            <ThemedText variant="caption" style={styles.emptySubtext}>
               Join a game to see it here
             </ThemedText>
           </View>
@@ -169,8 +169,8 @@ export function ProfileScreen() {
           onPress={() => {
             /* TODO: Implement edit profile */
           }}
-          variant='primary'
-          size='medium'
+          variant="primary"
+          size="medium"
           style={styles.editProfileButton}
         >
           Edit Profile

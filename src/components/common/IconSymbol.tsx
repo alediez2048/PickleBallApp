@@ -24,6 +24,7 @@ const ICON_MAPPING = {
   checkmark: "check",
   "location.fill": "location-on",
   calendar: "calendar-today",
+  time: "schedule", // <-- Add Material Icon for 'time'
   "person.2.fill": "people",
   "star.fill": "star",
   "chevron.down": "keyboard-arrow-down",
@@ -44,6 +45,7 @@ const SF_SYMBOL_MAPPING: Record<IconName, string> = {
   checkmark: "checkmark",
   "location.fill": "location.fill",
   calendar: "calendar",
+  time: "clock", // <-- SF Symbol for 'time'
   "person.2.fill": "person.2.fill",
   "star.fill": "star.fill",
   "chevron.down": "chevron.down",
@@ -64,6 +66,7 @@ type IconName =
   | "checkmark"
   | "location.fill"
   | "calendar"
+  | "time" // <-- Add 'time' to IconName
   | "person.2.fill"
   | "star.fill"
   | "chevron.down"

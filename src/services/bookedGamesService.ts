@@ -8,7 +8,13 @@ export const createBookedGame = async (bookedGameData: any) => {
 
 // List all booked games
 export const listBookedGames = async () => {
-  return await supabase.from('booked_games').select('*').order('date', { ascending: true });
+  return await supabase.from('booked_games')
+     .select(`
+      *,
+      location:location_id(*),
+      game:game_id(*)
+    `)
+  .order('date', { ascending: true });
 };
 
 // Update a booked game by id

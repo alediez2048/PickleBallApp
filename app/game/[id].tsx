@@ -93,6 +93,8 @@ export default function GameDetailsScreen() {
     (game: BookedGame) => game.gameId === id && game.status === "upcoming"
   );
 
+  console.log("[GameDetails] Game ID:", game);
+
   const handleBookingConfirm = async () => {
     // Prevent double submission
     if (isLoading) return;
@@ -105,28 +107,23 @@ export default function GameDetailsScreen() {
         throw new Error("You have already signed up for this game");
       }
 
-      // Format the date to match the expected format
-      const currentDate = new Date();
-      const uniqueId = `${id}_${Date.now()}_${Math.random()
-        .toString(36)
-        .substr(2, 6)}`;
+      const now = new Date();
+
       const bookingData = {
-        id: uniqueId, // Use the generated unique ID
-        gameId: id as string,
-        date: currentDate.toISOString(),
-        time: new Date(game.startTime).toLocaleTimeString([], {
+        game_id: id as string,
+        date: now.toISOString().split("T")[0],
+        time: now.toLocaleTimeString("en-GB", {
           hour: "2-digit",
           minute: "2-digit",
-          hour12: true,
+          hour12: false,
         }),
-        courtName: game.location?.name,
-        location: {
-          address: game.location?.address,
-          area: game.location?.name,
-          city: game.location?.city,
-        },
-        skillRating: 3.7,
+        court_name: game.location?.name || "",
+        location_id: game.location_id || "",
         price: game.price,
+        user_id: user?.id || "",
+        skill_rating: 5,
+        user_info: user,
+        status: "upcoming",
       };
 
       await addBookedGame(bookingData);
@@ -229,7 +226,7 @@ export default function GameDetailsScreen() {
       {/* Header */}
       <ThemedView>
         <ThemedText
-          type='title'
+          type="title"
           style={{
             textAlign: "center",
             paddingVertical: 10,
@@ -243,8 +240,8 @@ export default function GameDetailsScreen() {
       <ThemedView style={styles.twoRows}>
         <ThemedView style={styles.oneRowColumn}>
           <ThemedView>
-            <ThemedText type='badge'>Start</ThemedText>
-            <ThemedText type='sectionTitle'>
+            <ThemedText type="badge">Start</ThemedText>
+            <ThemedText type="sectionTitle">
               {new Date(game.start_time).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -252,8 +249,8 @@ export default function GameDetailsScreen() {
             </ThemedText>
           </ThemedView>
           <ThemedView>
-            <ThemedText type='badge'>End</ThemedText>
-            <ThemedText type='sectionTitle'>
+            <ThemedText type="badge">End</ThemedText>
+            <ThemedText type="sectionTitle">
               {new Date(game.end_time).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -262,22 +259,22 @@ export default function GameDetailsScreen() {
           </ThemedView>
         </ThemedView>
         <ThemedView style={styles.oneRowColumn}>
-          <ThemedText type='sectionTitle' style={styles.alignRight}>
+          <ThemedText type="sectionTitle" style={styles.alignRight}>
             {new Date(game.end_time).toLocaleDateString("en-US")}
           </ThemedText>
           <ThemedView>
             <ThemedText
-              type='subtitle'
-              colorType='primary'
+              type="subtitle"
+              colorType="primary"
               style={styles.alignRight}
             >
               {game.location?.name}
             </ThemedText>
             <ThemedView>
-              <ThemedText type='default' style={styles.alignRight}>
+              <ThemedText type="default" style={styles.alignRight}>
                 {game.location?.address}
               </ThemedText>
-              <ThemedText type='caption' style={styles.alignRight}>
+              <ThemedText type="caption" style={styles.alignRight}>
                 {game.location?.city}, {game.location?.state}{" "}
                 {game.location?.zip_code}
               </ThemedText>
@@ -287,24 +284,24 @@ export default function GameDetailsScreen() {
       </ThemedView>
       {/* Game Stats */}
       <ThemedView
-        borderColorType='text'
-        borderWidth='bold'
+        borderColorType="text"
+        borderWidth="bold"
         style={[styles.section, styles.statsSection]}
       >
         <ThemedView style={styles.statItem}>
-          <ThemedText type='label' align='center' colorType='label'>
+          <ThemedText type="label" align="center" colorType="label">
             Skill Level
           </ThemedText>
-          <ThemedText type='value' align='center'>
+          <ThemedText type="value" align="center">
             {game.skill_level}
           </ThemedText>
         </ThemedView>
         <ThemedView style={styles.statDivider} />
         <ThemedView style={styles.statItem}>
-          <ThemedText type='label' align='center' colorType='label'>
+          <ThemedText type="label" align="center" colorType="label">
             Price
           </ThemedText>
-          <ThemedText type='value' align='center'>
+          <ThemedText type="value" align="center">
             ${game.price}
           </ThemedText>
         </ThemedView>
@@ -368,7 +365,7 @@ export default function GameDetailsScreen() {
       {/* Booking Confirmation Modal */}
       <Modal
         visible={isBookingModalVisible}
-        animationType='fade'
+        animationType="fade"
         transparent={true}
         onRequestClose={() => !isLoading && setIsBookingModalVisible(false)}
       >
@@ -380,15 +377,16 @@ export default function GameDetailsScreen() {
             >
               {/* <IconSymbol name='xmark' size={24} color='#666666' /> */}
             </TouchableOpacity>
-
-            <ThemedText style={styles.modalTitle}>Confirm Booking</ThemedText>
-
+            <ThemedText className="mb-4" type="subtitle">
+              {new Date(game.start_time).toLocaleDateString("en-US")}
+            </ThemedText>
             <ThemedView style={styles.bookingGameCard}>
               <ThemedView style={styles.bookingTimeContainer}>
-                <ThemedText style={styles.bookingTime}>
-                  {new Date(game.startTime).toLocaleTimeString([], {
+                <ThemedText type="bold" colorType={"white"}>
+                  {new Date(game.start_time).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
+                    hour12: true,
                   })}
                 </ThemedText>
               </ThemedView>
@@ -413,7 +411,7 @@ export default function GameDetailsScreen() {
               <ThemedView style={styles.summaryRow}>
                 <ThemedText style={styles.summaryLabel}>Skill Level</ThemedText>
                 <ThemedText style={styles.summaryValue}>
-                  {game.skillLevel}
+                  {game.skill_level}
                 </ThemedText>
               </ThemedView>
               <ThemedView style={styles.summaryRow}>
@@ -421,7 +419,7 @@ export default function GameDetailsScreen() {
                   Available Spots
                 </ThemedText>
                 <ThemedText style={styles.summaryValue}>
-                  {game.maxPlayers - totalPlayers} of {game.maxPlayers}
+                  {game.max_players - totalPlayers} of {game.max_players}
                 </ThemedText>
               </ThemedView>
             </ThemedView>
@@ -459,7 +457,7 @@ export default function GameDetailsScreen() {
       {/* Success Modal */}
       <Modal
         visible={isSuccessModalVisible}
-        animationType='fade'
+        animationType="fade"
         transparent={true}
         onRequestClose={() => setIsSuccessModalVisible(false)}
       >
@@ -468,13 +466,11 @@ export default function GameDetailsScreen() {
             <TouchableOpacity
               onPress={() => setIsSuccessModalVisible(false)}
               style={styles.successCloseButton}
-            >
-              {/* <IconSymbol name='xmark' size={24} color='#666666' /> */}
-            </TouchableOpacity>
+            ></TouchableOpacity>
 
             <ThemedView style={styles.successIconContainer}>
               <ThemedView style={styles.successIconCircle}>
-                {/* <IconSymbol name='checkmark' size={40} color='#FFFFFF' /> */}
+                <IconSymbol name="checkmark" size={40} color="#FFFFFF" />
               </ThemedView>
             </ThemedView>
 
@@ -483,37 +479,24 @@ export default function GameDetailsScreen() {
               Get ready to play!
             </ThemedText>
 
-            <ThemedView style={styles.successGameCard}>
+            <ThemedView colorType="primary" style={styles.successGameCard}>
               <ThemedView style={styles.successTimeContainer}>
-                {/* <IconSymbol
-                  name='calendar'
-                  size={20}
-                  color='#FFFFFF'
-                  style={styles.successTimeIcon}
-                /> */}
+                <ThemedText type="value">
+                  {new Date(game.start_time).toLocaleDateString("en-US")}
+                </ThemedText>
                 <ThemedText style={styles.successTime}>
-                  {new Date(game.startTime).toLocaleTimeString([], {
+                  {new Date(game.start_time).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                     hour12: true,
                   })}
                 </ThemedText>
               </ThemedView>
-              <ThemedView style={styles.successLocationContainer}>
-                <ThemedText style={styles.successLocationName}>
-                  {game.location?.name}
+              <ThemedView>
+                <ThemedText type="bold" colorType="primary">
+                  {game.location?.city}
                 </ThemedText>
-                <ThemedView style={styles.successAddressContainer}>
-                  {/* <IconSymbol
-                    name='location.fill'
-                    size={16}
-                    color='#666666'
-                    style={styles.successLocationIcon}
-                  /> */}
-                  <ThemedText style={styles.successLocationAddress}>
-                    {game.location?.address}
-                  </ThemedText>
-                </ThemedView>
+                <ThemedText type="bold">{game.location?.name}</ThemedText>
               </ThemedView>
             </ThemedView>
 
@@ -521,14 +504,15 @@ export default function GameDetailsScreen() {
               <ThemedView style={styles.successDetailItem}>
                 {/* <IconSymbol name='trophy.fill' size={20} color='#4CAF50' /> */}
                 <ThemedText style={styles.successDetailText}>
-                  {game.skillLevel}
+                  {game.skill_level}
                 </ThemedText>
               </ThemedView>
               <ThemedView style={styles.successDetailDivider} />
               <ThemedView style={styles.successDetailItem}>
                 {/* <IconSymbol name='person.2.fill' size={20} color='#4CAF50' /> */}
                 <ThemedText style={styles.successDetailText}>
-                  {game.maxPlayers - (game.players.length + totalBookedPlayers)}{" "}
+                  {game.max_players -
+                    (game.players.length + totalBookedPlayers)}{" "}
                   spots left
                 </ThemedText>
               </ThemedView>
@@ -549,7 +533,7 @@ export default function GameDetailsScreen() {
       {/* Cancel Registration Modal */}
       <Modal
         visible={isCancelModalVisible}
-        animationType='fade'
+        animationType="fade"
         transparent={true}
         onRequestClose={() => !isLoading && setIsCancelModalVisible(false)}
       >
@@ -568,8 +552,8 @@ export default function GameDetailsScreen() {
 
             <ThemedView style={styles.bookingGameCard}>
               <ThemedView style={styles.bookingTimeContainer}>
-                <ThemedText style={styles.bookingTime}>
-                  {new Date(game.startTime).toLocaleTimeString([], {
+                <ThemedText colorType={"default"}>
+                  {new Date(game.start_time).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
@@ -590,7 +574,7 @@ export default function GameDetailsScreen() {
               <ThemedView style={styles.summaryRow}>
                 <ThemedText style={styles.summaryLabel}>Skill Level</ThemedText>
                 <ThemedText style={styles.summaryValue}>
-                  {game.skillLevel}
+                  {game.skill_level}
                 </ThemedText>
               </ThemedView>
               <ThemedView style={styles.summaryRow}>
@@ -642,7 +626,7 @@ export default function GameDetailsScreen() {
       {/* Profile Form Modal */}
       <Modal
         visible={isProfileFormVisible}
-        animationType='slide'
+        animationType="slide"
         transparent={true}
         onRequestClose={() => !isLoading && setIsProfileFormVisible(false)}
       >
@@ -653,9 +637,9 @@ export default function GameDetailsScreen() {
                 onPress={() => !isLoading && setIsProfileFormVisible(false)}
                 style={styles.modalCloseButton}
               >
-                <IconSymbol name='xmark' size={24} />
+                <IconSymbol name="xmark" size={24} />
               </TouchableOpacity>
-              <ThemedText type='defaultSemiBold'>
+              <ThemedText type="defaultSemiBold">
                 Complete Your Profile
               </ThemedText>
             </ThemedView>
@@ -697,8 +681,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
   },
   twoRows: {
     flexDirection: "row",
@@ -751,7 +733,6 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: "100%",
-    backgroundColor: "#E5E7EB",
   },
   statLabel: {
     fontSize: 12,
@@ -770,7 +751,6 @@ const styles = StyleSheet.create({
   captainCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F9FAFB",
     padding: 16,
     borderRadius: 12,
   },
@@ -800,7 +780,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   reserveText: {
-    color: "#FFFFFF",
     fontWeight: "600",
     fontSize: 16,
   },
@@ -813,7 +792,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   signOutText: {
-    color: "#FFFFFF",
     fontWeight: "600",
     fontSize: 16,
   },
@@ -859,11 +837,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bookingGameCard: {
-    backgroundColor: "#F8F9FA",
     borderRadius: 16,
     padding: 16,
     width: "100%",
-    marginBottom: 20,
+    marginBottom: 10,
     flexDirection: "row",
     alignItems: "center",
     ...Platform.select({
@@ -888,7 +865,6 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   bookingTime: {
-    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
   },
@@ -898,7 +874,6 @@ const styles = StyleSheet.create({
   bookingLocationName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#000000",
     marginBottom: 4,
   },
   bookingLocationAddress: {
@@ -906,11 +881,10 @@ const styles = StyleSheet.create({
     color: "#666666",
   },
   bookingSummaryCard: {
-    backgroundColor: "#F8F9FA",
     borderRadius: 16,
-    padding: 16,
+    padding: 12,
     width: "100%",
-    marginBottom: 20,
+    marginBottom: 10,
     ...Platform.select({
       ios: {
         shadowColor: "#000",
@@ -1088,25 +1062,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   successGameCard: {
-    backgroundColor: "#F8F9FA",
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     borderRadius: 16,
-    padding: 16,
+    padding: 10,
     width: "100%",
-    marginBottom: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
+    marginBottom: 10,
   },
   successTimeContainer: {
     backgroundColor: "#4CAF50",
@@ -1128,7 +1091,6 @@ const styles = StyleSheet.create({
   successLocationName: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#000000",
     marginBottom: 8,
   },
   successAddressContainer: {

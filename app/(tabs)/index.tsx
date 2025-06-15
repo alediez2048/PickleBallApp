@@ -34,12 +34,12 @@ export default function TabHomeScreen() {
     }
   };
 
+  console.log("Upcoming Games:", upcomingGames);
+
   return (
     <View style={styles.container}>
       <View style={styles.banner}>
-        <Text style={styles.welcomeText}>
-          Hi {user?.name || "User"}, Welcome to PicklePass
-        </Text>
+        <Text style={styles.welcomeText}>Hi {user?.name || "User"}</Text>
       </View>
 
       <ScrollView style={styles.contentContainer}>
@@ -52,8 +52,8 @@ export default function TabHomeScreen() {
           <View style={styles.buttonContainer}>
             <Button
               onPress={() => router.push("/(tabs)/explore")}
-              size='large'
-              variant='primary'
+              size="large"
+              variant="primary"
               fullWidth
               style={styles.button}
             >
@@ -76,29 +76,46 @@ export default function TabHomeScreen() {
                         <View style={styles.gameTimeAndLocation}>
                           <View style={styles.timeContainer}>
                             <IconSymbol
-                              name='calendar'
+                              name="calendar"
                               size={16}
-                              color='#4CAF50'
+                              color="#4CAF50"
                               style={styles.timeIcon}
                             />
-                            <Text style={styles.gameTime}>{game.time}</Text>
+                            <Text style={styles.gameTime}>
+                              {" "}
+                              {new Date(
+                                game.game?.start_time
+                              ).toLocaleDateString("en-US")}
+                            </Text>
+                          </View>
+                          <View style={styles.timeContainer}>
+                            <IconSymbol name="time" size={16} />
+                            <Text style={styles.gameTime}>
+                              {new Date(
+                                game.game?.start_time
+                              ).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}
+                            </Text>
                           </View>
                           <View style={styles.locationContainer}>
                             <IconSymbol
-                              name='location.fill'
+                              name="location.fill"
                               size={16}
-                              color='#666666'
+                              color="#666666"
                               style={styles.locationIcon}
                             />
                             <View style={styles.locationTextContainer}>
                               <Text style={styles.gameCourt}>
-                                {game.courtName}
+                                {game.court_name}
                               </Text>
                               <Text
                                 style={styles.gameAddress}
                                 numberOfLines={1}
                               >
-                                {game.location.address}
+                                {game.location?.address}
                               </Text>
                             </View>
                           </View>
@@ -110,9 +127,9 @@ export default function TabHomeScreen() {
               ) : (
                 <View style={styles.emptyStateContainer}>
                   <IconSymbol
-                    name='gamecontroller.fill'
+                    name="gamecontroller.fill"
                     size={40}
-                    color='#666666'
+                    color="#666666"
                     style={styles.emptyStateIcon}
                   />
                   <Text style={styles.emptyStateTitle}>No Upcoming Games</Text>

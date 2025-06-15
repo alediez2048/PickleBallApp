@@ -1,35 +1,18 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
-} from "react";
-import { mockApi } from "@/services/mockApi";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-
-export interface BookedGame {
-  id: string;
-  gameId: string;
-  date: string;
-  time: string;
-  courtName: string;
-  location: {
-    address: string;
-    area: string;
-    city: string;
-  };
-  skillRating: number;
-  price: number;
-  status: "upcoming" | "completed" | "cancelled";
-}
+import {
+  createBookedGame as createBookedGameService,
+  listBookedGames as listBookedGamesService,
+  updateBookedGame as updateBookedGameService,
+} from "@services/bookedGamesService";
+import { BookedGame } from "@/types/bookedGames";
 
 interface BookedGamesContextType {
   bookedGames: BookedGame[];
   isLoading: boolean;
   error: Error | null;
   refreshBookedGames: () => Promise<void>;
-  addBookedGame: (game: Omit<BookedGame, "status">) => Promise<BookedGame>;
+  addBookedGame: (game: Omit<BookedGame, "id">) => Promise<BookedGame | null>;
   cancelBooking: (gameId: string) => Promise<void>;
   clearAllGames: () => Promise<void>;
 }
@@ -38,24 +21,22 @@ const BookedGamesContext = createContext<BookedGamesContextType | undefined>(
   undefined
 );
 
-export function BookedGamesProvider({
+export const BookedGamesProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}) => {
   const [bookedGames, setBookedGames] = useState<BookedGame[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { user } = useAuth();
 
-  const refreshBookedGames = useCallback(async () => {
+  const refreshBookedGames = async () => {
     if (!user?.email) return;
-
     setIsLoading(true);
     setError(null);
     try {
-      const games = await mockApi.getBookedGames(user.email);
-      setBookedGames(games);
+      const { data, error: fetchError } = await listBookedGamesService();
+      if (fetchError) throw fetchError;
+      setBookedGames(data || []);
     } catch (err) {
       setError(
         err instanceof Error ? err : new Error("Failed to fetch booked games")
@@ -63,67 +44,58 @@ export function BookedGamesProvider({
     } finally {
       setIsLoading(false);
     }
-  }, [user?.email]);
+  };
 
-  const addBookedGame = useCallback(
-    async (game: Omit<BookedGame, "status">) => {
-      if (!user?.email) {
-        throw new Error("User not authenticated");
+  const addBookedGame = async (game: Omit<BookedGame, "id">) => {
+    if (!user?.email) throw new Error("User not authenticated");
+    try {
+      const { data, error: createError } = await createBookedGameService({
+        ...game,
+      });
+      console.log("Adding booked game:", game);
+      console.log("createError booked game:", createError);
+      if (createError) throw createError;
+      if (data && data[0]) {
+        setBookedGames((prev) => [data[0], ...prev]);
+        return data[0];
       }
+      return null;
+    } catch (err) {
+      console.error("Error adding booked game:", err);
+      throw err instanceof Error ? err : new Error("Failed to book game");
+    }
+  };
 
-      try {
-        const bookedGame = await mockApi.bookGame(user.email, game);
-        setBookedGames((prev) => [bookedGame, ...prev]);
-        return bookedGame;
-      } catch (err) {
-        throw err instanceof Error ? err : new Error("Failed to book game");
-      }
-    },
-    [user?.email]
-  );
+  const cancelBooking = async (gameId: string) => {
+    if (!user?.email) throw new Error("User not authenticated");
+    try {
+      await updateBookedGameService(gameId, { status: "cancelled" });
+      setBookedGames((prev) =>
+        prev.map((game) =>
+          game.id === gameId ? { ...game, status: "cancelled" as const } : game
+        )
+      );
+    } catch (err) {
+      throw err instanceof Error ? err : new Error("Failed to cancel booking");
+    }
+  };
 
-  const cancelBooking = useCallback(
-    async (gameId: string) => {
-      if (!user?.email) {
-        throw new Error("User not authenticated");
-      }
-
-      try {
-        await mockApi.cancelBooking(user.email, gameId);
-        setBookedGames((prev) =>
-          prev.map((game) =>
-            game.id === gameId
-              ? { ...game, status: "cancelled" as const }
-              : game
-          )
-        );
-      } catch (err) {
-        throw err instanceof Error
-          ? err
-          : new Error("Failed to cancel booking");
-      }
-    },
-    [user?.email]
-  );
-
-  const clearAllGames = useCallback(async () => {
+  const clearAllGames = async () => {
     if (!user?.email) return;
-
     setIsLoading(true);
     try {
-      await mockApi.clearBookedGames(user.email);
       setBookedGames([]);
     } catch (err) {
       throw err instanceof Error ? err : new Error("Failed to clear games");
     } finally {
       setIsLoading(false);
     }
-  }, [user?.email]);
+  };
 
-  // Load booked games when the user changes
   useEffect(() => {
     refreshBookedGames();
-  }, [refreshBookedGames]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email]);
 
   return (
     <BookedGamesContext.Provider
@@ -140,7 +112,7 @@ export function BookedGamesProvider({
       {children}
     </BookedGamesContext.Provider>
   );
-}
+};
 
 export function useBookedGames() {
   const context = useContext(BookedGamesContext);

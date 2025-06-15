@@ -68,7 +68,7 @@ export function MembershipPlanModal({
   return (
     <Modal
       visible={visible}
-      animationType='slide'
+      animationType="slide"
       transparent={true}
       onRequestClose={onClose}
     >
@@ -76,10 +76,10 @@ export function MembershipPlanModal({
         <ThemedView style={styles.content}>
           <ThemedView style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <IconSymbol name='xmark' size={24} />
+              <IconSymbol name="xmark" size={24} />
             </TouchableOpacity>
-            <ThemedText type='title'>Choose Your Plan</ThemedText>
-            <ThemedText type='miniSubtitle' colorType='label'>
+            <ThemedText type="title">Choose Your Plan</ThemedText>
+            <ThemedText type="miniSubtitle" colorType="label">
               Select a membership plan that fits your needs
             </ThemedText>
           </ThemedView>
@@ -94,16 +94,15 @@ export function MembershipPlanModal({
                   currentPlanId === plan.id && styles.currentPlanCard,
                 ]}
                 onPress={() => onSelectPlan(plan)}
-                activeOpacity={0.9}
               >
                 {currentPlanId === plan.id && (
                   <ThemedView
                     style={styles.currentPlanBadge}
-                    colorType='primary'
+                    colorType="primary"
                   >
                     <ThemedText
-                      type='badge'
-                      colorType='white'
+                      type="badge"
+                      colorType="white"
                       style={styles.currentPlanBadgeText}
                     >
                       Current Plan
@@ -112,31 +111,31 @@ export function MembershipPlanModal({
                 )}
 
                 <ThemedView style={styles.planHeader}>
-                  <ThemedText type='sectionTitle'>{plan.name}</ThemedText>
+                  <ThemedText type="sectionTitle">{plan.name}</ThemedText>
                   <ThemedView style={styles.priceContainer}>
-                    <ThemedText type='title' colorType='primary'>
+                    <ThemedText type="title" colorType="primary">
                       ${plan.price}
                     </ThemedText>
                     {plan.interval && (
-                      <ThemedText type='default' colorType='label'>
+                      <ThemedText type="default" colorType="label">
                         /{plan.interval}
                       </ThemedText>
                     )}
                   </ThemedView>
                 </ThemedView>
 
-                <ThemedText type='paragraph'>{plan.description}</ThemedText>
+                <ThemedText type="paragraph">{plan.description}</ThemedText>
 
                 <ThemedView style={styles.benefitsContainer}>
                   {plan.benefits.map((benefit, index) => (
                     <ThemedView key={index} style={styles.benefitRow}>
                       <IconSymbol
-                        name='checkmark'
+                        name="checkmark"
                         size={18}
                         color={colors.success}
                         style={styles.benefitIcon}
                       />
-                      <ThemedText type='label'>{benefit}</ThemedText>
+                      <ThemedText type="label">{benefit}</ThemedText>
                     </ThemedView>
                   ))}
                 </ThemedView>
@@ -171,7 +170,6 @@ const styles = StyleSheet.create({
   header: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#EEEEEE",
   },
   closeButton: {
     position: "absolute",
@@ -187,19 +185,13 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 20,
     borderWidth: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   currentPlanCard: {
     borderColor: "#4CAF50",
     borderWidth: 2,
-    backgroundColor: "#F1F8E9",
   },
   currentPlanBadge: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#00f308",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,

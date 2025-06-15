@@ -11,6 +11,7 @@ import {
   initStripe,
 } from "@stripe/stripe-react-native";
 import { useTheme } from "@/contexts/ThemeContext";
+import { SUPABASE_FUNCTIONS_URL, SUPABASE_STRIPE_PUBLIC_KEY } from "@env";
 
 interface StripeNativeProps {
   selectedPlan: MembershipPlan;
@@ -23,32 +24,33 @@ export const StripeNative: React.FC<StripeNativeProps> = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const { confirmPayment } = useConfirmPayment();
   const { colors } = useTheme();
+  const URL_STRIPE_PAYMENT_INTENT = `${SUPABASE_FUNCTIONS_URL}/v1/create-payment-intent`;
 
   useEffect(() => {
     initStripe({
-      publishableKey: process.env.SUPABASE_STRIPE_PUBLIC_KEY || "pk_test_123",
+      publishableKey: SUPABASE_STRIPE_PUBLIC_KEY || "pk_test_123",
     });
   }, []);
 
-  // TODO: Replace with your backend call to create a PaymentIntent and return clientSecret
   const fetchPaymentIntentClientSecret = async () => {
-    // Example: fetch from your Supabase Edge Function or API
-    const res = await fetch(
-      `${process.env.SUPABASE_FUNTIONS_URL}/v1/create-payment-intent`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ amount: 5000 }),
-      }
-    );
+    const res = await fetch(URL_STRIPE_PAYMENT_INTENT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        amount: Math.round(props.selectedPlan.price * 100),
+      }),
+    });
+
+    if (!res.ok) {
+      console.error("Failed to create PaymentIntent:", await res.text());
+      return null;
+    }
 
     const { clientSecret } = await res.json();
-
-    await stripe.initPaymentSheet({ paymentIntentClientSecret: clientSecret });
-    return await stripe.presentPaymentSheet();
+    return clientSecret;
   };
 
   const handleSubmit = async () => {
@@ -84,6 +86,12 @@ export const StripeNative: React.FC<StripeNativeProps> = (props) => {
   return (
     <ThemedView style={styles.container}>
       <ThemedText style={styles.title}>Add Payment Method</ThemedText>
+      <ThemedText type="subtitle">
+        {`Plan Name: ${props.selectedPlan.name}`}
+      </ThemedText>
+      <ThemedText type="value" style={{ marginVertical: 10 }}>
+        {`Price: $${props.selectedPlan.price.toFixed(2)}`}
+      </ThemedText>
       <CardField
         postalCodeEnabled={false}
         placeholders={{ number: "4242 4242 4242 4242" }}
