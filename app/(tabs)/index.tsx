@@ -1,7 +1,5 @@
 import React from "react";
 import {
-  View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -16,6 +14,8 @@ import {
   useBookedGames,
 } from "@/contexts/BookedGamesContext";
 import { IconSymbol } from "@/components/common/IconSymbol";
+import { ThemedView } from "@/components/common/ThemedView";
+import { ThemedText } from "@/components/common/ThemedText";
 
 export default function TabHomeScreen() {
   const { user } = useAuth();
@@ -29,27 +29,29 @@ export default function TabHomeScreen() {
     if (bookedGame) {
       router.push({
         pathname: "/game/[id]",
-        params: { id: bookedGame.gameId },
+        params: { id: bookedGame.game_id },
       });
     }
   };
 
-  console.log("Upcoming Games:", upcomingGames);
-
   return (
-    <View style={styles.container}>
-      <View style={styles.banner}>
-        <Text style={styles.welcomeText}>Hi {user?.name || "User"}</Text>
-      </View>
+    <ThemedView style={styles.container}>
+      <ThemedView style={styles.banner}>
+        <ThemedText style={styles.welcomeText}>
+          Hi {user?.name || "User"}
+        </ThemedText>
+      </ThemedView>
 
       <ScrollView style={styles.contentContainer}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Welcome to PicklePass</Text>
-          <Text style={styles.subtitle}>
+        <ThemedView style={styles.content}>
+          <ThemedText type="title" colorType="primary">
+            Welcome to PicklePass
+          </ThemedText>
+          <ThemedText type="subtitle" style={styles.subtitle}>
             Find and join pickleball games near you
-          </Text>
+          </ThemedText>
 
-          <View style={styles.buttonContainer}>
+          <ThemedView style={styles.buttonContainer}>
             <Button
               onPress={() => router.push("/(tabs)/explore")}
               size="large"
@@ -60,37 +62,39 @@ export default function TabHomeScreen() {
               Find Games
             </Button>
 
-            <View style={styles.upcomingGamesContainer}>
-              <View style={styles.upcomingGamesHeader}>
-                <Text style={styles.sectionTitle}>Upcoming Games</Text>
-              </View>
+            <ThemedView style={styles.upcomingGamesContainer}>
+              <ThemedView style={styles.upcomingGamesHeader}>
+                <ThemedText style={styles.sectionTitle}>
+                  Upcoming Games
+                </ThemedText>
+              </ThemedView>
               {upcomingGames.length > 0 ? (
-                <View style={styles.gamesList}>
+                <ThemedView style={styles.gamesList}>
                   {upcomingGames.map((game) => (
                     <TouchableOpacity
                       key={`upcoming-game-${game.id}-${Date.now()}`}
                       style={styles.gameCard}
                       onPress={() => handleGamePress(game.id)}
                     >
-                      <View style={styles.gameCardContent}>
-                        <View style={styles.gameTimeAndLocation}>
-                          <View style={styles.timeContainer}>
+                      <ThemedView style={styles.gameCardContent}>
+                        <ThemedView>
+                          <ThemedView style={styles.timeContainer}>
                             <IconSymbol
                               name="calendar"
                               size={16}
                               color="#4CAF50"
                               style={styles.timeIcon}
                             />
-                            <Text style={styles.gameTime}>
+                            <ThemedText style={styles.gameTime}>
                               {" "}
                               {new Date(
                                 game.game?.start_time
                               ).toLocaleDateString("en-US")}
-                            </Text>
-                          </View>
-                          <View style={styles.timeContainer}>
+                            </ThemedText>
+                          </ThemedView>
+                          <ThemedView style={styles.timeContainer}>
                             <IconSymbol name="time" size={16} />
-                            <Text style={styles.gameTime}>
+                            <ThemedText>
                               {new Date(
                                 game.game?.start_time
                               ).toLocaleTimeString([], {
@@ -98,63 +102,61 @@ export default function TabHomeScreen() {
                                 minute: "2-digit",
                                 hour12: true,
                               })}
-                            </Text>
-                          </View>
-                          <View style={styles.locationContainer}>
-                            <IconSymbol
-                              name="location.fill"
-                              size={16}
-                              color="#666666"
-                              style={styles.locationIcon}
-                            />
-                            <View style={styles.locationTextContainer}>
-                              <Text style={styles.gameCourt}>
-                                {game.court_name}
-                              </Text>
-                              <Text
-                                style={styles.gameAddress}
-                                numberOfLines={1}
-                              >
-                                {game.location?.address}
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                      </View>
+                            </ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+                        <ThemedView style={styles.locationContainer}>
+                          <ThemedView>
+                            <ThemedText>
+                              <IconSymbol
+                                name="location.fill"
+                                size={16}
+                                style={styles.locationIcon}
+                              />
+                              {game.court_name}
+                            </ThemedText>
+                          </ThemedView>
+                          <ThemedView>
+                            <ThemedText numberOfLines={1}>
+                              {game.location?.address}
+                            </ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+                      </ThemedView>
                     </TouchableOpacity>
                   ))}
-                </View>
+                </ThemedView>
               ) : (
-                <View style={styles.emptyStateContainer}>
+                <ThemedView style={styles.emptyStateContainer}>
                   <IconSymbol
                     name="gamecontroller.fill"
                     size={40}
                     color="#666666"
                     style={styles.emptyStateIcon}
                   />
-                  <Text style={styles.emptyStateTitle}>No Upcoming Games</Text>
-                  <Text style={styles.emptyStateText}>
+                  <ThemedText style={styles.emptyStateTitle}>
+                    No Upcoming Games
+                  </ThemedText>
+                  <ThemedText style={styles.emptyStateText}>
                     Find and join games to see them here!
-                  </Text>
-                </View>
+                  </ThemedText>
+                </ThemedView>
               )}
-            </View>
-          </View>
-        </View>
+            </ThemedView>
+          </ThemedView>
+        </ThemedView>
       </ScrollView>
-    </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   banner: {
-    backgroundColor: "#000000",
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 40,
   },
   welcomeText: {
     color: "#ffffff",
@@ -171,16 +173,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     padding: 16,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#4CAF50",
-    marginBottom: 16,
-    textAlign: "center",
-  },
   subtitle: {
-    fontSize: 18,
-    color: "#666",
     textAlign: "center",
     paddingHorizontal: 16,
     marginBottom: 32,
@@ -195,7 +188,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   upcomingGamesContainer: {
-    backgroundColor: "#ffffff",
     borderRadius: 16,
     width: "100%",
     marginVertical: 16,
@@ -217,19 +209,16 @@ const styles = StyleSheet.create({
   upcomingGamesHeader: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#000000",
   },
   gamesList: {
-    padding: 12,
+    padding: 6,
     gap: 12,
   },
   gameCard: {
-    backgroundColor: "#f8f9fa",
     borderRadius: 12,
     overflow: "hidden",
     borderWidth: 1,
@@ -255,10 +244,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  gameTimeAndLocation: {
-    flex: 1,
-    gap: 8,
-  },
   timeContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -273,30 +258,16 @@ const styles = StyleSheet.create({
     color: "#4CAF50",
   },
   locationContainer: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 6,
+    flexDirection: "column",
+    alignItems: "flex-end",
   },
   locationIcon: {
-    marginTop: 2,
-  },
-  locationTextContainer: {
-    flex: 1,
-  },
-  gameCourt: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#000000",
-    marginBottom: 2,
-  },
-  gameAddress: {
-    fontSize: 13,
-    color: "#666666",
+    margin: 4,
+    paddingRight: 4,
   },
   emptyStateContainer: {
     padding: 32,
     alignItems: "center",
-    backgroundColor: "#f8f9fa",
     margin: 12,
     borderRadius: 12,
   },
