@@ -674,14 +674,14 @@ export default function GameDetailsScreen() {
       />
 
       {/* Payment Method Modal */}
-      {/* {selectedPlan && (
+      {selectedPlan && (
         <PaymentMethodModal
           visible={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
           onComplete={handlePaymentComplete}
           selectedPlan={selectedPlan}
         />
-      )} */}
+      )}
     </ThemedView>
   );
 }

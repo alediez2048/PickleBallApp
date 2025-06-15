@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import { IconSymbol } from "@/components/common/IconSymbol";
-import { StyleProp, TextStyle } from "react-native";
+import { StyleProp, TextStyle, Platform } from "react-native";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
 import { ActivityIndicator } from "react-native";
@@ -110,10 +110,10 @@ export default function TabLayout() {
           position: "absolute",
           left: 0,
           right: 0,
-          bottom: -45,
+          bottom: -15,
           borderTopWidth: 1,
           elevation: 0,
-          height: 100,
+          height: 75,
           margin: 0,
           padding: 0,
           zIndex: 1,

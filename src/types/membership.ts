@@ -7,4 +7,4 @@ export interface MembershipPlan {
   description: string;
 }
 
-export type MembershipTier = 'free' | 'drop-in' | 'monthly'; 
+export type MembershipTier = 'free' | 'drop-in' | 'monthly';
