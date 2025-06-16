@@ -5,6 +5,8 @@ import {
   listBookedGames as listBookedGamesService,
   updateBookedGame as updateBookedGameService,
 } from "@services/bookedGamesService";
+import { getGame, updateGame } from "@services/gamesService";
+
 import { BookedGame } from "@/types/bookedGames";
 
 interface BookedGamesContextType {
@@ -52,10 +54,25 @@ export const BookedGamesProvider: React.FC<{ children: React.ReactNode }> = ({
       const { data, error: createError } = await createBookedGameService({
         ...game,
       });
-      console.log("Adding booked game:", game);
-      console.log("createError booked game:", createError);
       if (createError) throw createError;
       if (data && data[0]) {
+        // Update the original game to reflect the new booking
+        const game = await getGame(data[0].game_id);
+        if (!game) throw new Error("Game not found");
+        // Update the game with the new booking details
+        await updateGame(data[0].game_id, {
+          registered_count: game.registered_count + 1,
+          players: [
+            ...game.players,
+            {
+              user_id: user.id,
+              email: user.email,
+              phone: user.phone_number || null,
+              name: user.display_name || "",
+            },
+          ],
+        });
+
         setBookedGames((prev) => [data[0], ...prev]);
         return data[0];
       }

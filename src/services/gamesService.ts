@@ -24,3 +24,8 @@ export const updateGame = async (gameId: string, updates: Record<string, any>) =
 export const deleteGame = async (gameId: string) => {
   return await supabase.from('games').delete().eq('id', gameId);
 };
+
+// Get a single game by id
+export const getGame = async (gameId: string) => {
+  return await supabase.from('games').select('*').eq('id', gameId).single();
+};
