@@ -66,5 +66,9 @@ export default {
         projectId: "d6295ca2-1ea0-4c9e-911e-3a1382401db7",
       },
     },
+    updates: {
+      url: "https://u.expo.dev/d6295ca2-1ea0-4c9e-911e-3a1382401db7",
+    },
+    runtimeVersion: "1.0.0",
   },
 };
