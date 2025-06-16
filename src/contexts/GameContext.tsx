@@ -229,8 +229,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         };
         console.log("Creating game with data:", cleanGameData);
         const { data, error } = await createGame(cleanGameData);
-        if (error || !data || !data[0])
+        if (error || !data || !data[0]) {
+          console.error("Error creating game:", error);
+          console.error("Response data:", data);
           throw error || new Error("No data returned");
+        }
         dispatch({ type: "ADD_GAME", payload: data[0] });
         return data[0]; // Return the created game object
       } catch (error) {

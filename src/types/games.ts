@@ -34,7 +34,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  skillLevel: SkillLevel;
+  skill_level: SkillLevel;
+  phone_number?: string;
   rating?: number;
   profileImage?: string | {
     uri: string;

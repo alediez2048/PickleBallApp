@@ -69,11 +69,14 @@ export default function TabHomeScreen() {
                 </ThemedText>
               </ThemedView>
               {upcomingGames.length > 0 ? (
-                <ThemedView style={styles.gamesList}>
+                <ThemedView
+                  style={styles.gamesList}
+                  borderColorType="text"
+                  borderWidth={2}
+                >
                   {upcomingGames.map((game) => (
                     <TouchableOpacity
                       key={`upcoming-game-${game.id}-${Date.now()}`}
-                      style={styles.gameCard}
                       onPress={() => handleGamePress(game.id)}
                     >
                       <ThemedView style={styles.gameCardContent}>
@@ -217,12 +220,12 @@ const styles = StyleSheet.create({
   gamesList: {
     padding: 6,
     gap: 12,
+    borderRadius: 12,
   },
   gameCard: {
     borderRadius: 12,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#f0f0f0",
     ...Platform.select({
       ios: {
         shadowColor: "#000",

@@ -8,6 +8,7 @@ import {
 import { getGame, updateGame } from "@services/gamesService";
 
 import { BookedGame } from "@/types/bookedGames";
+import { User } from "@/types/games";
 
 interface BookedGamesContextType {
   bookedGames: BookedGame[];
@@ -51,30 +52,40 @@ export const BookedGamesProvider: React.FC<{ children: React.ReactNode }> = ({
   const addBookedGame = async (game: Omit<BookedGame, "id">) => {
     if (!user?.email) throw new Error("User not authenticated");
     try {
-      const { data, error: createError } = await createBookedGameService({
-        ...game,
-      });
+      // Fetch the current game details first
+      const { data: currentGameData } = await getGame(game.game_id);
+      if (!currentGameData) throw new Error("Game not found");
+
+      // Prepare the new player object using User type
+      const newPlayer: User = {
+        id: user.id,
+        email: user.email,
+        name: user.display_name || user.name || "",
+        skill_level: currentGameData.skill_level,
+        phone_number: user.phone_number || "",
+      };
+
+      // Prepare the updated players array
+      const updatedPlayers: User[] = [
+        ...(currentGameData.players || []),
+        newPlayer,
+      ];
+
+      // Register the booked game
+      const { data: bookedGamesData, error: createError } =
+        await createBookedGameService({
+          ...game,
+        });
       if (createError) throw createError;
-      if (data && data[0]) {
-        // Update the original game to reflect the new booking
-        const game = await getGame(data[0].game_id);
-        if (!game) throw new Error("Game not found");
-        // Update the game with the new booking details
-        await updateGame(data[0].game_id, {
-          registered_count: game.registered_count + 1,
-          players: [
-            ...game.players,
-            {
-              user_id: user.id,
-              email: user.email,
-              phone: user.phone_number || null,
-              name: user.display_name || "",
-            },
-          ],
+      if (bookedGamesData && bookedGamesData[0]) {
+        const bookedGame = bookedGamesData[0];
+        await updateGame(bookedGame.game_id, {
+          registered_count: updatedPlayers.length,
+          players: updatedPlayers,
         });
 
-        setBookedGames((prev) => [data[0], ...prev]);
-        return data[0];
+        setBookedGames((prev) => [bookedGame, ...prev]);
+        return bookedGame;
       }
       return null;
     } catch (err) {
