@@ -402,11 +402,19 @@ export default function ExploreScreen() {
       };
       console.log("Creating game with data:", gameData);
       try {
-        const created = await createGame(gameData);
-        if (created && typeof created === "object" && "id" in created) {
-          router.push({ pathname: "/game/[id]", params: { id: created.id } });
+        await createGame(gameData);
+        // After creating the game, refetch games and navigate to the newly created game if possible
+        await fetchGames();
+        // Try to find the newly created game by fixed_game_id and start_time
+        const newGame = games.find(
+          (g) =>
+            g.fixed_game_id === fixedGame.id &&
+            g.start_time === startTime
+        );
+        if (newGame && newGame.id) {
+          router.push({ pathname: "/game/[id]", params: { id: newGame.id } });
         } else {
-          Alert.alert("Error", "Could not create game.");
+          Alert.alert("Game Created", "Game was created, but could not find its details to navigate.");
         }
       } catch (err) {
         Alert.alert("Error", "Could not create game.");
@@ -508,7 +516,13 @@ export default function ExploreScreen() {
                   if (isBooked) {
                     handleCancelRegistration(gameId);
                   } else {
-                    handleGameSelect(gameId);
+                    // Find the correct fixedGame and game objects from the current context
+                    const foundGame = dayObj.games.find(
+                      (g: any) => (g.game && g.game.id === gameId) || g.fixedGame.id === gameId
+                    );
+                    if (foundGame) {
+                      handleGameSelect(foundGame.fixedGame, foundGame.game);
+                    }
                   }
                 }}
               />

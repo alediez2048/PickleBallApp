@@ -4,7 +4,7 @@ import React, {
   useReducer,
   useCallback,
 } from "react";
-import { Game, SkillLevel, GameFilters } from "@/types/games";
+import { Game, SkillLevel, GameFilters, User } from "@/types/games";
 import {
   createGame,
   listGames,
@@ -120,8 +120,8 @@ interface GameContextType
   createGame: (gameData: Omit<Game, "id" | "status">) => Promise<void>;
   updateGame: (gameId: string, gameData: Partial<Game>) => Promise<void>;
   deleteGame: (gameId: string) => Promise<void>;
-  joinGame: (gameId: string) => Promise<void>;
-  leaveGame: (gameId: string) => Promise<void>;
+  joinGame: (gameId: string, user: User) => Promise<void>;
+  leaveGame: (gameId: string, user: User) => Promise<void>;
   prefetchGame: (gameId: string) => Promise<void>;
   getGame: (gameId: string) => Game | undefined;
 }
@@ -130,14 +130,16 @@ interface GameContextType
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 // Provider component
-export function GameProvider({ children }: { children: React.ReactNode }) {
+export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(gameReducer, initialState);
 
-  const handleError = (error: any) => {
+  // Handle error and set error state
+  const handleError = async (error: any) => {
     const message = error?.message || "An unexpected error occurred";
     dispatch({ type: "SET_ERROR", payload: message });
   };
 
+  // Get a game by id, considering optimistic and prefetched updates
   const getGame = useCallback(
     (gameId: string): Game | undefined => {
       const optimisticGame = state.optimisticUpdates.get(gameId);
@@ -149,6 +151,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     [state.games, state.optimisticUpdates, state.prefetchedGames]
   );
 
+  // Prefetch a game by id
   const prefetchGame = useCallback(async (gameId: string) => {
     try {
       const { data, error } = await listGames();
@@ -165,18 +168,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Fetch games for the next 7 days
   const fetchGames = useCallback(async () => {
     dispatch({ type: "SET_LOADING", payload: true });
     dispatch({ type: "SET_ERROR", payload: null });
     try {
-      // Calculate date range: today to 7 days after
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const endDate = new Date(today);
       endDate.setDate(today.getDate() + 7);
       const startDateStr = today.toISOString().split("T")[0];
       const endDateStr = endDate.toISOString().split("T")[0];
-      // Use listGames with date range filter
       const { data, error } = await listGames({
         startDate: startDateStr,
         endDate: endDateStr,
@@ -184,60 +186,30 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       dispatch({ type: "SET_GAMES", payload: data || [] });
     } catch (error) {
-      handleError(error);
+      await handleError(error);
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
     }
   }, []);
 
+  // Create a new game
   const createGameHandler = useCallback(
     async (gameData: Omit<Game, "id" | "status">) => {
       dispatch({ type: "SET_LOADING", payload: true });
       dispatch({ type: "SET_ERROR", payload: null });
       try {
-        // Only send the required fields for creation
-        const {
-          title,
-          description,
-          start_time,
-          end_time,
-          location_id,
-          host,
-          players,
-          registered_count,
-          max_players,
-          skill_level,
-          price,
-          image_url,
-          fixed_game_id,
-        } = gameData;
         const cleanGameData: Omit<Game, "id" | "created_at" | "updated_at"> = {
-          title,
-          description,
-          start_time,
-          end_time,
-          location_id,
-          host,
-          players,
-          registered_count,
-          max_players,
-          skill_level,
-          price,
-          image_url,
-          fixed_game_id,
-          status: "upcoming", // Default status for new games
+          ...gameData,
+          status: "upcoming",
         };
-        console.log("Creating game with data:", cleanGameData);
         const { data, error } = await createGame(cleanGameData);
         if (error || !data || !data[0]) {
-          console.error("Error creating game:", error);
-          console.error("Response data:", data);
           throw error || new Error("No data returned");
         }
         dispatch({ type: "ADD_GAME", payload: data[0] });
-        return data[0]; // Return the created game object
+        return data[0];
       } catch (error) {
-        handleError(error);
+        await handleError(error);
         throw error;
       } finally {
         dispatch({ type: "SET_LOADING", payload: false });
@@ -246,6 +218,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  // Update a game by id
   const updateGameHandler = useCallback(
     async (gameId: string, gameData: Partial<Game>) => {
       const currentGame = getGame(gameId);
@@ -262,13 +235,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: "UPDATE_GAME", payload: data[0] });
       } catch (error) {
         dispatch({ type: "CLEAR_OPTIMISTIC_UPDATE", payload: gameId });
-        handleError(error);
+        await handleError(error);
         throw error;
       }
     },
     [getGame]
   );
 
+  // Delete a game by id
   const deleteGameHandler = useCallback(
     async (gameId: string) => {
       const deletedGame = getGame(gameId);
@@ -277,7 +251,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           type: "SET_OPTIMISTIC_UPDATE",
           payload: {
             id: gameId,
-            game: { ...deletedGame, status: "Cancelled" },
+            game: { ...deletedGame, status: "cancelled" },
           },
         });
       }
@@ -287,20 +261,35 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: "DELETE_GAME", payload: gameId });
       } catch (error) {
         dispatch({ type: "CLEAR_OPTIMISTIC_UPDATE", payload: gameId });
-        handleError(error);
+        await handleError(error);
         throw error;
       }
     },
     [getGame]
   );
 
+  // Join a game with skill level and max players restriction
   const joinGame = useCallback(
-    async (gameId: string) => {
+    async (gameId: string, user: User) => {
       const currentGame = getGame(gameId);
       if (!currentGame) throw new Error("Game not found");
+      // Check if user is already in players
+      if (currentGame.players.some((p) => p.id === user.id)) {
+        throw new Error("User already joined this game");
+      }
+      // Check max players
+      if (currentGame.registered_count >= currentGame.max_players) {
+        throw new Error("Game is full");
+      }
+      // Check skill level
+      if (user.skill_level !== currentGame.skill_level) {
+        throw new Error("Skill level does not match");
+      }
+      const updatedPlayers = [...currentGame.players, user];
       const optimisticGame = {
         ...currentGame,
-        registered_count: (currentGame.registered_count || 0) + 1,
+        players: updatedPlayers,
+        registered_count: currentGame.registered_count + 1,
       };
       dispatch({
         type: "SET_OPTIMISTIC_UPDATE",
@@ -308,6 +297,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       });
       try {
         const { data, error } = await updateGame(gameId, {
+          players: updatedPlayers,
           registered_count: optimisticGame.registered_count,
         });
         if (error || !data || !data[0])
@@ -315,20 +305,29 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: "UPDATE_GAME", payload: data[0] });
       } catch (error) {
         dispatch({ type: "CLEAR_OPTIMISTIC_UPDATE", payload: gameId });
-        handleError(error);
+        await handleError(error);
         throw error;
       }
     },
     [getGame]
   );
 
+  // Leave a game (remove user from players and decrement registered_count)
   const leaveGame = useCallback(
-    async (gameId: string) => {
+    async (gameId: string, user: User) => {
       const currentGame = getGame(gameId);
       if (!currentGame) throw new Error("Game not found");
+      // Remove user from players
+      const updatedPlayers = currentGame.players.filter(
+        (p) => p.id !== user.id
+      );
+      if (updatedPlayers.length === currentGame.players.length) {
+        throw new Error("User is not part of this game");
+      }
       const optimisticGame = {
         ...currentGame,
-        registered_count: Math.max((currentGame.registered_count || 1) - 1, 0),
+        players: updatedPlayers,
+        registered_count: Math.max(currentGame.registered_count - 1, 0),
       };
       dispatch({
         type: "SET_OPTIMISTIC_UPDATE",
@@ -336,6 +335,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       });
       try {
         const { data, error } = await updateGame(gameId, {
+          players: updatedPlayers,
           registered_count: optimisticGame.registered_count,
         });
         if (error || !data || !data[0])
@@ -343,7 +343,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: "UPDATE_GAME", payload: data[0] });
       } catch (error) {
         dispatch({ type: "CLEAR_OPTIMISTIC_UPDATE", payload: gameId });
-        handleError(error);
+        await handleError(error);
         throw error;
       }
     },
@@ -365,7 +365,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
-}
+};
 
 // Hook for using the context
 export function useGames() {

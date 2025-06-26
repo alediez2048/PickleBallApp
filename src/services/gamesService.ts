@@ -1,9 +1,17 @@
 import { supabase } from '@/libs/supabase'
 
-// Create a new game
 export const createGame = async (gameData: any) => {
-  // gameData should match the games table structure
-  return await supabase.from('games').insert([gameData]);
+  const { data, error } = await supabase
+    .from('games')
+    .insert([gameData])
+    .select();
+
+  if (error) {
+    console.error('Error creating game:', error);
+    return null;
+  }
+
+  return data?.[0];
 };
 
 // List all games with optional date range
