@@ -1,4 +1,5 @@
 // User profile types for PickleBallApp
+import type { MembershipPlan } from "@/types/membership.ts";
 
 export interface GameHistory {
   id: string;

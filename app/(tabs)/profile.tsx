@@ -11,76 +11,22 @@ import {
   ScrollView,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { IconSymbol } from "@/components/common/IconSymbol";
-import { Button } from "@/components/common/Button";
-import { SkillLevel } from "@/types/games";
 import { useAuth } from "@/contexts/AuthContext";
-import { FirstTimeProfileForm } from "@/components/profile/FirstTimeProfileForm";
 import { useRouter } from "expo-router";
-import { MembershipManagementSection } from "@/components/membership/MembershipManagementSection";
-import { MembershipPlan, MembershipTier } from "@/types/membership";
+import { MembershipPlan } from "@/types/membership";
 import { ThemedText } from "@/components/common/ThemedText";
 import { ThemedView } from "@/components/common/ThemedView";
 import ThemeToggleButton from "@/components/common/ThemeToggleButton";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { QuickActions } from "@/components/profile/QuickActions";
-
-interface GameHistory {
-  id: string;
-  date: string;
-  result: "win" | "loss";
-  score: string;
-  opponent: string;
-}
-
-interface UserProfile {
-  id?: string;
-  email?: string;
-  name?: string;
-  isVerified?: boolean;
-  skillLevel?: string;
-  profileImage?:
-    | string
-    | {
-        uri: string;
-        base64: string;
-        timestamp: number;
-      };
-  gamesPlayed?: GameHistory[];
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    zipCode?: string;
-  };
-  membership?: MembershipPlan;
-}
-
-const SKILL_LEVELS = [
-  {
-    value: "Beginner",
-    label: "Beginner",
-    description: "New to pickleball or playing for less than 6 months",
-  },
-  {
-    value: "Intermediate",
-    label: "Intermediate",
-    description:
-      "Comfortable with basic shots and rules, playing for 6 months to 2 years",
-  },
-  {
-    value: "Advanced",
-    label: "Advanced",
-    description: "Experienced player with strong shot control and strategy",
-  },
-  {
-    value: "Open",
-    label: "Open",
-    description: "Competitive player with tournament experience",
-  },
-];
+import { SkillLevelCard } from "@/components/profile/SkillLevelCard";
+import { MembershipCard } from "@/components/profile/MembershipCard";
+import { ProfileInfoCard } from "@/components/profile/ProfileInfoCard";
+import { SignOutButton } from "@/components/profile/SignOutButton";
+import { SkillLevelModal } from "@/components/profile/SkillLevelModal";
+import { ProfileFormModal } from "@/components/profile/ProfileFormModal";
+import { SKILL_LEVELS } from "@/constants/skillLevels";
+import type { UserProfile, GameHistory } from "@/types/userProfile";
 
 export default function ProfileScreen() {
   const { user } = useAuth();
@@ -90,12 +36,12 @@ export default function ProfileScreen() {
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
   const [isSkillModalVisible, setIsSkillModalVisible] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<MembershipPlan | undefined>(
-    user?.membership
+    user?.membership || undefined
   );
   const router = useRouter();
 
   useEffect(() => {
-    setCurrentPlan(user?.membership);
+    setCurrentPlan(user?.membership || undefined);
   }, [user?.membership]);
 
   const handleUpdateMembership = async (plan: MembershipPlan) => {
@@ -209,275 +155,64 @@ export default function ProfileScreen() {
       </ThemedView>
     );
   }
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Header Card with Solid Background */}
         <ProfileHeader
           user={user}
           onImagePick={handleImagePick}
           refreshKey={refreshKey}
         />
-
-        {/* Quick Actions */}
         <QuickActions
           onEditProfile={() => setIsProfileFormVisible(true)}
           onEditSkill={() => setIsSkillModalVisible(true)}
           onMembership={() => console.log("Navigate to membership")}
         />
-
-        {/* Skill Level Card - Redesigned */}
-        <ThemedView style={styles.card}>
-          <ThemedView style={styles.cardHeader}>
-            <ThemedView style={styles.cardTitleContainer}>
-              <IconSymbol
-                name="trophy.fill"
-                size={20}
-                color="#4CAF50"
-                style={styles.cardIcon}
-              />
-              <ThemedText type="subtitle" style={styles.cardTitle}>
-                Skill Level
-              </ThemedText>
-            </ThemedView>
-            <Button
-              variant="outline"
-              size="small"
-              onPress={() => setIsSkillModalVisible(true)}
-            >
-              Edit
-            </Button>
-          </ThemedView>
-          <ThemedView style={styles.skillLevelContainer}>
-            <ThemedView
-              style={[
-                styles.skillBadge,
-                user.skill_level === "Advanced" && styles.advancedBadge,
-                user.skill_level === "Open" && styles.proBadge,
-              ]}
-            >
-              <ThemedText style={styles.skillLevelText}>
-                {user.skill_level || "Not set"}
-              </ThemedText>
-            </ThemedView>
-            <ThemedText type="caption" style={styles.skillLevelDescription}>
-              {SKILL_LEVELS.find((level) => level.value === user.skill_level)
-                ?.description || "Please set your skill level"}
-            </ThemedText>
-          </ThemedView>
-        </ThemedView>
-
-        {/* Membership Card - Redesigned */}
-        <ThemedView style={styles.card}>
-          <ThemedView style={styles.cardHeader}>
-            <ThemedView style={styles.cardTitleContainer}>
-              <IconSymbol
-                name="star.fill"
-                size={20}
-                color="#4CAF50"
-                style={styles.cardIcon}
-              />
-              <ThemedText type="subtitle" style={styles.cardTitle}>
-                Membership
-              </ThemedText>
-            </ThemedView>
-          </ThemedView>
-          <MembershipManagementSection
-            key={currentPlan?.id || "no-plan"}
-            currentPlan={currentPlan}
-            onUpdatePlan={handleUpdateMembership}
-          />
-        </ThemedView>
-
-        {/* Profile Information Card - Redesigned */}
-        <ThemedView style={styles.card}>
-          <ThemedView style={styles.cardHeader}>
-            <ThemedView style={styles.cardTitleContainer}>
-              <IconSymbol
-                name="person.fill"
-                size={20}
-                color="#4CAF50"
-                style={styles.cardIcon}
-              />
-              <ThemedText type="subtitle" style={styles.cardTitle}>
-                Profile Information
-              </ThemedText>
-            </ThemedView>
-            <Button
-              variant="outline"
-              size="small"
-              onPress={() => setIsProfileFormVisible(true)}
-            >
-              Edit
-            </Button>
-          </ThemedView>
-          <ThemedView style={styles.profileInfo}>
-            <ThemedView style={styles.infoItem}>
-              <IconSymbol
-                name="person.fill"
-                size={18}
-                color="#666666"
-                style={styles.infoIcon}
-              />
-              <ThemedView style={styles.infoContent}>
-                <ThemedText type="caption" style={styles.infoLabel}>
-                  Phone
-                </ThemedText>
-                <ThemedText style={styles.infoValue}>
-                  {user?.phone_number || "Not set"}
-                </ThemedText>
-              </ThemedView>
-            </ThemedView>
-
-            <ThemedView style={styles.infoItem}>
-              <IconSymbol
-                name="calendar"
-                size={18}
-                color="#666666"
-                style={styles.infoIcon}
-              />
-              <ThemedView style={styles.infoContent}>
-                <ThemedText type="caption" style={styles.infoLabel}>
-                  Date of Birth
-                </ThemedText>
-                <ThemedText style={styles.infoValue}>
-                  {user?.date_of_birth || "Not set"}
-                </ThemedText>
-              </ThemedView>
-            </ThemedView>
-
-            <ThemedView style={styles.infoItem}>
-              <IconSymbol
-                name="location.fill"
-                size={18}
-                color="#666666"
-                style={styles.infoIcon}
-              />
-              <ThemedView style={styles.infoContent}>
-                <ThemedText type="caption" style={styles.infoLabel}>
-                  Address
-                </ThemedText>
-                <ThemedText style={styles.infoValue}>
-                  {user?.address?.street
-                    ? `${user.address.street}, ${user.address.city || ""}, ${
-                        user.address.state || ""
-                      }`
-                    : "Not set"}
-                </ThemedText>
-              </ThemedView>
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
-
-        {/* Sign Out Button */}
-        <ThemedView style={styles.signOutContainer}>
-          <Button
-            variant="outline"
-            onPress={async () => {
-              try {
-                await signOut();
-                router.replace("/");
-              } catch (error) {
-                console.error("Error during sign out:", error);
-                Alert.alert("Error", "Failed to sign out. Please try again.");
-              }
-            }}
-            size="large"
-            fullWidth
-          >
-            Sign Out
-          </Button>
-        </ThemedView>
-
+        <SkillLevelCard
+          skillLevel={user.skill_level || ""}
+          onEdit={() => setIsSkillModalVisible(true)}
+        />
+        <MembershipCard
+          currentPlan={currentPlan}
+          onUpdatePlan={handleUpdateMembership}
+        />
+        <ProfileInfoCard
+          user={user}
+          onEdit={() => setIsProfileFormVisible(true)}
+        />
+        <SignOutButton
+          onSignOut={async () => {
+            try {
+              await signOut();
+              router.replace("/");
+            } catch (error) {
+              console.error("Error during sign out:", error);
+              Alert.alert("Error", "Failed to sign out. Please try again.");
+            }
+          }}
+        />
         <ThemedView style={styles.toggleContainer}>
           <ThemeToggleButton />
         </ThemedView>
       </ScrollView>
-
-      {/* Profile Form Modal */}
-      <Modal
+      <ProfileFormModal
         visible={isProfileFormVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setIsProfileFormVisible(false)}
-      >
-        <SafeAreaView style={styles.profileFormOverlay}>
-          <ThemedView style={styles.profileFormContainer}>
-            <ThemedView style={styles.modalHeader}>
-              <TouchableOpacity
-                onPress={() => setIsProfileFormVisible(false)}
-                style={styles.modalCloseButton}
-              >
-                <IconSymbol name="xmark" size={24} color="#666666" />
-              </TouchableOpacity>
-              <ThemedText type="title" style={styles.modalTitle}>
-                Update Profile
-              </ThemedText>
-            </ThemedView>
-            <ScrollView style={styles.profileFormScroll}>
-              <FirstTimeProfileForm
-                onComplete={() => {
-                  setIsProfileFormVisible(false);
-                  setRefreshKey((prev) => prev + 1);
-                }}
-              />
-            </ScrollView>
-          </ThemedView>
-        </SafeAreaView>
-      </Modal>
-
-      {/* Skill Level Modal */}
-      <Modal
+        onClose={() => setIsProfileFormVisible(false)}
+        onComplete={() => {
+          setIsProfileFormVisible(false);
+          setRefreshKey((prev) => prev + 1);
+        }}
+      />
+      <SkillLevelModal
         visible={isSkillModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setIsSkillModalVisible(false)}
-      >
-        <ThemedView style={styles.modalOverlay}>
-          <ThemedView style={styles.modalContent}>
-            <ThemedView style={styles.modalHeader}>
-              <ThemedText type="title" style={styles.modalTitle}>
-                Update Skill Level
-              </ThemedText>
-              <TouchableOpacity
-                onPress={() => setIsSkillModalVisible(false)}
-                style={styles.closeButton}
-              >
-                <IconSymbol name="xmark" size={24} color="#666666" />
-              </TouchableOpacity>
-            </ThemedView>
-            <ScrollView style={styles.modalScroll}>
-              {SKILL_LEVELS.map((level) => (
-                <TouchableOpacity
-                  key={level.value}
-                  style={[
-                    styles.skillOption,
-                    user.skill_level === level.value && styles.selectedSkill,
-                  ]}
-                  onPress={() => handleSkillUpdate(level.value)}
-                  disabled={isLoading}
-                >
-                  <ThemedView style={styles.skillOptionContent}>
-                    <ThemedText style={styles.skillOptionText}>
-                      {level.label}
-                    </ThemedText>
-                    <ThemedText type="caption" style={styles.skillDescription}>
-                      {level.description}
-                    </ThemedText>
-                  </ThemedView>
-                  {user.skill_level === level.value ? (
-                    <IconSymbol name="checkmark" size={20} color="#4CAF50" />
-                  ) : null}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </ThemedView>
-        </ThemedView>
-      </Modal>
+        onClose={() => setIsSkillModalVisible(false)}
+        onSelect={handleSkillUpdate}
+        selectedLevel={user.skill_level || ""}
+        isLoading={isLoading}
+      />
     </SafeAreaView>
   );
 }
@@ -485,13 +220,11 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
   },
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
   },
   scrollView: {
     flex: 1,
@@ -521,7 +254,6 @@ const styles = StyleSheet.create({
   headerBackground: {
     padding: 24,
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
   },
   profileImageContainer: {
     width: 110,
@@ -537,7 +269,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 55,
-    backgroundColor: "#F1F8E9",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -581,7 +312,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 12,
-    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     marginHorizontal: 4,
     ...Platform.select({
@@ -603,7 +333,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#F1F8E9",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 8,
@@ -614,7 +343,6 @@ const styles = StyleSheet.create({
     color: "#333333",
   },
   card: {
-    backgroundColor: "#fff",
     borderRadius: 16,
     marginBottom: 16,
     padding: 16,
@@ -652,7 +380,6 @@ const styles = StyleSheet.create({
     color: "#666666",
   },
   skillLevelContainer: {
-    backgroundColor: "#f8f9fa",
     borderRadius: 12,
     padding: 16,
   },
