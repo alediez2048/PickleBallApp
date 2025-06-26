@@ -354,7 +354,6 @@ export default function ExploreScreen() {
       router.push({ pathname: "/game/[id]", params: { id: game.id } });
       return;
     }
-    console.log("Selected fixed game:", fixedGame);
     // If no scheduled game, create one from fixedGame
     if (fixedGame) {
       // Calculate the next date for the fixed game's day_of_week

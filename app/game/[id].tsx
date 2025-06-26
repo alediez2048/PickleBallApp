@@ -93,8 +93,6 @@ export default function GameDetailsScreen() {
     (game: BookedGame) => game.gameId === id && game.status === "upcoming"
   );
 
-  console.log("[GameDetails] Game ID:", game);
-
   const handleBookingConfirm = async () => {
     // Prevent double submission
     if (isLoading) return;

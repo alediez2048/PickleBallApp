@@ -1,13 +1,19 @@
 import { supabase } from '@/libs/supabase';
 import { BookedGame } from '@/types/bookedGames';
-import { PostgrestResponse } from '@supabase/supabase-js';
+
 
 // Create a new booked game
 export const createBookedGame = async (
   bookedGameData: any
-): Promise<PostgrestResponse<BookedGame>> => {
-  // bookedGameData should match the booked_games table structure
-  return await supabase.from('booked_games').insert([bookedGameData]);
+) => {
+   const { data, error } = await supabase.from('booked_games').insert([bookedGameData]).select();
+
+  if (error) {
+    console.error('Error creating game:', error);
+    return null;
+  }
+
+  return data?.[0];
 };
 
 // List all booked games

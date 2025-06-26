@@ -53,7 +53,7 @@ export const BookedGamesProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!user?.email) throw new Error("User not authenticated");
     try {
       // Fetch the current game details first
-      const { data: currentGameData } = await getGame(game.game_id);
+      const currentGameData = await getGame(game.game_id);
       if (!currentGameData) throw new Error("Game not found");
 
       // Prepare the new player object using User type
@@ -72,13 +72,8 @@ export const BookedGamesProvider: React.FC<{ children: React.ReactNode }> = ({
       ];
 
       // Register the booked game
-      const { data: bookedGamesData, error: createError } =
-        await createBookedGameService({
-          ...game,
-        });
-      if (createError) throw createError;
-      if (bookedGamesData && bookedGamesData[0]) {
-        const bookedGame = bookedGamesData[0];
+      const bookedGame = await createBookedGameService({ ...game });
+      if (bookedGame) {
         await updateGame(bookedGame.game_id, {
           registered_count: updatedPlayers.length,
           players: updatedPlayers,
