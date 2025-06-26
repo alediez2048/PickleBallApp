@@ -13,7 +13,9 @@ interface GameContextType {
   loading: boolean;
   error: string | null;
   fetchGames: () => Promise<void>;
-  createGame: (gameData: Omit<Game, "id" | "status">) => Promise<void>;
+  createGame: (
+    gameData: Omit<Game, "id" | "created_at" | "updated_at">
+  ) => Promise<Game>;
   updateGame: (gameId: string, gameData: Partial<Game>) => Promise<void>;
   deleteGame: (gameId: string) => Promise<void>;
   joinGame: (gameId: string, user: User) => Promise<void>;
@@ -34,7 +36,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await listGamesService();
+      // Calculate today and 7 days ahead in ISO format (timestamp)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const startDate = today.toISOString();
+      const endDateObj = new Date(today);
+      endDateObj.setDate(today.getDate() + 6); // 7 days window (today + 6)
+      endDateObj.setHours(23, 59, 59, 999);
+      const endDate = endDateObj.toISOString();
+      const { data, error } = await listGamesService({ startDate, endDate });
       if (error) throw error;
       setGames(data || []);
     } catch (err: any) {
@@ -44,13 +54,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const createGame = async (gameData: Omit<Game, "id" | "status">) => {
+  const createGame = async (
+    gameData: Omit<Game, "id" | "created_at" | "updated_at">
+  ): Promise<Game> => {
     setLoading(true);
     setError(null);
     try {
       const newGame = await createGameService(gameData);
       if (!newGame) throw new Error("Failed to create game");
       setGames((prev) => [...prev, newGame]);
+      return newGame;
     } catch (err: any) {
       setError(err?.message || "An unexpected error occurred");
       throw err;

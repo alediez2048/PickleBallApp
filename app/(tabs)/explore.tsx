@@ -397,24 +397,18 @@ export default function ExploreScreen() {
         price: fixedGame.price,
         image_url: fixedGame.image_url,
         fixed_game_id: fixedGame.id,
-        created_at: "", // required by type, ignored by backend
-        updated_at: "", // required by type, ignored by backend
+        status: GameStatus.Upcoming,
       };
-      console.log("Creating game with data:", gameData);
       try {
-        await createGame(gameData);
+        const newGameCreated = await createGame(gameData);
         // After creating the game, refetch games and navigate to the newly created game if possible
         await fetchGames();
-        // Try to find the newly created game by fixed_game_id and start_time
-        const newGame = games.find(
-          (g) =>
-            g.fixed_game_id === fixedGame.id &&
-            g.start_time === startTime
-        );
-        if (newGame && newGame.id) {
-          router.push({ pathname: "/game/[id]", params: { id: newGame.id } });
-        } else {
-          Alert.alert("Game Created", "Game was created, but could not find its details to navigate.");
+
+        if (newGameCreated && newGameCreated.id) {
+          router.push({
+            pathname: "/game/[id]",
+            params: { id: newGameCreated.id },
+          });
         }
       } catch (err) {
         Alert.alert("Error", "Could not create game.");
@@ -473,33 +467,33 @@ export default function ExploreScreen() {
       />
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         {sortedDaysArray.length === 0 && (
-          <ThemedView type='emptyStateContainer'>
+          <ThemedView type="emptyStateContainer">
             <IconSymbol
-              name='calendar'
+              name="calendar"
               size={48}
               color={colors.icon}
               style={{ marginBottom: 16, opacity: 0.5 }}
             />
-            <ThemedText type='emptyStateTitle'>No games found</ThemedText>
-            <ThemedText type='emptyStateText'>
+            <ThemedText type="emptyStateTitle">No games found</ThemedText>
+            <ThemedText type="emptyStateText">
               There are no games available for the selected skill level. Try
               changing the filter or check back later.
             </ThemedText>
           </ThemedView>
         )}
         {sortedDaysArray.map((dayObj: any) => (
-          <ThemedView key={dayObj.dateUTC} type='dateSection'>
+          <ThemedView key={dayObj.dateUTC} type="dateSection">
             <ThemedView
-              type='dateTitleContainer'
-              borderColorType='text'
+              type="dateTitleContainer"
+              borderColorType="text"
               style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
                 alignItems: "center",
               }}
             >
-              <ThemedText type='sectionTitle'>{dayObj.day}</ThemedText>
-              <ThemedText type='sectionTitle'>{dayObj.displayDate}</ThemedText>
+              <ThemedText type="sectionTitle">{dayObj.day}</ThemedText>
+              <ThemedText type="sectionTitle">{dayObj.displayDate}</ThemedText>
             </ThemedView>
             {dayObj.games.map((game: any) => (
               <GameCard
@@ -518,7 +512,9 @@ export default function ExploreScreen() {
                   } else {
                     // Find the correct fixedGame and game objects from the current context
                     const foundGame = dayObj.games.find(
-                      (g: any) => (g.game && g.game.id === gameId) || g.fixedGame.id === gameId
+                      (g: any) =>
+                        (g.game && g.game.id === gameId) ||
+                        g.fixedGame.id === gameId
                     );
                     if (foundGame) {
                       handleGameSelect(foundGame.fixedGame, foundGame.game);
@@ -533,27 +529,27 @@ export default function ExploreScreen() {
       {/* Cancel registration modal */}
       <Modal
         visible={isCancelModalVisible}
-        animationType='slide'
+        animationType="slide"
         transparent
         onRequestClose={() => setIsCancelModalVisible(false)}
       >
         <ThemedView
-          type='modalContentCustom'
+          type="modalContentCustom"
           style={[
             styles.modalContainer,
             { backgroundColor: colors.modalOverlay },
           ]}
         >
-          <ThemedText type='title'>Cancel Registration</ThemedText>
-          <ThemedText type='paragraph'>
+          <ThemedText type="title">Cancel Registration</ThemedText>
+          <ThemedText type="paragraph">
             Are you sure you want to cancel your registration for this game?
           </ThemedText>
-          <ThemedView type='centered'>
+          <ThemedView type="centered">
             <TouchableOpacity
               style={[styles.cancelButton, { backgroundColor: colors.error }]}
               onPress={() => setIsCancelModalVisible(false)}
             >
-              <ThemedText type='button'>No, go back</ThemedText>
+              <ThemedText type="button">No, go back</ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -566,7 +562,7 @@ export default function ExploreScreen() {
                 }
               }}
             >
-              <ThemedText type='button'>Yes, cancel</ThemedText>
+              <ThemedText type="button">Yes, cancel</ThemedText>
             </TouchableOpacity>
           </ThemedView>
         </ThemedView>

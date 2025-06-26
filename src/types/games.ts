@@ -9,7 +9,6 @@ export type SkillLevel = typeof SkillLevel[keyof typeof SkillLevel];
 
 export const GameStatus = {
   Upcoming: 'upcoming',
-  Progress: 'progress',
   Completed: 'completed',
   Cancelled: 'cancelled',
 } as const;
