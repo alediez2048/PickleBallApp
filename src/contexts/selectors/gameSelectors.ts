@@ -24,17 +24,6 @@ export const useGamesBySkillLevel = (skillLevel: SkillLevel) => {
   );
 };
 
-// Computed selectors
-export const useUpcomingGames = () => {
-  const { games } = useGames();
-  return useMemo(
-    () => games.filter(
-      game => game.status === GameStatus.Upcoming && new Date(game.date) > new Date()
-    ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
-    [games]
-  );
-};
-
 export const useGameStats = () => {
   const { games } = useGames();
   return useMemo(() => ({
@@ -56,7 +45,7 @@ export const useFilteredGames = (filters: {
   dateRange?: { start: Date; end: Date };
 }) => {
   const { games } = useGames();
-  
+
   return useMemo(() => {
     return games.filter(game => {
       if (filters.status && game.status !== filters.status) return false;
@@ -77,7 +66,7 @@ export const useFilteredGames = (filters: {
 // Pagination selector
 export const usePaginatedGames = (page: number, pageSize: number) => {
   const { games } = useGames();
-  
+
   return useMemo(() => {
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
@@ -89,4 +78,4 @@ export const usePaginatedGames = (page: number, pageSize: number) => {
       hasPreviousPage: page > 1,
     };
   }, [games, page, pageSize]);
-}; 
+};

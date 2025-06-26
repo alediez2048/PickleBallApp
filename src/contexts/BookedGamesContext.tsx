@@ -18,6 +18,7 @@ interface BookedGamesContextType {
   addBookedGame: (game: Omit<BookedGame, "id">) => Promise<BookedGame | null>;
   cancelBooking: (gameId: string) => Promise<void>;
   clearAllGames: () => Promise<void>;
+  listBookedGamesForUser: () => Promise<BookedGame[]>;
 }
 
 const BookedGamesContext = createContext<BookedGamesContextType | undefined>(
@@ -115,6 +116,28 @@ export const BookedGamesProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  /**
+   * Fetch upcoming booked games for the current user in the next 7 days
+   */
+  const listBookedGamesForUser = async () => {
+    if (!user?.id) return [];
+    const today = new Date();
+    const startDate = today.toISOString().split("T")[0];
+    const endDateObj = new Date(today);
+    endDateObj.setDate(today.getDate() + 7);
+    const endDate = endDateObj.toISOString().split("T")[0];
+    const { data, error } = await listBookedGamesService({
+      userId: user.id,
+      dateRange: { startDate, endDate },
+      status: "upcoming",
+    });
+    if (error) {
+      console.error("Error fetching upcoming booked games for user:", error);
+      return [];
+    }
+    return data || [];
+  };
+
   useEffect(() => {
     refreshBookedGames();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -130,6 +153,7 @@ export const BookedGamesProvider: React.FC<{ children: React.ReactNode }> = ({
         addBookedGame,
         cancelBooking,
         clearAllGames,
+        listBookedGamesForUser,
       }}
     >
       {children}
@@ -143,11 +167,4 @@ export function useBookedGames() {
     throw new Error("useBookedGames must be used within a BookedGamesProvider");
   }
   return context;
-}
-
-export function useUpcomingBookedGames() {
-  const { bookedGames } = useBookedGames();
-  return bookedGames
-    .filter((game) => game.status === "upcoming")
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }

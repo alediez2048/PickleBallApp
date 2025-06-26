@@ -16,11 +16,7 @@ import { ThemedView } from "@components/common/ThemedView";
 import { ThemedText } from "@components/common/ThemedText";
 import { Button } from "@/components/common/Button";
 import { MOCK_GAMES } from "@/utils/mockData";
-import {
-  useBookedGames,
-  useUpcomingBookedGames,
-  BookedGame,
-} from "@/contexts/BookedGamesContext";
+import { useBookedGames } from "@/contexts/BookedGamesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { mockApi } from "@/services/mockApi";
 import { SpotsAvailability } from "@/components/common/SpotsAvailability";
@@ -32,6 +28,7 @@ import { PaymentMethodModal } from "@/components/payment/PaymentMethodModal";
 import { MembershipPlan } from "@/types/membership";
 import { IconSymbol } from "@/components/common/IconSymbol";
 import BackButton from "@/components/common/BackButton";
+import { BookedGame } from "@/types/bookedGames";
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -42,8 +39,9 @@ export default function GameDetailsScreen() {
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [totalBookedPlayers, setTotalBookedPlayers] = useState(0);
-  const { addBookedGame, cancelBooking } = useBookedGames();
-  const upcomingGames = useUpcomingBookedGames();
+  const { addBookedGame, cancelBooking, listBookedGamesForUser } =
+    useBookedGames();
+  const [upcomingGames, setUpcomingGames] = useState<BookedGame[]>([]);
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
   const [selectedGame, setSelectedGame] = useState<
     (typeof MOCK_GAMES)[keyof typeof MOCK_GAMES] | null
@@ -66,7 +64,18 @@ export default function GameDetailsScreen() {
       }
     };
     loadTotalBookedPlayers();
-  }, [game, upcomingGames]);
+    fetchBookedGames();
+  }, [game]);
+
+  const fetchBookedGames = async () => {
+    try {
+      const games = await listBookedGamesForUser();
+      setUpcomingGames(games);
+    } catch (error) {
+      console.error("Error fetching upcoming games:", error);
+      Alert.alert("Error", "Failed to fetch upcoming games. Please try again.");
+    }
+  };
 
   // Defensive: players array may be undefined
   const totalPlayers =

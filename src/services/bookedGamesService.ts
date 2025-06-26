@@ -16,15 +16,32 @@ export const createBookedGame = async (
   return data?.[0];
 };
 
-// List all booked games
-export const listBookedGames = async () => {
-  return await supabase.from('booked_games')
-     .select(`
+// List all booked games with optional filters
+export const listBookedGames = async (options?: {
+  userId?: string;
+  dateRange?: { startDate: string; endDate: string };
+  status?: string;
+}) => {
+  let query = supabase
+    .from('booked_games')
+    .select(`
       *,
       location:location_id(*),
       game:game_id(*)
     `)
-  .order('date', { ascending: true });
+    .order('date', { ascending: true });
+
+  if (options?.userId) {
+    query = query.eq('user_id', options.userId);
+  }
+  if (options?.dateRange) {
+    query = query.gte('date', options.dateRange.startDate).lte('date', options.dateRange.endDate);
+  }
+  if (options?.status) {
+    query = query.eq('status', options.status);
+  }
+
+  return await query;
 };
 
 // Update a booked game by id

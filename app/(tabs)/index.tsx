@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   ScrollView,
@@ -9,19 +9,32 @@ import {
 import { Button } from "@/components/common/Button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
-import {
-  useUpcomingBookedGames,
-  useBookedGames,
-} from "@/contexts/BookedGamesContext";
+import { useBookedGames } from "@/contexts/BookedGamesContext";
 import { IconSymbol } from "@/components/common/IconSymbol";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
+import { BookedGame } from "@/types/bookedGames";
 
 export default function TabHomeScreen() {
   const { user } = useAuth();
   const router = useRouter();
-  const upcomingGames = useUpcomingBookedGames();
-  const { clearAllGames } = useBookedGames();
+  const [upcomingGames, setUpcomingGames] = useState<BookedGame[]>([]);
+  const { listBookedGamesForUser } = useBookedGames();
+
+  // Fetch upcoming booked games for the user
+  useEffect(() => {
+    fetchBookedGames();
+  }, []);
+
+  const fetchBookedGames = async () => {
+    try {
+      const games = await listBookedGamesForUser();
+      setUpcomingGames(games);
+    } catch (error) {
+      console.error("Error fetching upcoming games:", error);
+      Alert.alert("Error", "Failed to fetch upcoming games. Please try again.");
+    }
+  };
 
   const handleGamePress = (gameId: string) => {
     // Find the booked game to get its original game ID

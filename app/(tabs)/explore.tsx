@@ -14,10 +14,7 @@ import type { FixedGame } from "@/types/fixedGames";
 import { SkillLevel } from "@/constants/skillLevel.types";
 import { Game, GameStatus } from "@/types/games";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  useBookedGames,
-  useUpcomingBookedGames,
-} from "@/contexts/BookedGamesContext";
+import { useBookedGames } from "@/contexts/BookedGamesContext";
 import { mockApi } from "@/services/mockApi";
 import { SpotsAvailability } from "@/components/common/SpotsAvailability";
 import { GAME_CONSTANTS } from "@/types/games";
@@ -30,6 +27,7 @@ import { DAYS_OF_WEEK } from "@/constants/daysOfWeek";
 import GameCard from "@/components/explore/GameCard";
 import ExploreFilter from "@components/explore/ExploreFilter";
 import { useTheme } from "@contexts/ThemeContext";
+import { BookedGame } from "@/types/bookedGames";
 
 // Type for merged game (scheduled or fixed)
 type MergedGame = Game & {
@@ -45,8 +43,8 @@ export default function ExploreScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
-  const upcomingGames = useUpcomingBookedGames();
-  const { cancelBooking } = useBookedGames();
+  const [upcomingGames, setUpcomingGames] = useState<BookedGame[]>([]);
+  const { cancelBooking, listBookedGamesForUser } = useBookedGames();
   const { games, fetchGames, loading: loadingGames, createGame } = useGames();
   const {
     fixedGames,
@@ -61,8 +59,19 @@ export default function ExploreScreen() {
   useEffect(() => {
     fetchFixedGames();
     fetchGames();
+    fetchBookedGames();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const fetchBookedGames = async () => {
+    try {
+      const games = await listBookedGamesForUser();
+      setUpcomingGames(games);
+    } catch (error) {
+      console.error("Error fetching upcoming games:", error);
+      Alert.alert("Error", "Failed to fetch upcoming games. Please try again.");
+    }
+  };
 
   // Map fixed_game_id to scheduled game for quick lookup
   const fixedGameIdToGame: Record<string, Game> = {};

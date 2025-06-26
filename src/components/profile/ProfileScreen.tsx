@@ -9,18 +9,14 @@ import {
   Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
 import { Button } from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { useUser } from "@/contexts/selectors/authSelectors";
-import { useUpcomingGames } from "@/contexts/selectors/gameSelectors";
 import { SkillLevel } from "@/types/games";
 import { IconSymbol } from "@/components/common/IconSymbol";
 
 export function ProfileScreen() {
   const user = useUser();
-  const upcomingGames = useUpcomingGames();
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
@@ -116,51 +112,6 @@ export function ProfileScreen() {
               : "Competitive player with tournament experience"}
           </ThemedText>
         </View>
-      </View>
-
-      {/* Upcoming Games Card */}
-      <View style={styles.card}>
-        <ThemedText variant="subtitle" style={styles.cardTitle}>
-          Upcoming Games
-        </ThemedText>
-        {upcomingGames.length > 0 ? (
-          upcomingGames.map((game) => (
-            <View key={game.id} style={styles.gameItem}>
-              <View style={styles.gameHeader}>
-                <ThemedText style={styles.gameTitle}>{game.title}</ThemedText>
-                <ThemedText variant="caption" style={styles.gameDate}>
-                  {new Date(game.startTime).toLocaleDateString()}
-                </ThemedText>
-              </View>
-              <View style={styles.gameDetails}>
-                <View style={styles.gameDetailRow}>
-                  <IconSymbol name="location.fill" size={16} color="#4CAF50" />
-                  <ThemedText variant="caption" style={styles.gameDetailText}>
-                    {typeof game.location === "string"
-                      ? game.location
-                      : "Location not specified"}
-                  </ThemedText>
-                </View>
-                <View style={styles.gameDetailRow}>
-                  <IconSymbol name="calendar" size={16} color="#4CAF50" />
-                  <ThemedText variant="caption" style={styles.gameDetailText}>
-                    {new Date(game.start_time).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </ThemedText>
-                </View>
-              </View>
-            </View>
-          ))
-        ) : (
-          <View style={styles.emptyState}>
-            <ThemedText style={styles.emptyText}>No upcoming games</ThemedText>
-            <ThemedText variant="caption" style={styles.emptySubtext}>
-              Join a game to see it here
-            </ThemedText>
-          </View>
-        )}
       </View>
 
       {/* Action Buttons */}
