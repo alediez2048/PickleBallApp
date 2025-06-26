@@ -132,7 +132,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
-  const getGame = (gameId: string) => games.find((g) => g.id === gameId);
+  const getGame = (gameId: string) => {
+    const found = games.find((g) => g.id === gameId);
+    if (found) return found;
+    // If not found, fetch from service and update state
+    getGameService(gameId).then((game) => {
+      if (game) {
+        setGames((prev) => {
+          if (prev.some((g) => g.id === game.id)) return prev;
+          return [...prev, game];
+        });
+      }
+    });
+    return undefined;
+  };
 
   return (
     <GameContext.Provider
