@@ -48,16 +48,49 @@ applyTo: "**"
    - All contexts must be created using `createContext`.
    - All functions inside the context/provider must be defined as arrow functions using `async/await`.
 
-     - Example:
+   - **Service Method Standard for Supabase (src/services):**
 
-       ```ts
-       const BookedGamesContext =
-         createContext<BookedGamesContextType>(undefined);
+     - All `create` and `get` methods in service files must:
+       - Await the Supabase call.
+       - Check for `error` in the response.
+       - Log the error with a clear message if present.
+       - Return `null` if there is an error.
+       - For single-object queries, return `data?.[0]` or `null` if not found.
+       - For `create`, return the created object as `data?.[0]` or `null`.
 
-       const fetchGames = async () => {
-         // ...function logic...
-       };
-       ```
+     **Example:**
+
+     ```ts
+     export const createGame = async (gameData: any) => {
+       const { data, error } = await supabase
+         .from("games")
+         .insert([gameData])
+         .select();
+
+       if (error) {
+         console.error("Error creating game:", error);
+         return null;
+       }
+
+       return data?.[0];
+     };
+
+     export const getGame = async (gameId: string) => {
+       const { data, error } = await supabase
+         .from("games")
+         .select("*, location:location_id(*)")
+         .eq("id", gameId);
+
+       if (error) {
+         console.error("Error fetching game:", error);
+         return null;
+       }
+
+       return data?.[0] || null;
+     };
+     ```
+
+     - Apply this pattern to all `create` and `get` methods in every service file in `src/services`.
 
 6. Styling:
 
