@@ -56,19 +56,19 @@ export const Button: React.FC<ButtonProps> = ({
     ];
 
     // Debug logging
-    console.debug("[Button Render]", {
-      text: typeof children === "string" ? children : "Custom children",
-      variant,
-      size,
-      isDisabled,
-      fullWidth,
-      customStyle: style,
-      computedStyles: computedStyles
-        .filter(
-          (s): s is NonNullable<typeof s> => s !== null && s !== undefined
-        )
-        .map((s) => (typeof s === "object" ? Object.keys(s) : [])),
-    });
+    // console.debug("[Button Render]", {
+    //   text: typeof children === "string" ? children : "Custom children",
+    //   variant,
+    //   size,
+    //   isDisabled,
+    //   fullWidth,
+    //   customStyle: style,
+    //   computedStyles: computedStyles
+    //     .filter(
+    //       (s): s is NonNullable<typeof s> => s !== null && s !== undefined
+    //     )
+    //     .map((s) => (typeof s === "object" ? Object.keys(s) : [])),
+    // });
 
     return computedStyles;
   };
@@ -95,11 +95,11 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <TouchableOpacity
-      testID='button'
+      testID="button"
       style={getButtonStyle()}
       disabled={isDisabled}
       onPress={onPress}
-      accessibilityRole='button'
+      accessibilityRole="button"
       accessibilityLabel={buttonLabel}
       accessibilityHint={accessibilityHint}
       accessibilityState={{
@@ -111,9 +111,9 @@ export const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator
-            testID='loading-spinner'
+            testID="loading-spinner"
             color={variant === "outline" ? "#4CAF50" : "#FFFFFF"}
-            accessibilityLabel='Loading'
+            accessibilityLabel="Loading"
           />
         </View>
       ) : typeof children === "string" ? (

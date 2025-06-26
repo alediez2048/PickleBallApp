@@ -17,24 +17,28 @@ export const SkillLevelCard: React.FC<SkillLevelCardProps> = ({
 }) => {
   const skill = SKILL_LEVELS.find((level) => level.value === skillLevel);
   return (
-    <ThemedView style={styles.card}>
+    <ThemedView style={styles.card} borderColorType="primary" borderWidth={3}>
       <ThemedView style={styles.cardHeader}>
         <ThemedView style={styles.cardTitleContainer}>
           <IconSymbol
             name="trophy.fill"
             size={20}
-            color="#4CAF50"
+            color="primary"
             style={styles.cardIcon}
           />
           <ThemedText type="subtitle" style={styles.cardTitle}>
             Skill Level
           </ThemedText>
         </ThemedView>
-        <Button variant="outline" size="small" onPress={onEdit}>
+        <Button variant="primary" size="small" onPress={onEdit}>
           Edit
         </Button>
       </ThemedView>
-      <ThemedView style={styles.skillLevelContainer}>
+      <ThemedView
+        style={styles.skillLevelContainer}
+        borderColorType="primary"
+        borderWidth={2}
+      >
         <ThemedView
           style={[
             styles.skillBadge,
@@ -45,10 +49,10 @@ export const SkillLevelCard: React.FC<SkillLevelCardProps> = ({
           <ThemedText style={styles.skillLevelText}>
             {skillLevel || "Not set"}
           </ThemedText>
+          <ThemedText type="label" style={styles.skillLevelDescription}>
+            {skill?.description || "Please set your skill level"}
+          </ThemedText>
         </ThemedView>
-        <ThemedText type="caption" style={styles.skillLevelDescription}>
-          {skill?.description || "Please set your skill level"}
-        </ThemedText>
       </ThemedView>
     </ThemedView>
   );
@@ -56,7 +60,6 @@ export const SkillLevelCard: React.FC<SkillLevelCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
     borderRadius: 16,
     marginBottom: 16,
     padding: 16,
@@ -77,15 +80,12 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontWeight: "600",
     fontSize: 18,
-    color: "#666666",
   },
   skillLevelContainer: {
-    backgroundColor: "#f8f9fa",
     borderRadius: 12,
     padding: 16,
   },
   skillBadge: {
-    backgroundColor: "#E8F5E9",
     borderRadius: 16,
     paddingVertical: 8,
     paddingHorizontal: 14,
@@ -105,7 +105,6 @@ const styles = StyleSheet.create({
     textTransform: "capitalize",
   },
   skillLevelDescription: {
-    color: "#666666",
     lineHeight: 20,
   },
 });

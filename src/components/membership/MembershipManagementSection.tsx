@@ -1,12 +1,42 @@
 import React, { useState } from "react";
-import { View, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { StyleSheet, Alert } from "react-native";
 import { IconSymbol } from "@/components/common/IconSymbol";
 import { Button } from "@/components/common/Button";
 import { MembershipPlanModal } from "./MembershipPlanModal";
 import { PaymentMethodModal } from "@/components/payment/PaymentMethodModal";
 import { MembershipPlan } from "@/types/membership";
 import { ThemedText } from "@/components/common/ThemedText";
+import { ThemedView } from "@/components/common/ThemedView";
 import { useAuth } from "@/contexts/AuthContext";
+
+const MEMBERSHIP_PLANS: MembershipPlan[] = [
+  {
+    id: "drop-in",
+    name: "Drop-In Pass",
+    price: 10,
+    description: "Perfect for occasional players",
+    benefits: [
+      "Single game access",
+      "No commitment required",
+      "Full access to game features",
+      "Cancel anytime",
+    ],
+  },
+  {
+    id: "monthly",
+    name: "Monthly Membership",
+    price: 50,
+    interval: "month",
+    description: "Best value for regular players",
+    benefits: [
+      "Unlimited game access",
+      "Priority booking",
+      "Member-only events",
+      "Exclusive discounts",
+      "Cancel anytime",
+    ],
+  },
+];
 
 interface MembershipManagementSectionProps {
   currentPlan?: MembershipPlan;
@@ -127,7 +157,7 @@ export function MembershipManagementSection({
     if (!currentPlan) {
       return (
         <Button
-          variant='primary'
+          variant="primary"
           onPress={() => setShowPlanModal(true)}
           style={styles.actionButton}
         >
@@ -137,16 +167,16 @@ export function MembershipManagementSection({
     }
 
     return (
-      <View style={styles.actionButtonsRow}>
+      <ThemedView style={styles.actionButtonsRow} type="none">
         <Button
-          variant='outline'
+          variant="outline"
           onPress={() => setShowPlanModal(true)}
           style={[styles.actionButton, styles.actionButtonHalf]}
         >
           Change Plan
         </Button>
         <Button
-          variant='outline'
+          variant="outline"
           onPress={() => {
             Alert.alert(
               "Update Payment Method",
@@ -170,93 +200,81 @@ export function MembershipManagementSection({
         >
           Update Payment
         </Button>
-      </View>
+      </ThemedView>
     );
   };
 
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       {currentPlan ? (
-        <View style={styles.planCard}>
-          <View style={styles.planHeader}>
-            <View style={styles.planTitleContainer}>
-              <ThemedText variant='subtitle' style={styles.planName}>
+        <ThemedView style={styles.planCard} type="card">
+          <ThemedView style={styles.planHeader} type="none">
+            <ThemedView style={styles.planTitleContainer} type="none">
+              <ThemedText style={styles.planName} type="subtitle">
                 {currentPlan.name}
               </ThemedText>
-            </View>
-            <ThemedText style={styles.planPrice}>
-              {formatPrice(currentPlan.price, currentPlan.interval)}
-            </ThemedText>
-          </View>
-
-          <ThemedText variant='caption' style={styles.planDescription}>
+              <ThemedText style={styles.planPrice} type="bold">
+                {formatPrice(currentPlan.price, currentPlan.interval)}
+              </ThemedText>
+            </ThemedView>
+          </ThemedView>
+          <ThemedText style={styles.planDescription} type="paragraph">
             {currentPlan.description}
           </ThemedText>
-
-          <View style={styles.divider} />
-
-          <View style={styles.benefitsContainer}>
-            {currentPlan.benefits.slice(0, 3).map((benefit, index) => (
-              <View key={index} style={styles.benefitRow}>
-                <IconSymbol name='checkmark' size={16} color='#4CAF50' />
-                <ThemedText style={styles.benefitText}>{benefit}</ThemedText>
-              </View>
+          <ThemedView style={styles.divider} type="none" />
+          <ThemedView style={styles.benefitsContainer} type="none">
+            {currentPlan.benefits.map((benefit, idx) => (
+              <ThemedView key={idx} style={styles.benefitRow} type="none">
+                <ThemedText style={styles.benefitText} type="default">
+                  {benefit}
+                </ThemedText>
+              </ThemedView>
             ))}
-          </View>
-
+          </ThemedView>
+          <ThemedView style={styles.divider} type="none" />
           {defaultPaymentMethod && (
-            <>
-              <View style={styles.divider} />
-              <View style={styles.paymentMethodContainer}>
-                <View style={styles.paymentMethodRow}>
-                  <IconSymbol
-                    name='creditcard.fill'
-                    size={16}
-                    color='#666666'
-                    style={styles.paymentIcon}
-                  />
-                  <ThemedText style={styles.paymentText}>
-                    {defaultPaymentMethod.brand} ••••{" "}
-                    {defaultPaymentMethod.last4}
-                  </ThemedText>
-                </View>
-                <ThemedText variant='caption' style={styles.paymentExpiry}>
-                  Expires {defaultPaymentMethod.expiryMonth}/
+            <ThemedView style={styles.paymentMethodContainer} type="bordered">
+              <ThemedView style={styles.paymentMethodRow} type="none">
+                <ThemedText style={styles.paymentText} type="label">
+                  {defaultPaymentMethod.brand} ****{defaultPaymentMethod.last4}
+                </ThemedText>
+                <ThemedText style={styles.paymentExpiry} type="caption">
+                  Exp: {defaultPaymentMethod.expiryMonth}/
                   {defaultPaymentMethod.expiryYear}
                 </ThemedText>
-              </View>
-            </>
+              </ThemedView>
+            </ThemedView>
           )}
-
-          <View style={styles.actionsContainer}>{getPrimaryAction()}</View>
-        </View>
+          <ThemedView style={styles.actionsContainer} type="none">
+            {getPrimaryAction()}
+          </ThemedView>
+        </ThemedView>
       ) : (
-        <View style={styles.emptyState}>
-          <View style={styles.emptyIconContainer}>
-            <IconSymbol name='creditcard.fill' size={24} color='#FFFFFF' />
-          </View>
-          <ThemedText style={styles.emptyText}>No active membership</ThemedText>
-          <ThemedText variant='caption' style={styles.emptySubtext}>
-            Select a membership plan to enjoy exclusive benefits
+        <ThemedView
+          style={styles.emptyState}
+          borderColorType="primary"
+          borderWidth={2}
+        >
+          <ThemedText type="value">No Membership Plan Selected</ThemedText>
+          <ThemedText style={styles.emptySubtext} type="emptyStateText">
+            Choose a plan to get started and unlock all features.
           </ThemedText>
           <Button
-            variant='primary'
-            size='small'
+            variant="primary"
+            size="small"
             onPress={() => setShowPlanModal(true)}
             style={styles.emptyStateButton}
           >
             Select a Plan
           </Button>
-        </View>
+        </ThemedView>
       )}
-
       <MembershipPlanModal
         visible={showPlanModal}
         onClose={() => setShowPlanModal(false)}
         onSelectPlan={handlePlanSelect}
         currentPlanId={currentPlan?.id}
       />
-
       {selectedPlan && (
         <PaymentMethodModal
           visible={showPaymentModal}
@@ -265,7 +283,7 @@ export function MembershipManagementSection({
           selectedPlan={selectedPlan}
         />
       )}
-    </View>
+    </ThemedView>
   );
 }
 
@@ -274,7 +292,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   planCard: {
-    backgroundColor: "#f8f9fa",
     borderRadius: 12,
     padding: 16,
     shadowColor: "#000",
@@ -334,7 +351,6 @@ const styles = StyleSheet.create({
   },
   paymentMethodContainer: {
     marginBottom: 16,
-    backgroundColor: "#f0f0f0",
     borderRadius: 8,
     padding: 12,
   },
@@ -372,7 +388,6 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: "center",
     padding: 24,
-    backgroundColor: "#f8f9fa",
     borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -396,8 +411,8 @@ const styles = StyleSheet.create({
     color: "#333333",
   },
   emptySubtext: {
-    color: "#666666",
     textAlign: "center",
+    marginTop: 16,
     marginBottom: 16,
     lineHeight: 20,
   },

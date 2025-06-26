@@ -14,20 +14,20 @@ export const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   user,
   onEdit,
 }) => (
-  <ThemedView style={styles.card}>
+  <ThemedView style={styles.card} borderColorType="primary" borderWidth={3}>
     <ThemedView style={styles.cardHeader}>
       <ThemedView style={styles.cardTitleContainer}>
         <IconSymbol
           name="person.fill"
           size={20}
-          color="#4CAF50"
+          color="primary"
           style={styles.cardIcon}
         />
         <ThemedText type="subtitle" style={styles.cardTitle}>
           Profile Information
         </ThemedText>
       </ThemedView>
-      <Button variant="outline" size="small" onPress={onEdit}>
+      <Button variant="primary" size="small" onPress={onEdit}>
         Edit
       </Button>
     </ThemedView>
@@ -36,11 +36,11 @@ export const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
         <IconSymbol
           name="person.fill"
           size={18}
-          color="#666666"
+          color="primary"
           style={styles.infoIcon}
         />
         <ThemedView style={styles.infoContent}>
-          <ThemedText type="caption" style={styles.infoLabel}>
+          <ThemedText type="label" style={styles.infoLabel}>
             Phone
           </ThemedText>
           <ThemedText style={styles.infoValue}>
@@ -52,11 +52,11 @@ export const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
         <IconSymbol
           name="calendar"
           size={18}
-          color="#666666"
+          color="primary"
           style={styles.infoIcon}
         />
         <ThemedView style={styles.infoContent}>
-          <ThemedText type="caption" style={styles.infoLabel}>
+          <ThemedText type="label" style={styles.infoLabel}>
             Date of Birth
           </ThemedText>
           <ThemedText style={styles.infoValue}>
@@ -68,11 +68,11 @@ export const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
         <IconSymbol
           name="location.fill"
           size={18}
-          color="#666666"
+          color="primary"
           style={styles.infoIcon}
         />
         <ThemedView style={styles.infoContent}>
-          <ThemedText type="caption" style={styles.infoLabel}>
+          <ThemedText type="label" style={styles.infoLabel}>
             Address
           </ThemedText>
           <ThemedText style={styles.infoValue}>
@@ -90,7 +90,6 @@ export const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
     borderRadius: 16,
     marginBottom: 16,
     padding: 16,
@@ -111,10 +110,8 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontWeight: "600",
     fontSize: 18,
-    color: "#666666",
   },
   profileInfo: {
-    backgroundColor: "#f8f9fa",
     borderRadius: 12,
     padding: 16,
   },
@@ -130,11 +127,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   infoLabel: {
-    color: "#666666",
     marginBottom: 4,
   },
   infoValue: {
-    color: "#333333",
     fontWeight: "500",
   },
 });

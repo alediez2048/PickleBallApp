@@ -156,7 +156,7 @@ export default function ProfileScreen() {
     );
   }
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ThemedView style={styles.safeArea}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -213,7 +213,7 @@ export default function ProfileScreen() {
         selectedLevel={user.skill_level || ""}
         isLoading={isLoading}
       />
-    </SafeAreaView>
+    </ThemedView>
   );
 }
 

@@ -15,13 +15,13 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
   currentPlan,
   onUpdatePlan,
 }) => (
-  <ThemedView style={styles.card}>
+  <ThemedView style={styles.card} borderColorType="primary" borderWidth={3}>
     <ThemedView style={styles.cardHeader}>
       <ThemedView style={styles.cardTitleContainer}>
         <IconSymbol
           name="star.fill"
           size={20}
-          color="#4CAF50"
+          color="primary"
           style={styles.cardIcon}
         />
         <ThemedText type="subtitle" style={styles.cardTitle}>
@@ -39,7 +39,6 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
     borderRadius: 16,
     marginBottom: 16,
     padding: 16,
@@ -60,6 +59,5 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontWeight: "600",
     fontSize: 18,
-    color: "#666666",
   },
 });

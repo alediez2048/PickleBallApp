@@ -255,7 +255,10 @@ export function ThemedView({
   };
 
   // Compose themed styles only
-  const typeStyle = styles[type || "default"] || styles.default;
+  const typeStyle =
+    !type || type === "none"
+      ? undefined
+      : styles[type as keyof typeof styles] || styles.default;
   const dynamicTypeStyle = getTypeStyle(type, colors);
   const colorStyle = getColorStyle();
   const borderColorStyle = getBorderColorStyle();

@@ -23,7 +23,11 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   };
 
   return (
-    <ThemedView style={styles.headerCard}>
+    <ThemedView
+      style={styles.headerCard}
+      borderColorType="primary"
+      borderWidth={3}
+    >
       <ThemedView style={styles.headerBackground}>
         <TouchableOpacity
           style={styles.profileImageContainer}
@@ -37,12 +41,21 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               key={refreshKey}
             />
           ) : (
-            <ThemedView style={styles.defaultAvatar}>
-              <IconSymbol name="person.fill" size={48} color="#4CAF50" />
+            <ThemedView
+              style={styles.defaultAvatar}
+              borderColorType="primary"
+              borderWidth={4}
+            >
+              <IconSymbol name="person.fill" size={48} color="primary" />
             </ThemedView>
           )}
-          <ThemedView style={styles.editImageButton}>
-            <IconSymbol name="pencil" size={14} color="#FFFFFF" />
+          <ThemedView
+            style={styles.editImageButton}
+            colorType="primary"
+            borderColorType="white"
+            borderWidth={3}
+          >
+            <IconSymbol name="pencil" size={14} color="white" />
           </ThemedView>
         </TouchableOpacity>
         <ThemedText type="title" style={styles.name}>
@@ -66,7 +79,6 @@ const styles = StyleSheet.create({
   headerBackground: {
     padding: 24,
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
   },
   profileImageContainer: {
     width: 110,
@@ -81,8 +93,8 @@ const styles = StyleSheet.create({
   defaultAvatar: {
     width: "100%",
     height: "100%",
-    borderRadius: 55,
-    backgroundColor: "#F1F8E9",
+    borderRadius: 60,
+    backgroundColor: "#fdfefceb",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -95,24 +107,20 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#4CAF50",
     width: 32,
     height: 32,
     borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#ffffff",
   },
   name: {
-    color: "#333333",
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 4,
     textAlign: "center",
   },
   email: {
-    color: "#666666",
     textAlign: "center",
     fontSize: 16,
   },
