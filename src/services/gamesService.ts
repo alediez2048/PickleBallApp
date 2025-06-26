@@ -35,5 +35,15 @@ export const deleteGame = async (gameId: string) => {
 
 // Get a single game by id
 export const getGame = async (gameId: string) => {
-  return await supabase.from('games').select('*').eq('id', gameId).single();
+  const { data, error } = await supabase
+    .from('games')
+    .select('*, location:location_id(*)')
+    .eq('id', gameId);
+
+  if (error) {
+    console.error('Error fetching game:', error);
+    return null;
+  }
+
+  return data?.[0] || null;
 };
