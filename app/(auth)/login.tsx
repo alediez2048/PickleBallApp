@@ -31,16 +31,16 @@ export default function LoginScreen() {
   };
 
   if (isLoading) {
-    return <LoadingSpinner message='Signing in...' />;
+    return <LoadingSpinner message="Signing in..." />;
   }
 
   return (
-    <ThemedView type='default' style={styles.container}>
+    <ThemedView type="default" style={styles.container}>
       <ThemedView style={styles.innerContainer}>
         <ThemedView style={styles.content}>
           {/* Logo */}
           <View style={styles.logoContainer}>
-            <ThemedText type='title'>PicklePass</ThemedText>
+            <ThemedText type="title">PicklePass</ThemedText>
           </View>
 
           {/* Title */}
@@ -53,8 +53,8 @@ export default function LoginScreen() {
           <View style={styles.buttonContainer}>
             {/* Email Button */}
             <Button
-              variant='primary'
-              size='large'
+              variant="primary"
+              size="large"
               fullWidth
               onPress={() => router.push("/(auth)/email-login")}
             >
@@ -63,8 +63,8 @@ export default function LoginScreen() {
 
             {/* Register Button */}
             <Button
-              variant='outline'
-              size='large'
+              variant="outline"
+              size="large"
               fullWidth
               onPress={() => router.push("/(auth)/register")}
             >
@@ -103,7 +103,7 @@ export default function LoginScreen() {
             >
               <View style={styles.socialButtonContent}>
                 <View style={styles.socialIconContainer}>
-                  <AntDesign name='facebook-square' size={20} color='#1877F2' />
+                  <AntDesign name="facebook-square" size={20} color="#1877F2" />
                 </View>
                 <ThemedText style={styles.socialButtonText}>
                   Continue with Facebook

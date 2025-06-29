@@ -16,6 +16,7 @@ import { ThemedText } from "@/components/common/ThemedText";
 import { ThemedView } from "@/components/common/ThemedView";
 import { useTheme } from "@/contexts/ThemeContext";
 import Logo from "@/components/common/Logo";
+import BackButton from "@/components/common/BackButton";
 
 export default function EmailLoginScreen() {
   const [email, setEmail] = useState("");
@@ -50,7 +51,7 @@ export default function EmailLoginScreen() {
   };
 
   if (isLoading) {
-    return <LoadingSpinner message='Signing in...' />;
+    return <LoadingSpinner message="Signing in..." />;
   }
 
   return (
@@ -60,15 +61,7 @@ export default function EmailLoginScreen() {
         style={styles.keyboardView}
       >
         <View style={styles.content}>
-          {/* Header with Back Button */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.backButton}
-            >
-              <ThemedText style={styles.backButtonText}>← Back</ThemedText>
-            </TouchableOpacity>
-          </View>
+          <BackButton />
 
           <View style={styles.formContainer}>
             <Logo />
@@ -85,14 +78,14 @@ export default function EmailLoginScreen() {
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
-                  placeholder='Email'
-                  placeholderTextColor='#6B7280'
+                  placeholder="Email"
+                  placeholderTextColor="#6B7280"
                   value={email}
                   onChangeText={setEmail}
-                  autoCapitalize='none'
-                  keyboardType='email-address'
+                  autoCapitalize="none"
+                  keyboardType="email-address"
                   editable={!isLoading}
-                  returnKeyType='next'
+                  returnKeyType="next"
                 />
                 {errors.email && (
                   <ThemedText style={styles.errorText}>
@@ -104,13 +97,13 @@ export default function EmailLoginScreen() {
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
-                  placeholder='Password'
-                  placeholderTextColor='#6B7280'
+                  placeholder="Password"
+                  placeholderTextColor="#6B7280"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
                   editable={!isLoading}
-                  returnKeyType='done'
+                  returnKeyType="done"
                   onSubmitEditing={handleLogin}
                 />
                 {errors.password && (
@@ -136,8 +129,8 @@ export default function EmailLoginScreen() {
 
               <Button
                 onPress={handleLogin}
-                size='large'
-                variant='primary'
+                size="large"
+                variant="primary"
                 fullWidth
                 disabled={isLoading}
               >

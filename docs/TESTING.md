@@ -25,7 +25,7 @@ The project uses Jest with React Native Testing Library for component testing. T
 
 ### CSS Interop Transformer
 
-We use a custom transformer for handling React Native CSS Interop modules to avoid issues with dependencies during testing. 
+We use a custom transformer for handling React Native CSS Interop modules to avoid issues with dependencies during testing.
 
 The transformer is located at `jest/transformers/cssInteropTransformer.js` and replaces any CSS interop imports with standardized mocks.
 
@@ -81,12 +81,12 @@ describe('PaymentMethodForm', () => {
 
   it('renders correctly', async () => {
     const { getByPlaceholderText } = render(<PaymentMethodForm />);
-    
+
     await waitFor(() => {
       expect(getByPlaceholderText('1234 5678 9012 3456')).toBeTruthy();
     });
   });
-  
+
   // Additional tests...
 });
 ```
@@ -121,11 +121,11 @@ const wrapper = ({ children }) => (
 For UI components that are used frequently, create standard mocks in `jest.setup.js`:
 
 ```javascript
-jest.mock('@/components/ThemedText', () => ({
+jest.mock("@/components/ThemedText", () => ({
   ThemedText: ({ children, ...props }) => ({
-    type: 'ThemedText',
+    type: "ThemedText",
     props: { children, ...props },
-    $$typeof: Symbol.for('react.element'),
+    $$typeof: Symbol.for("react.element"),
   }),
 }));
 ```
@@ -150,12 +150,14 @@ jest.mock('@/components/ThemedText', () => ({
 ## Coverage Goals
 
 The project aims for 70% coverage across:
+
 - Branches
 - Functions
 - Lines
 - Statements
 
 Priority areas for testing:
+
 1. Core user flows (authentication, game booking, payment)
 2. Shared components used across multiple screens
 3. Business logic in hooks and services
@@ -184,6 +186,7 @@ npm test -- --coverage
 ## Error Handling Testing
 
 Test both success and error scenarios:
+
 - Network errors
 - Validation errors
 - Authentication errors
@@ -193,6 +196,7 @@ Test both success and error scenarios:
 ## Cross-Device Testing
 
 Test the application across different:
+
 - Screen sizes
 - OS versions (iOS/Android)
 - Device capabilities
@@ -201,6 +205,7 @@ Test the application across different:
 ## CI/CD Integration
 
 Tests are run automatically on:
+
 - Pull requests
 - Merges to main branches
 - Release builds
@@ -223,7 +228,4 @@ Tests are run automatically on:
 
 - [Jest Documentation](https://jestjs.io/docs/getting-started)
 - [React Native Testing Library](https://callstack.github.io/react-native-testing-library/)
-- [Detox Documentation](https://wix.github.io/Detox/) 
- 
- 
- 
+- [Detox Documentation](https://wix.github.io/Detox/)

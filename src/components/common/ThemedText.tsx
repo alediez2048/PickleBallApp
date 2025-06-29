@@ -10,221 +10,186 @@ import { useTheme } from "@/contexts/ThemeContext";
 
 export type ThemedTextProps = TextProps & {
   type?:
-    | "default"
-    | "defaultSemiBold"
     | "title"
+    | "midTitle"
     | "subtitle"
-    | "subtitleCenter"
     | "miniSubtitle"
-    | "paragraph"
-    | "paragraphCenter"
     | "caption"
     | "link"
     | "bold"
-    | "label"
-    | "value"
-    | "timeText"
-    | "sectionTitle"
     | "badge"
-    | "emptyStateTitle"
-    | "emptyStateText"
-    | "button"
-    | "buttonDisabled"
-    | "buttonCancel"
-    | "buttonWaitlist";
-  colorType?: "default" | "black" | "white" | "primary" | "secondary" | "label";
+    | "text"
+    | "label"
+    | "value";
+  colorType?:
+    | "default"
+    | "primary"
+    | "secondary"
+    | "background"
+    | "tint"
+    | "white"
+    | "black"
+    | "text"
+    | "main"
+    | "active"
+    | "soft"
+    | "label"
+    | "danger"
+    | "success"
+    | "warning"
+    | "info"
+    | "neutral"
+    | "line"
+    | "border"
+    | "open"
+    | "advanced"
+    | "intermediate"
+    | "beginner"
+    | "all"
+    | "none";
   align?: "left" | "center" | "right" | "justify";
+  weight?: number | "normal" | "bold";
+  size?: number; // 1-15, see below
+};
+
+const fontSizeMap: Record<number, number> = {
+  1: 12,
+  2: 14,
+  3: 16,
+  4: 18,
+  5: 20,
+  6: 22,
+  7: 24,
+  8: 26,
+  9: 28,
+  10: 30,
+  11: 32,
+  12: 34,
+  13: 36,
+  14: 38,
+  15: 40,
 };
 
 export function ThemedText({
   style,
-  type = "default",
-  colorType = "default",
+  type = "text",
+  colorType = "text",
+  weight = "normal",
+  size = 3,
   align,
   ...rest
 }: ThemedTextProps) {
   const { colors } = useTheme();
 
+  // Compose style based on type
   const getTypeStyle = (): StyleProp<TextStyle> => {
     switch (type) {
       case "title":
         return styles.title;
-      case "defaultSemiBold":
-        return styles.defaultSemiBold;
+      case "midTitle":
+        return styles.midTitle;
       case "subtitle":
         return styles.subtitle;
       case "miniSubtitle":
         return styles.miniSubtitle;
-      case "subtitleCenter":
-        return [styles.subtitle, styles.center];
-      case "paragraph":
-        return styles.paragraph;
-      case "paragraphCenter":
-        return [styles.paragraph, styles.center];
       case "caption":
         return styles.caption;
       case "link":
         return styles.link;
       case "bold":
         return styles.bold;
-      case "sectionTitle":
-        return styles.sectionTitle;
-      case "timeText":
-        return styles.timeText;
       case "badge":
         return styles.badge;
-      case "emptyStateTitle":
-        return styles.emptyStateTitle;
-      case "emptyStateText":
-        return styles.emptyStateText;
-      case "button":
-        return styles.button;
-      case "buttonDisabled":
-        return styles.buttonDisabled;
-      case "buttonCancel":
-        return styles.buttonCancel;
-      case "buttonWaitlist":
-        return styles.buttonWaitlist;
       case "label":
         return styles.label;
       case "value":
         return styles.value;
+      case "text":
       default:
-        return styles.default;
+        return {};
     }
   };
 
+  // Compose color style
   const getColorStyle = (): StyleProp<TextStyle> => {
-    switch (colorType) {
-      case "black":
-        return { color: colors.black };
-      case "white":
-        return { color: colors.white };
-      case "primary":
-        return { color: colors.primary };
-      case "secondary":
-        return { color: colors.secondary };
-      case "label":
-        return { color: colors.label };
-      default:
-        return { color: colors.text };
-    }
+    if (colorType === "none") return {};
+    const colorValue = (colors as Record<string, string>)[colorType];
+    return colorValue ? { color: colorValue } : {};
   };
 
-  const styleMatch = getTypeStyle();
-  const colorMatch = getColorStyle();
+  // Compose fontWeight style
+  const getWeightStyle = (): StyleProp<TextStyle> => {
+    if (typeof weight === "number") {
+      return { fontWeight: weight.toString() as TextStyle["fontWeight"] };
+    }
+    if (weight === "bold") {
+      return { fontWeight: "bold" };
+    }
+    return { fontWeight: "normal" };
+  };
+
+  // Compose fontSize style
+  const getFontSizeStyle = (): StyleProp<TextStyle> => {
+    const fontSize = fontSizeMap[size] || fontSizeMap[3];
+    return { fontSize };
+  };
+
   const alignStyle = align ? { textAlign: align } : undefined;
-  const allText = styles.all;
 
   return (
     <Text
-      style={[allText, colorMatch, styleMatch, alignStyle, style]}
+      style={[
+        getTypeStyle(),
+        getColorStyle(),
+        getWeightStyle(),
+        getFontSizeStyle(),
+        alignStyle,
+        style,
+      ]}
       {...rest}
     />
   );
 }
 
-const fontSizeOffset = Platform.OS === "ios" ? -2 : 0;
-
 const styles = StyleSheet.create({
-  all: {
-    fontSize: 16 + fontSizeOffset,
-    lineHeight: 16 + fontSizeOffset,
-  },
-  default: {
-    fontSize: 16 + fontSizeOffset,
-    lineHeight: 24 + fontSizeOffset,
-  },
-  defaultSemiBold: {
-    fontSize: 16 + fontSizeOffset,
-    lineHeight: 24 + fontSizeOffset,
-    fontWeight: "600",
-  },
   title: {
-    fontSize: 32 + fontSizeOffset,
-    fontWeight: "bold",
-    lineHeight: 32 + fontSizeOffset,
+    fontSize: fontSizeMap[11],
+    lineHeight: fontSizeMap[11],
+  },
+  midTitle: {
+    fontSize: fontSizeMap[9],
+    lineHeight: fontSizeMap[9],
   },
   subtitle: {
-    fontSize: 18 + fontSizeOffset,
-    fontWeight: "bold",
-    lineHeight: 24 + fontSizeOffset,
+    fontSize: fontSizeMap[7],
+    lineHeight: fontSizeMap[7],
   },
   miniSubtitle: {
-    fontSize: 14 + fontSizeOffset,
-    fontWeight: "bold",
-  },
-  paragraph: {
-    fontSize: 15 + fontSizeOffset,
-    lineHeight: 22 + fontSizeOffset,
+    fontSize: fontSizeMap[5],
+    lineHeight: fontSizeMap[5],
   },
   caption: {
-    fontSize: 12 + fontSizeOffset,
-    color: "#999",
+    fontSize: fontSizeMap[1],
+    lineHeight: fontSizeMap[1],
   },
   link: {
-    fontSize: 16 + fontSizeOffset,
-    lineHeight: 24 + fontSizeOffset,
     textDecorationLine: "underline",
-    color: "#007AFF", // fallback, can be overridden by colorType
   },
   bold: {
-    fontSize: 16 + fontSizeOffset,
-    lineHeight: 16 + fontSizeOffset,
     fontWeight: "bold",
   },
-  sectionTitle: {
-    fontSize: 24 + fontSizeOffset,
-    lineHeight: 24 + fontSizeOffset,
-    fontWeight: "700",
-    marginBottom: 4,
-  },
-  timeText: {
-    fontSize: 24 + fontSizeOffset,
-    lineHeight: 24 + fontSizeOffset,
-    fontWeight: "700",
-  },
   badge: {
-    fontSize: 13 + fontSizeOffset,
-    fontWeight: "600",
-  },
-  emptyStateTitle: {
-    fontSize: 18 + fontSizeOffset,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 14 + fontSizeOffset,
-    textAlign: "center",
-    lineHeight: 20 + fontSizeOffset,
-  },
-  button: {
-    fontSize: 16 + fontSizeOffset,
-    fontWeight: "600",
-  },
-  buttonDisabled: {
-    fontSize: 16 + fontSizeOffset,
-    fontWeight: "600",
-  },
-  buttonCancel: {
-    fontSize: 16 + fontSizeOffset,
-    fontWeight: "600",
-  },
-  buttonWaitlist: {
-    fontSize: 16 + fontSizeOffset,
-    fontWeight: "600",
-  },
-  center: {
-    textAlign: "center",
+    fontWeight: "bold",
+    fontSize: fontSizeMap[2],
+    lineHeight: fontSizeMap[2],
   },
   label: {
-    fontSize: 14 + fontSizeOffset,
-    lineHeight: 14 + fontSizeOffset,
-    fontWeight: "500",
+    fontSize: fontSizeMap[2],
+    lineHeight: fontSizeMap[2],
   },
   value: {
-    fontSize: 18 + fontSizeOffset,
-    lineHeight: 18 + fontSizeOffset,
-    fontWeight: "700",
+    fontWeight: "bold",
+    fontSize: fontSizeMap[4],
+    lineHeight: fontSizeMap[4],
   },
 });

@@ -64,31 +64,13 @@ function RootLayoutNav() {
 
   return (
     <Stack>
-      <Stack.Screen
-        name='(auth)'
-        options={{ headerShown: false, statusBarTranslucent: true }}
-      />
-      <Stack.Screen
-        name='(tabs)'
-        options={{ headerShown: false, statusBarTranslucent: true }}
-      />
-      <Stack.Screen
-        name='game'
-        options={{ headerShown: false, statusBarTranslucent: true }}
-      />
-      <Stack.Screen
-        name='game/[id]'
-        options={{ headerShown: false, statusBarTranslucent: true }}
-      />
-      <Stack.Screen
-        name='(profile-setup)'
-        options={{ headerShown: false, statusBarTranslucent: true }}
-      />
-      <Stack.Screen
-        name='(skill-select)'
-        options={{ headerShown: false, statusBarTranslucent: true }}
-      />
-      <Stack.Screen name='+not-found' options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="game" options={{ headerShown: false }} />
+      <Stack.Screen name="game/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="(profile-setup)" options={{ headerShown: false }} />
+      <Stack.Screen name="(skill-select)" options={{ headerShown: false }} />
+      <Stack.Screen name="+not-found" options={{ headerShown: false }} />
     </Stack>
   );
 }
@@ -121,12 +103,7 @@ export default function RootLayout() {
                   edges={["top", "left", "right", "bottom"]}
                 >
                   <RootLayoutNav />
-                  <StatusBar
-                    style='auto'
-                    backgroundColor='transparent'
-                    translucent
-                    hidden={false}
-                  />
+                  <StatusBar style="auto" translucent hidden={false} />
                 </SafeAreaView>
               </BookedGamesProvider>
             </GameProvider>

@@ -49,8 +49,8 @@ export default function TabHomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedView style={styles.banner}>
-        <ThemedText style={styles.welcomeText}>
+      <ThemedView colorType="text" style={styles.banner}>
+        <ThemedText type="title" colorType="background">
           Hi {user?.name || "User"}
         </ThemedText>
       </ThemedView>
@@ -175,7 +175,6 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   welcomeText: {
-    color: "#ffffff",
     fontSize: 24,
     fontWeight: "bold",
   },

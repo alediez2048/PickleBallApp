@@ -32,26 +32,137 @@ export type ThemedViewProps = ViewProps & {
     | "secondary"
     | "background"
     | "tint"
-    | "tabIconDefault"
-    | "tabIconSelected"
     | "white"
-    | "none"
-    | "black";
+    | "black"
+    | "text"
+    | "main"
+    | "active"
+    | "soft"
+    | "label"
+    | "danger"
+    | "success"
+    | "warning"
+    | "info"
+    | "neutral"
+    | "line"
+    | "border"
+    | "open"
+    | "advanced"
+    | "intermediate"
+    | "beginner"
+    | "all"
+    | "none";
   borderColorType?:
     | "default"
     | "primary"
     | "secondary"
     | "background"
     | "tint"
-    | "tabIconDefault"
-    | "tabIconSelected"
     | "white"
     | "black"
-    | "text";
-  lightColor?: string;
-  darkColor?: string;
+    | "text"
+    | "main"
+    | "active"
+    | "soft"
+    | "label"
+    | "danger"
+    | "success"
+    | "warning"
+    | "info"
+    | "neutral"
+    | "line"
+    | "border"
+    | "open"
+    | "advanced"
+    | "intermediate"
+    | "beginner"
+    | "all"
+    | "none";
   borderWidth?: number | "thin" | "normal" | "bold";
 };
+
+// ThemedView always uses themed styles, no raw View
+function getTypeStyle(
+  type: ThemedViewProps["type"],
+  colors: any
+): StyleProp<ViewStyle> {
+  switch (type) {
+    case "card":
+    case "elevated":
+    case "dateTitleContainer":
+      return { shadowColor: colors.black };
+    case "gameCard":
+      return { shadowColor: Platform.OS === "ios" ? colors.black : undefined };
+    default:
+      return {};
+  }
+}
+
+export function ThemedView({
+  style,
+  type = "default",
+  colorType = "background",
+  borderColorType = "none",
+  borderWidth,
+  ...otherProps
+}: ThemedViewProps) {
+  const { colors } = useTheme();
+
+  const getColorStyle = (): StyleProp<ViewStyle> => {
+    if (colorType === "none") return {};
+
+    const colorValue = (colors as Record<string, string>)[colorType];
+    return colorValue ? { backgroundColor: colorValue } : {};
+  };
+
+  // Always use palette for border
+  const getBorderColorStyle = (): StyleProp<ViewStyle> => {
+    if (colorType === "none") return {};
+
+    const colorValue = (colors as Record<string, string>)[colorType];
+    return colorValue ? { borderColor: colorValue } : {};
+  };
+
+  // Add borderWidth logic
+  const getBorderWidthStyle = (): StyleProp<ViewStyle> => {
+    if (typeof borderWidth === "number") {
+      return { borderWidth };
+    }
+    switch (borderWidth) {
+      case "thin":
+        return { borderWidth: 1 };
+      case "normal":
+        return { borderWidth: 2 };
+      case "bold":
+        return { borderWidth: 3 };
+      default:
+        return {};
+    }
+  };
+
+  // Compose themed styles only
+  const typeStyle =
+    !type || type === "none"
+      ? undefined
+      : styles[type as keyof typeof styles] || styles.default;
+  const dynamicTypeStyle = getTypeStyle(type, colors);
+  const colorStyle = getColorStyle();
+  const borderColorStyle = getBorderColorStyle();
+
+  return (
+    <View
+      style={[
+        colorStyle,
+        typeStyle,
+        dynamicTypeStyle,
+        borderColorStyle,
+        getBorderWidthStyle(),
+        style,
+      ]}
+      {...otherProps}
+    />
+  );
+}
 
 const styles = StyleSheet.create({
   default: {
@@ -150,130 +261,3 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
 });
-
-// ThemedView always uses themed styles, no raw View
-function getTypeStyle(
-  type: ThemedViewProps["type"],
-  colors: any
-): StyleProp<ViewStyle> {
-  switch (type) {
-    case "card":
-    case "elevated":
-    case "dateTitleContainer":
-      return { shadowColor: colors.black };
-    case "gameCard":
-      return { shadowColor: Platform.OS === "ios" ? colors.black : undefined };
-    default:
-      return {};
-  }
-}
-
-export function ThemedView({
-  style,
-  type = "default",
-  colorType = "default",
-  borderColorType = "default",
-  lightColor,
-  darkColor,
-  borderWidth,
-  ...otherProps
-}: ThemedViewProps) {
-  const { colors } = useTheme();
-
-  // Always use palette for background
-  const getColorStyle = (): StyleProp<ViewStyle> => {
-    if (lightColor || darkColor) {
-      return { backgroundColor: lightColor || darkColor };
-    }
-    switch (colorType) {
-      case "primary":
-        return { backgroundColor: colors.primary };
-      case "secondary":
-        return { backgroundColor: colors.secondary };
-      case "background":
-        return { backgroundColor: colors.background };
-      case "tint":
-        return { backgroundColor: colors.tint };
-      case "tabIconDefault":
-        return { backgroundColor: colors.tabIconDefault };
-      case "tabIconSelected":
-        return { backgroundColor: colors.tabIconSelected };
-      case "white":
-        return { backgroundColor: colors.white };
-      case "black":
-        return { backgroundColor: colors.black };
-      case "default":
-        return { backgroundColor: colors.background };
-      case "none":
-        return {};
-      default:
-        return {};
-    }
-  };
-
-  // Always use palette for border
-  const getBorderColorStyle = (): StyleProp<ViewStyle> => {
-    switch (borderColorType) {
-      case "primary":
-        return { borderColor: colors.primary };
-      case "secondary":
-        return { borderColor: colors.secondary };
-      case "background":
-        return { borderColor: colors.background };
-      case "tint":
-        return { borderColor: colors.tint };
-      case "tabIconDefault":
-        return { borderColor: colors.tabIconDefault };
-      case "tabIconSelected":
-        return { borderColor: colors.tabIconSelected };
-      case "white":
-        return { borderColor: colors.white };
-      case "black":
-        return { borderColor: colors.black };
-      case "text":
-        return { borderColor: colors.text };
-      default:
-        return {};
-    }
-  };
-
-  // Add borderWidth logic
-  const getBorderWidthStyle = (): StyleProp<ViewStyle> => {
-    if (typeof borderWidth === "number") {
-      return { borderWidth };
-    }
-    switch (borderWidth) {
-      case "thin":
-        return { borderWidth: 1 };
-      case "normal":
-        return { borderWidth: 2 };
-      case "bold":
-        return { borderWidth: 3 };
-      default:
-        return {};
-    }
-  };
-
-  // Compose themed styles only
-  const typeStyle =
-    !type || type === "none"
-      ? undefined
-      : styles[type as keyof typeof styles] || styles.default;
-  const dynamicTypeStyle = getTypeStyle(type, colors);
-  const colorStyle = getColorStyle();
-  const borderColorStyle = getBorderColorStyle();
-
-  return (
-    <View
-      style={[
-        colorStyle,
-        typeStyle,
-        dynamicTypeStyle,
-        borderColorStyle,
-        getBorderWidthStyle(),
-        style,
-      ]}
-      {...otherProps}
-    />
-  );
-}
