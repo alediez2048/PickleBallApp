@@ -139,10 +139,10 @@ export function ThemedText({
   return (
     <Text
       style={[
-        getTypeStyle(),
         getColorStyle(),
         getWeightStyle(),
         getFontSizeStyle(),
+        getTypeStyle(),
         alignStyle,
         style,
       ]}
@@ -154,23 +154,18 @@ export function ThemedText({
 const styles = StyleSheet.create({
   title: {
     fontSize: fontSizeMap[11],
-    lineHeight: fontSizeMap[11],
   },
   midTitle: {
     fontSize: fontSizeMap[9],
-    lineHeight: fontSizeMap[9],
   },
   subtitle: {
     fontSize: fontSizeMap[7],
-    lineHeight: fontSizeMap[7],
   },
   miniSubtitle: {
     fontSize: fontSizeMap[5],
-    lineHeight: fontSizeMap[5],
   },
   caption: {
     fontSize: fontSizeMap[1],
-    lineHeight: fontSizeMap[1],
   },
   link: {
     textDecorationLine: "underline",
@@ -181,15 +176,12 @@ const styles = StyleSheet.create({
   badge: {
     fontWeight: "bold",
     fontSize: fontSizeMap[2],
-    lineHeight: fontSizeMap[2],
   },
   label: {
     fontSize: fontSizeMap[2],
-    lineHeight: fontSizeMap[2],
   },
   value: {
     fontWeight: "bold",
     fontSize: fontSizeMap[4],
-    lineHeight: fontSizeMap[4],
   },
 });

@@ -40,7 +40,9 @@ export default function LoginScreen() {
         <ThemedView style={styles.content}>
           {/* Logo */}
           <View style={styles.logoContainer}>
-            <ThemedText type="title">PicklePass</ThemedText>
+            <ThemedText type="title" weight="bold">
+              PicklePass
+            </ThemedText>
           </View>
 
           {/* Title */}

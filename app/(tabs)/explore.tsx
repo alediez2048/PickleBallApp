@@ -45,7 +45,7 @@ export default function ExploreScreen() {
   const { user } = useAuth();
   const [upcomingGames, setUpcomingGames] = useState<BookedGame[]>([]);
   const { cancelBooking, listBookedGamesForUser } = useBookedGames();
-  const { games, fetchGames, loading: loadingGames, createGame } = useGames();
+  const { games, fetchGames, createGame } = useGames();
   const {
     fixedGames,
     fetchFixedGames,
@@ -57,10 +57,9 @@ export default function ExploreScreen() {
 
   // Fetch fixed games on mount, then build the days array after fetch
   useEffect(() => {
-    fetchFixedGames();
-    fetchGames();
-    fetchBookedGames();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // fetchFixedGames();
+    // fetchGames();
+    // fetchBookedGames();
   }, []);
 
   const fetchBookedGames = async () => {
@@ -87,7 +86,8 @@ export default function ExploreScreen() {
     games: Game[],
     filter: string
   ) => {
-    if (!fixedGames || fixedGames.length === 0) return [];
+    // if (!fixedGames || fixedGames.length === 0) return [];
+    return [];
     const activeFixedGames = fixedGames.filter((fg) => fg.status === "active");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -133,13 +133,6 @@ export default function ExploreScreen() {
     }
     return daysArray.sort((a, b) => a.dateUTC.localeCompare(b.dateUTC));
   };
-
-  // Fetch fixed games on mount, then build the days array after fetch
-  useEffect(() => {
-    fetchFixedGames();
-    fetchGames();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const sortedDaysArray = buildSortedDaysArray(fixedGames, games, actualFilter);
 
@@ -202,7 +195,7 @@ export default function ExploreScreen() {
             canReserve: false,
             buttonText: "Cancel",
             buttonStyle: {
-              backgroundColor: colors.error, // Use theme color
+              backgroundColor: colors.danger, // Use theme color
               paddingHorizontal: 20,
               paddingVertical: 10,
               borderRadius: 20,
@@ -479,11 +472,13 @@ export default function ExploreScreen() {
             <IconSymbol
               name="calendar"
               size={48}
-              color={colors.icon}
+              color={"text"}
               style={{ marginBottom: 16, opacity: 0.5 }}
             />
-            <ThemedText type="emptyStateTitle">No games found</ThemedText>
-            <ThemedText type="emptyStateText">
+            <ThemedText type="title" weight="bold">
+              No games found
+            </ThemedText>
+            <ThemedText>
               There are no games available for the selected skill level. Try
               changing the filter or check back later.
             </ThemedText>

@@ -50,17 +50,17 @@ export default function TabHomeScreen() {
   return (
     <ThemedView style={styles.container}>
       <ThemedView colorType="text" style={styles.banner}>
-        <ThemedText type="title" colorType="background">
+        <ThemedText type="title" weight="bold" colorType="background">
           Hi {user?.name || "User"}
         </ThemedText>
       </ThemedView>
 
       <ScrollView style={styles.contentContainer}>
         <ThemedView style={styles.content}>
-          <ThemedText type="title" colorType="primary">
+          <ThemedText type="title" weight="bold" colorType="primary">
             Welcome to PicklePass
           </ThemedText>
-          <ThemedText type="subtitle" style={styles.subtitle}>
+          <ThemedText type="miniSubtitle" style={styles.subtitle}>
             Find and join pickleball games near you
           </ThemedText>
 
@@ -77,7 +77,7 @@ export default function TabHomeScreen() {
 
             <ThemedView style={styles.upcomingGamesContainer}>
               <ThemedView style={styles.upcomingGamesHeader}>
-                <ThemedText style={styles.sectionTitle}>
+                <ThemedText type="subtitle" weight={"bold"}>
                   Upcoming Games
                 </ThemedText>
               </ThemedView>
@@ -143,17 +143,18 @@ export default function TabHomeScreen() {
                   ))}
                 </ThemedView>
               ) : (
-                <ThemedView style={styles.emptyStateContainer}>
+                <ThemedView colorType="soft" style={styles.emptyStateContainer}>
                   <IconSymbol
                     name="gamecontroller.fill"
                     size={40}
                     color="#666666"
                     style={styles.emptyStateIcon}
                   />
-                  <ThemedText style={styles.emptyStateTitle}>
+                  <ThemedText size={5} weight={"bold"}>
                     No Upcoming Games
                   </ThemedText>
-                  <ThemedText style={styles.emptyStateText}>
+
+                  <ThemedText align="center" size={2}>
                     Find and join games to see them here!
                   </ThemedText>
                 </ThemedView>
@@ -189,9 +190,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   subtitle: {
-    textAlign: "center",
-    paddingHorizontal: 16,
-    marginBottom: 32,
+    marginVertical: 20,
   },
   buttonContainer: {
     width: "100%",
@@ -224,10 +223,6 @@ const styles = StyleSheet.create({
   upcomingGamesHeader: {
     padding: 20,
     borderBottomWidth: 1,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
   },
   gamesList: {
     padding: 6,
