@@ -143,7 +143,10 @@ export default function TabHomeScreen() {
                   ))}
                 </ThemedView>
               ) : (
-                <ThemedView colorType="soft" style={styles.emptyStateContainer}>
+                <ThemedView
+                  className="items-center p-8 rounded-xl mt-4 py-5"
+                  colorType="soft"
+                >
                   <IconSymbol
                     name="gamecontroller.fill"
                     size={40}
@@ -154,7 +157,7 @@ export default function TabHomeScreen() {
                     No Upcoming Games
                   </ThemedText>
 
-                  <ThemedText align="center" size={2}>
+                  <ThemedText className="mb-2" align="center" size={2}>
                     Find and join games to see them here!
                   </ThemedText>
                 </ThemedView>
@@ -274,12 +277,6 @@ const styles = StyleSheet.create({
   locationIcon: {
     margin: 4,
     paddingRight: 4,
-  },
-  emptyStateContainer: {
-    padding: 32,
-    alignItems: "center",
-    margin: 12,
-    borderRadius: 12,
   },
   emptyStateIcon: {
     marginBottom: 16,

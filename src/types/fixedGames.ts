@@ -1,4 +1,4 @@
-import type { SkillLevel } from "@/constants/skillLevel.types";
+import type { SkillLevel } from "@/types/skillLevel";
 
 // Types for Fixed Games based on the SQL schema
 export type DayOfWeek =

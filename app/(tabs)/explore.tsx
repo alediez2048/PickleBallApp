@@ -11,7 +11,7 @@ import {
 import { useRouter } from "expo-router";
 import { IconSymbol } from "@/components/common/IconSymbol";
 import type { FixedGame } from "@/types/fixedGames";
-import { SkillLevel } from "@/constants/skillLevel.types";
+import { SkillLevel } from "@/types/skillLevel";
 import { Game, GameStatus } from "@/types/games";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookedGames } from "@/contexts/BookedGamesContext";
@@ -20,7 +20,7 @@ import { SpotsAvailability } from "@/components/common/SpotsAvailability";
 import { GAME_CONSTANTS } from "@/types/games";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
-import { SKILL_LEVELS } from "@/constants/skillLevels";
+import { SKILL_LEVELS, SKILL_LEVELS_ALL } from "@/constants/skillLevels";
 import { useGames } from "@/contexts/GameContext";
 import { useFixedGames } from "@/contexts/FixedGamesContext";
 import { DAYS_OF_WEEK } from "@/constants/daysOfWeek";
@@ -57,9 +57,9 @@ export default function ExploreScreen() {
 
   // Fetch fixed games on mount, then build the days array after fetch
   useEffect(() => {
-    // fetchFixedGames();
-    // fetchGames();
-    // fetchBookedGames();
+    fetchFixedGames();
+    fetchGames();
+    fetchBookedGames();
   }, []);
 
   const fetchBookedGames = async () => {
@@ -86,8 +86,7 @@ export default function ExploreScreen() {
     games: Game[],
     filter: string
   ) => {
-    // if (!fixedGames || fixedGames.length === 0) return [];
-    return [];
+    if (!fixedGames || fixedGames.length === 0) return [];
     const activeFixedGames = fixedGames.filter((fg) => fg.status === "active");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -102,10 +101,10 @@ export default function ExploreScreen() {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       const dateUTC = date.toISOString().split("T")[0];
-      const mm = String(date.getMonth() + 1).padStart(2, "0");
-      const dd = String(date.getDate()).padStart(2, "0");
-      const yyyy = date.getFullYear();
-      const displayDate = `${mm}/${dd}/${yyyy}`;
+      const displayDate = date.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+      });
       let day = date.toLocaleDateString("en-US", { weekday: "long" });
       if (i === 0) day = "Today";
       else if (i === 1) day = "Tomorrow";
@@ -417,19 +416,6 @@ export default function ExploreScreen() {
     }
   };
 
-  // Add 'All Levels' option to the beginning of the skill levels array
-  const skillLevels = [
-    { value: "all", label: "All Levels", color: colors.skillAll },
-    ...SKILL_LEVELS,
-  ];
-
-  // Accept string for compatibility with ExploreFilter
-  const getSkillLevelColor = (level: string) => {
-    if (level === "all") return colors.skillAll;
-    const skillLevel = SKILL_LEVELS.find((sl) => sl.value === level);
-    return skillLevel ? skillLevel.color : colors.skillAll;
-  };
-
   const isSkillLevelMatch = (gameSkillLevel: SkillLevel) => {
     return (
       selectedSkillLevel === "all" || gameSkillLevel === selectedSkillLevel
@@ -457,18 +443,24 @@ export default function ExploreScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
+      <ThemedText
+        className="mt-2 pt-2 text-center"
+        type="subtitle"
+        weight="bold"
+      >
+        Games in Austin ▼
+      </ThemedText>
       <ExploreFilter
         selectedSkillLevel={actualFilter}
         setSelectedSkillLevel={setActualFilter}
         showSkillFilter={showSkillFilter}
         setShowSkillFilter={setShowSkillFilter}
-        skillLevels={skillLevels}
-        getSkillLevelColor={getSkillLevelColor}
+        skillLevels={SKILL_LEVELS_ALL}
         styles={styles}
       />
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         {sortedDaysArray.length === 0 && (
-          <ThemedView type="emptyStateContainer">
+          <ThemedView className="items-center p-8 rounded-xl mt-4 mx-8">
             <IconSymbol
               name="calendar"
               size={48}
@@ -478,7 +470,7 @@ export default function ExploreScreen() {
             <ThemedText type="title" weight="bold">
               No games found
             </ThemedText>
-            <ThemedText>
+            <ThemedText className="py-3 my-5">
               There are no games available for the selected skill level. Try
               changing the filter or check back later.
             </ThemedText>
@@ -487,16 +479,15 @@ export default function ExploreScreen() {
         {sortedDaysArray.map((dayObj: any) => (
           <ThemedView key={dayObj.dateUTC} type="dateSection">
             <ThemedView
-              type="dateTitleContainer"
-              borderColorType="text"
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
+              colorType="soft"
+              className="flex-row justify-between rounded items-center mx-2 py-4"
             >
-              <ThemedText type="sectionTitle">{dayObj.day}</ThemedText>
-              <ThemedText type="sectionTitle">{dayObj.displayDate}</ThemedText>
+              <ThemedText className="mx-4" type="value">
+                {dayObj.day}
+              </ThemedText>
+              <ThemedText className="mx-4" type="value">
+                {dayObj.displayDate}
+              </ThemedText>
             </ThemedView>
             {dayObj.games.map((game: any) => (
               <GameCard
@@ -507,7 +498,6 @@ export default function ExploreScreen() {
                 gameStatus={gameStatuses[game.id]}
                 isLoadingStatuses={isLoadingStatuses}
                 styles={styles}
-                getSkillLevelColor={getSkillLevelColor}
                 onGamePress={handleGameSelect}
                 onActionPress={(gameId, isBooked) => {
                   if (isBooked) {

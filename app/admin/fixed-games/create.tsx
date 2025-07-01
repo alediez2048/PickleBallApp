@@ -15,10 +15,7 @@ import { ThemedText } from "@/components/common/ThemedText";
 import { ThemedView } from "@/components/common/ThemedView";
 import { useTheme } from "@/contexts/ThemeContext";
 import { DayOfWeek, FixedGameStatus } from "@/types/fixedGames";
-import {
-  SkillLevel,
-  SkillLevel as SkillLevelEnum,
-} from "@/constants/skillLevel.types";
+import { SkillLevel, SkillLevel as SkillLevelEnum } from "@/types/skillLevel";
 import { useLocations } from "@/contexts/LocationsContext";
 import BackButton from "@/components/common/BackButton";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -102,7 +99,7 @@ export default function FixedGameCreate() {
     <ScrollView contentContainerStyle={styles.container}>
       <BackButton />
       <ThemedView>
-        <ThemedText type='title' style={styles.title}>
+        <ThemedText type="title" style={styles.title}>
           Create Fixed Game
         </ThemedText>
         <ThemedText style={styles.label}>Title*</ThemedText>
@@ -134,8 +131,8 @@ export default function FixedGameCreate() {
         <ThemedText style={styles.label}>Start Time* (HH:MM:SS)</ThemedText>
         {Platform.OS === "web" ? (
           <input
-            type='time'
-            step='60'
+            type="time"
+            step="60"
             value={form.start_time.slice(0, 5)}
             onChange={(e) => {
               const value = e.target.value;
@@ -166,7 +163,7 @@ export default function FixedGameCreate() {
                     ? new Date(`1970-01-01T${form.start_time}`)
                     : new Date()
                 }
-                mode='time'
+                mode="time"
                 is24Hour={true}
                 display={Platform.OS === "ios" ? "spinner" : "default"}
                 onChange={(event, date) => {
@@ -192,7 +189,7 @@ export default function FixedGameCreate() {
           ]}
           value={form.duration_minutes}
           onChangeText={(v) => handleChange("duration_minutes", v)}
-          keyboardType='numeric'
+          keyboardType="numeric"
         />
         <ThemedText style={styles.label}>Location*</ThemedText>
         <ThemedPicker
@@ -204,7 +201,7 @@ export default function FixedGameCreate() {
             paddingVertical: 6,
           }}
         >
-          <ThemedPicker.Item label='Select a location' value='' />
+          <ThemedPicker.Item label="Select a location" value="" />
           {locations.map((loc) => (
             <ThemedPicker.Item key={loc.id} label={loc.name} value={loc.id} />
           ))}
@@ -217,7 +214,7 @@ export default function FixedGameCreate() {
           ]}
           value={form.max_players}
           onChangeText={(v) => handleChange("max_players", v)}
-          keyboardType='numeric'
+          keyboardType="numeric"
         />
         <ThemedText style={styles.label}>Skill Level*</ThemedText>
         <ThemedPicker
@@ -229,7 +226,7 @@ export default function FixedGameCreate() {
             paddingVertical: 6,
           }}
         >
-          <ThemedPicker.Item label='Select skill level' value='' />
+          <ThemedPicker.Item label="Select skill level" value="" />
           {Object.values(SkillLevelEnum).map((level) => (
             <ThemedPicker.Item key={level} label={level} value={level} />
           ))}
@@ -242,7 +239,7 @@ export default function FixedGameCreate() {
           ]}
           value={form.price}
           onChangeText={(v) => handleChange("price", v)}
-          keyboardType='numeric'
+          keyboardType="numeric"
         />
         <ThemedText style={styles.label}>Image URL</ThemedText>
         <TextInput
@@ -263,8 +260,8 @@ export default function FixedGameCreate() {
             paddingVertical: 6,
           }}
         >
-          <ThemedPicker.Item label='Active' value='active' />
-          <ThemedPicker.Item label='Inactive' value='inactive' />
+          <ThemedPicker.Item label="Active" value="active" />
+          <ThemedPicker.Item label="Inactive" value="inactive" />
         </ThemedPicker>
         <Button
           title={loading ? "Creating..." : "Create Fixed Game"}

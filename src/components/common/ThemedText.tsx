@@ -7,6 +7,7 @@ import {
   Platform,
 } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
+import "../../../global.css";
 
 export type ThemedTextProps = TextProps & {
   type?:
@@ -50,6 +51,7 @@ export type ThemedTextProps = TextProps & {
   align?: "left" | "center" | "right" | "justify";
   weight?: number | "normal" | "bold";
   size?: number; // 1-15, see below
+  className?: string; // Tailwind or global classes
 };
 
 const fontSizeMap: Record<number, number> = {
@@ -77,6 +79,7 @@ export function ThemedText({
   weight = "normal",
   size = 3,
   align,
+  className,
   ...rest
 }: ThemedTextProps) {
   const { colors } = useTheme();
@@ -138,6 +141,7 @@ export function ThemedText({
 
   return (
     <Text
+      className={className}
       style={[
         getColorStyle(),
         getWeightStyle(),

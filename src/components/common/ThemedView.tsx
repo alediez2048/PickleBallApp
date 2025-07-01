@@ -24,8 +24,7 @@ export type ThemedViewProps = ViewProps & {
     | "gameFooter"
     | "badgeContainer"
     | "modalContentCustom"
-    | "none"
-    | "emptyStateContainer";
+    | "none";
   colorType?:
     | "default"
     | "primary"
@@ -99,6 +98,7 @@ function getTypeStyle(
 }
 
 export function ThemedView({
+  className,
   style,
   type = "default",
   colorType = "background",
@@ -151,11 +151,12 @@ export function ThemedView({
 
   return (
     <View
+      className={className}
       style={[
         colorStyle,
         typeStyle,
-        dynamicTypeStyle,
         borderColorStyle,
+        dynamicTypeStyle,
         getBorderWidthStyle(),
         style,
       ]}
@@ -227,7 +228,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 10,
-    borderWidth: 1,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
@@ -253,11 +253,5 @@ const styles = StyleSheet.create({
     width: "85%",
     padding: 24,
     alignItems: "center",
-  },
-  emptyStateContainer: {
-    alignItems: "center",
-    padding: 32,
-    borderRadius: 12,
-    marginTop: 16,
   },
 });
