@@ -117,9 +117,9 @@ export function ThemedView({
 
   // Always use palette for border
   const getBorderColorStyle = (): StyleProp<ViewStyle> => {
-    if (colorType === "none") return {};
+    if (borderColorType === "none") return {};
 
-    const colorValue = (colors as Record<string, string>)[colorType];
+    const colorValue = (colors as Record<string, string>)[borderColorType];
     return colorValue ? { borderColor: colorValue } : {};
   };
 
@@ -232,6 +232,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
+    borderColor: "black !important",
+    borderWidth: 10,
   },
   gameFooter: {
     flexDirection: "row",

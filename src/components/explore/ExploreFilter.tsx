@@ -25,7 +25,13 @@ const ExploreFilter: React.FC<ExploreFilterProps> = ({
   const { colors } = useTheme();
   const selected = SKILL_LEVELS_ALL.find((s) => s.value === selectedSkillLevel);
   return (
-    <ThemedView type="section" borderColorType="primary" borderWidth={2}>
+    <ThemedView
+      className="mx-2 mb-2"
+      type="section"
+      colorType="soft"
+      borderColorType="text"
+      borderWidth={2}
+    >
       <TouchableOpacity
         style={styles.filterButton}
         onPress={() => setShowSkillFilter(!showSkillFilter)}
@@ -41,11 +47,7 @@ const ExploreFilter: React.FC<ExploreFilterProps> = ({
         />
       </TouchableOpacity>
       {showSkillFilter && (
-        <ThemedView
-          type="surface"
-          colorType="soft"
-          className="mt-2 rounded-lg border border-primary"
-        >
+        <ThemedView type="surface" colorType="soft" className="mt-2 rounded-lg">
           {SKILL_LEVELS_ALL.map((level) => (
             <TouchableOpacity
               key={level.value}
@@ -56,10 +58,17 @@ const ExploreFilter: React.FC<ExploreFilterProps> = ({
               className="flex-row items-center p-0 m-0"
             >
               <ThemedView
-                className="flex-row items-center px-4 py-3 w-full"
+                className={`flex-row items-center px-4 py-3 w-full ${
+                  selectedSkillLevel === level.value
+                    ? "border border-primary"
+                    : ""
+                }`}
                 colorType={
-                  selectedSkillLevel === level.value ? "active" : "soft"
+                  selectedSkillLevel === level.value ? "border" : "soft"
                 }
+                borderColorType={`${
+                  selectedSkillLevel === level.value ? "border" : "soft"
+                }`}
               >
                 <ThemedView
                   className={`w-4 h-4 rounded-full mr-3`}
@@ -78,6 +87,16 @@ const ExploreFilter: React.FC<ExploreFilterProps> = ({
                 >
                   {level.label}
                 </ThemedText>
+
+                {selectedSkillLevel === level.value && (
+                  <ThemedView className="ml-auto p-0" colorType="border">
+                    <IconSymbol
+                      name="checkmark"
+                      size={22}
+                      color={colors.primary}
+                    />
+                  </ThemedView>
+                )}
               </ThemedView>
             </TouchableOpacity>
           ))}

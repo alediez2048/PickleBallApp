@@ -59,13 +59,13 @@ const GameCard: React.FC<GameCardProps> = ({
       key={displayGame.id}
       type="gameCard"
       className="my-2"
-      borderColorType="soft"
+      borderColorType="black"
       borderWidth={2}
     >
       <TouchableOpacity onPress={() => onGamePress(fixedGame, game)}>
-        <View style={cardStyles.rowTop}>
-          <View style={cardStyles.leftCol}>
-            <ThemedText type="timeText">{startTime}</ThemedText>
+        <ThemedView style={cardStyles.rowTop}>
+          <ThemedView style={cardStyles.leftCol}>
+            <ThemedText type="value">{startTime}</ThemedText>
             <ThemedText
               type="value"
               style={[cardStyles.durationText, { color: colors.icon }]}
@@ -74,8 +74,8 @@ const GameCard: React.FC<GameCardProps> = ({
               {fixedGame.duration_minutes || displayGame.duration_minutes || 0}{" "}
               min
             </ThemedText>
-          </View>
-          <View style={cardStyles.rightCol}>
+          </ThemedView>
+          <ThemedView style={cardStyles.rightCol}>
             <ThemedView
               colorType="soft"
               className="flex-row justify-between rounded-xl items-center px-2 py-1"
@@ -105,8 +105,8 @@ const GameCard: React.FC<GameCardProps> = ({
                 {fixedGame.skillLevel || displayGame.skill_level || "Open"}
               </ThemedText>
             </ThemedView>
-          </View>
-        </View>
+          </ThemedView>
+        </ThemedView>
         <View style={cardStyles.rowMid}>
           <View style={cardStyles.leftCol}>
             <View style={cardStyles.rowBottom}>

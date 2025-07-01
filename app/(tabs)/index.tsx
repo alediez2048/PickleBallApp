@@ -144,7 +144,7 @@ export default function TabHomeScreen() {
                 </ThemedView>
               ) : (
                 <ThemedView
-                  className="items-center p-8 rounded-xl mt-4 py-5"
+                  className="items-center p-8 rounded-xl mt-0 py-5"
                   colorType="soft"
                 >
                   <IconSymbol
@@ -153,11 +153,11 @@ export default function TabHomeScreen() {
                     color="#666666"
                     style={styles.emptyStateIcon}
                   />
-                  <ThemedText size={5} weight={"bold"}>
+                  <ThemedText className="mt-1 p-0" size={5} weight={"bold"}>
                     No Upcoming Games
                   </ThemedText>
 
-                  <ThemedText className="mb-2" align="center" size={2}>
+                  <ThemedText className="mb-3" align="center" size={2}>
                     Find and join games to see them here!
                   </ThemedText>
                 </ThemedView>
