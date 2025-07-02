@@ -1,5 +1,5 @@
 import React from "react";
-import { TouchableOpacity, StyleSheet, View } from "react-native";
+import { TouchableOpacity, StyleSheet, View, Button } from "react-native";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
 import { SpotsAvailability } from "../common/SpotsAvailability";
@@ -58,24 +58,25 @@ const GameCard: React.FC<GameCardProps> = ({
     <ThemedView
       key={displayGame.id}
       type="gameCard"
-      className="my-2"
-      borderColorType="black"
-      borderWidth={2}
+      className="m-2 p-0"
+      borderColorType="border"
+      borderWidth={1}
     >
       <TouchableOpacity onPress={() => onGamePress(fixedGame, game)}>
-        <ThemedView style={cardStyles.rowTop}>
-          <ThemedView style={cardStyles.leftCol}>
-            <ThemedText type="value">{startTime}</ThemedText>
-            <ThemedText
-              type="value"
-              style={[cardStyles.durationText, { color: colors.icon }]}
-            >
-              Duration:{" "}
-              {fixedGame.duration_minutes || displayGame.duration_minutes || 0}{" "}
-              min
+        <ThemedView className="flex-row justify-between items-start">
+          <ThemedView className="flex flex-col items-start gap-0 m-0">
+            <ThemedText size={7} type="bold">
+              {startTime}
+            </ThemedText>
+            <ThemedText colorType="primary" weight={"bold"}>
+              {fixedGame.location?.name}
+            </ThemedText>
+            <ThemedText>{fixedGame.location?.address}</ThemedText>
+            <ThemedText type="caption">
+              {fixedGame.location?.city}, {fixedGame.location?.state}
             </ThemedText>
           </ThemedView>
-          <ThemedView style={cardStyles.rightCol}>
+          <ThemedView className="items-end">
             <ThemedView
               colorType="soft"
               className="flex-row justify-between rounded-xl items-center px-2 py-1"
@@ -107,64 +108,26 @@ const GameCard: React.FC<GameCardProps> = ({
             </ThemedView>
           </ThemedView>
         </ThemedView>
-        <View style={cardStyles.rowMid}>
-          <View style={cardStyles.leftCol}>
-            <View style={cardStyles.rowBottom}>
-              <View>
-                <ThemedText type="subtitle">Spots</ThemedText>
-                <SpotsAvailability gameId={displayGame.id} />
-              </View>
-            </View>
-          </View>
-          <View style={cardStyles.rightCol}>
-            <View>
-              <ThemedText
-                type="paragraph"
-                style={[cardStyles.locationName, { color: colors.primary }]}
-              >
-                {fixedGame.location?.name}
+        <ThemedView className="flex-row justify-between items-center">
+          <ThemedView className="flex flex-col items-start gap-0 m-0">
+            <ThemedView style={cardStyles.rowBottom}>
+              <SpotsAvailability gameId={displayGame.id} />
+            </ThemedView>
+          </ThemedView>
+          <TouchableOpacity onPress={() => onGamePress(fixedGame, game)}>
+            <ThemedView colorType="primary" className="px-7 py-3 rounded-3xl">
+              <ThemedText colorType="white" size={5} weight={"bold"}>
+                Reserve
               </ThemedText>
-              <ThemedText
-                type="caption"
-                style={[cardStyles.locationAddress, { color: colors.icon }]}
-              >
-                {fixedGame.location?.address} - {fixedGame.location?.city},{" "}
-                {fixedGame.location?.state}
-              </ThemedText>
-            </View>
-            <TouchableOpacity
-              disabled={isLoadingStatuses}
-              onPress={() =>
-                onActionPress(displayGame.id, gameStatus?.isBooked)
-              }
-            >
-              <ThemedView style={gameStatus?.buttonStyle}>
-                <ThemedText>{gameStatus?.buttonText}</ThemedText>
-              </ThemedView>
-            </TouchableOpacity>
-          </View>
-        </View>
+            </ThemedView>
+          </TouchableOpacity>
+        </ThemedView>
       </TouchableOpacity>
     </ThemedView>
   );
 };
 
 const cardStyles = StyleSheet.create({
-  rowTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  leftCol: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-    gap: 0,
-    margin: 0,
-  },
-  rightCol: {
-    alignItems: "flex-end",
-  },
   skillLevelBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -183,12 +146,6 @@ const cardStyles = StyleSheet.create({
   titleText: {
     fontSize: 16,
     fontWeight: "600",
-  },
-  rowMid: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 4,
   },
   locationName: {
     fontWeight: "600",

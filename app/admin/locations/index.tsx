@@ -12,9 +12,11 @@ import { Link } from "expo-router";
 import BackButton from "@/components/common/BackButton";
 import { ThemedText } from "@/components/common/ThemedText";
 import { ThemedView } from "@/components/common/ThemedView";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function AdminLocationsList() {
   const { locations, loading, error, deleteLocation } = useLocations();
+  const { colors } = useTheme();
 
   const handleDelete = (id: string) => {
     Alert.alert(
@@ -44,25 +46,27 @@ export default function AdminLocationsList() {
       <View style={styles.header}>
         <BackButton />
       </View>
-      <Link href='/admin/locations/create' asChild>
-        <Button title='Create new location' />
-      </Link>
+      <ThemedView className="my-4">
+        <Link href="/admin/locations/create" asChild>
+          <Button title="Create new location" color={colors.primary} />
+        </Link>
+      </ThemedView>
       <FlatList
         data={locations}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ThemedView type='card' colorType='secondary' style={styles.item}>
-            <ThemedText type='bold' style={styles.name}>
+          <ThemedView type="card" colorType="soft" style={styles.item}>
+            <ThemedText type="bold" style={styles.name}>
               {item.name}
             </ThemedText>
             <ThemedText style={styles.address}>{item.address}</ThemedText>
             <View style={styles.actions}>
               <Link href={`/admin/locations/${item.id}`} asChild>
-                <Button title='Edit' />
+                <Button title="Edit" />
               </Link>
               <Button
-                title='Delete'
-                color='red'
+                title="Delete"
+                color="red"
                 onPress={() => handleDelete(item.id)}
               />
             </View>

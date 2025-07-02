@@ -70,68 +70,70 @@ export default function AdminLocationEdit() {
   if (fetching || !form) return <ActivityIndicator style={{ marginTop: 40 }} />;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <BackButton />
-      <ThemedView style={{ marginTop: 20 }}>
-        <ThemedText style={styles.label}>Name*</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
-          value={form.name}
-          onChangeText={(v) => handleChange("name", v)}
-        />
-        <ThemedText style={styles.label}>Address</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
-          value={form.address}
-          onChangeText={(v) => handleChange("address", v)}
-        />
-        <ThemedText style={styles.label}>City</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
-          value={form.city}
-          onChangeText={(v) => handleChange("city", v)}
-        />
-        <ThemedText style={styles.label}>State</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
-          value={form.state}
-          onChangeText={(v) => handleChange("state", v)}
-        />
-        <ThemedText style={styles.label}>Zip Code</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
-          value={form.zip_code}
-          onChangeText={(v) => handleChange("zip_code", v)}
-        />
-        <ThemedText style={styles.label}>Image (URL)</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
-          value={form.image_url}
-          onChangeText={(v) => handleChange("image_url", v)}
-        />
-        <ThemedText style={styles.label}>Latitude</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
-          value={form.coordinates.latitude?.toString() || ""}
-          keyboardType='numeric'
-          onChangeText={(v) => handleCoordinateChange("latitude", v)}
-        />
-        <ThemedText style={styles.label}>Longitude</ThemedText>
-        <TextInput
-          style={[styles.input, { color: colors.text }]}
-          value={form.coordinates.longitude?.toString() || ""}
-          keyboardType='numeric'
-          onChangeText={(v) => handleCoordinateChange("longitude", v)}
-        />
-      </ThemedView>
-      <ThemedView style={{ marginTop: 20 }}>
-        <Button
-          title={loading ? "Updating..." : "Update location"}
-          onPress={handleSubmit}
-          disabled={loading}
-        />
-      </ThemedView>
-    </ScrollView>
+    <ThemedView>
+      <ScrollView contentContainerStyle={styles.container}>
+        <BackButton />
+        <ThemedView style={{ marginTop: 20 }}>
+          <ThemedText style={styles.label}>Name*</ThemedText>
+          <TextInput
+            style={[styles.input, { color: colors.text }]}
+            value={form.name}
+            onChangeText={(v) => handleChange("name", v)}
+          />
+          <ThemedText style={styles.label}>Address</ThemedText>
+          <TextInput
+            style={[styles.input, { color: colors.text }]}
+            value={form.address}
+            onChangeText={(v) => handleChange("address", v)}
+          />
+          <ThemedText style={styles.label}>City</ThemedText>
+          <TextInput
+            style={[styles.input, { color: colors.text }]}
+            value={form.city}
+            onChangeText={(v) => handleChange("city", v)}
+          />
+          <ThemedText style={styles.label}>State</ThemedText>
+          <TextInput
+            style={[styles.input, { color: colors.text }]}
+            value={form.state}
+            onChangeText={(v) => handleChange("state", v)}
+          />
+          <ThemedText style={styles.label}>Zip Code</ThemedText>
+          <TextInput
+            style={[styles.input, { color: colors.text }]}
+            value={form.zip_code}
+            onChangeText={(v) => handleChange("zip_code", v)}
+          />
+          <ThemedText style={styles.label}>Image (URL)</ThemedText>
+          <TextInput
+            style={[styles.input, { color: colors.text }]}
+            value={form.image_url}
+            onChangeText={(v) => handleChange("image_url", v)}
+          />
+          <ThemedText style={styles.label}>Latitude</ThemedText>
+          <TextInput
+            style={[styles.input, { color: colors.text }]}
+            value={form.coordinates.latitude?.toString() || ""}
+            keyboardType="numeric"
+            onChangeText={(v) => handleCoordinateChange("latitude", v)}
+          />
+          <ThemedText style={styles.label}>Longitude</ThemedText>
+          <TextInput
+            style={[styles.input, { color: colors.text }]}
+            value={form.coordinates.longitude?.toString() || ""}
+            keyboardType="numeric"
+            onChangeText={(v) => handleCoordinateChange("longitude", v)}
+          />
+        </ThemedView>
+        <ThemedView style={{ marginTop: 20 }}>
+          <Button
+            title={loading ? "Updating..." : "Update location"}
+            onPress={handleSubmit}
+            disabled={loading}
+          />
+        </ThemedView>
+      </ScrollView>
+    </ThemedView>
   );
 }
 

@@ -67,6 +67,32 @@ function RootLayoutNav() {
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="game" options={{ headerShown: false }} />
+      <Stack.Screen name="admin" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="admin/locations/index"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="admin/locations/create"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="admin/locations/[id]"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="admin/fixed-games" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="admin/fixed-games/[id]"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="admin/fixed-games/create"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="admin/fixed-games/index"
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="game/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="(profile-setup)" options={{ headerShown: false }} />
       <Stack.Screen name="(skill-select)" options={{ headerShown: false }} />

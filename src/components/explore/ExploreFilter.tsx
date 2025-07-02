@@ -1,5 +1,5 @@
 import React from "react";
-import { TouchableOpacity, StyleSheet, View } from "react-native";
+import { TouchableOpacity } from "react-native";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
 import { IconSymbol } from "@/components/common/IconSymbol";
@@ -11,8 +11,6 @@ interface ExploreFilterProps {
   setSelectedSkillLevel: (level: string) => void;
   showSkillFilter: boolean;
   setShowSkillFilter: (show: boolean) => void;
-  skillLevels: { value: string; label: string; color: string }[];
-  styles: any;
 }
 
 const ExploreFilter: React.FC<ExploreFilterProps> = ({
@@ -20,7 +18,6 @@ const ExploreFilter: React.FC<ExploreFilterProps> = ({
   setSelectedSkillLevel,
   showSkillFilter,
   setShowSkillFilter,
-  skillLevels,
 }) => {
   const { colors } = useTheme();
   const selected = SKILL_LEVELS_ALL.find((s) => s.value === selectedSkillLevel);
@@ -29,13 +26,12 @@ const ExploreFilter: React.FC<ExploreFilterProps> = ({
       className="mx-2 mb-2"
       type="section"
       colorType="soft"
-      borderColorType="text"
-      borderWidth={2}
+      borderColorType="border"
+      borderWidth={1}
     >
       <TouchableOpacity
-        style={styles.filterButton}
         onPress={() => setShowSkillFilter(!showSkillFilter)}
-        className="flex-row items-center px-2 py-3"
+        className="flex-row items-center px-1 py-3"
       >
         <IconSymbol name="filter" size={25} />
         <ThemedText style={{ flex: 1, color: colors.text }} className="ml-2">
@@ -105,12 +101,5 @@ const ExploreFilter: React.FC<ExploreFilterProps> = ({
     </ThemedView>
   );
 };
-
-const styles = StyleSheet.create({
-  filterButton: {
-    paddingLeft: 4,
-    paddingRight: 4,
-  },
-});
 
 export default ExploreFilter;
