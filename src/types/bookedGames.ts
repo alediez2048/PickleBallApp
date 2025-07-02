@@ -1,5 +1,5 @@
-// BookedGame type for booked games feature
-// All fields must match the structure used in Supabase and the app
+import type { Location } from "./locations";
+import type { Game } from "./games";
 
 export interface BookedGame {
   id: string;
@@ -11,6 +11,8 @@ export interface BookedGame {
   skill_rating: number;
   price: number;
   user_id: string;
-  user_info:{} | any
+  user_info: {} | any;
   status: "upcoming" | "completed" | "cancelled";
+  location?: Location;
+  game?: Game;
 }

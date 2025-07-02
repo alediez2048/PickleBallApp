@@ -103,21 +103,25 @@ export default function TabHomeScreen() {
                             />
                             <ThemedText style={styles.gameTime}>
                               {" "}
-                              {new Date(
-                                game.game?.start_time
-                              ).toLocaleDateString("en-US")}
+                              {game.game?.start_time
+                                ? new Date(
+                                    game.game.start_time
+                                  ).toLocaleDateString("en-US")
+                                : ""}
                             </ThemedText>
                           </ThemedView>
                           <ThemedView style={styles.timeContainer}>
                             <IconSymbol name="time" size={16} />
                             <ThemedText>
-                              {new Date(
-                                game.game?.start_time
-                              ).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              })}
+                              {game.game?.start_time
+                                ? new Date(
+                                    game.game.start_time
+                                  ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })
+                                : ""}
                             </ThemedText>
                           </ThemedView>
                         </ThemedView>

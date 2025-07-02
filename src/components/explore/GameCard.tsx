@@ -9,7 +9,6 @@ interface GameCardProps {
   game?: any;
   bookedGame?: any;
   user?: any;
-  isSkillLevelMatch: boolean;
   gameStatus: any;
   isLoadingStatuses: boolean;
   onGamePress: (fixedGame: any, game: any) => void;

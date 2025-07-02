@@ -1,33 +1,28 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  ScrollView,
   SafeAreaView,
-  TouchableOpacity,
-  Platform,
-  StyleSheet,
-  Alert,
+  ScrollView,
   Modal,
+  Alert,
+  StyleSheet,
+  TouchableOpacity,
 } from "react-native";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useRouter } from "expo-router";
-import { IconSymbol } from "@/components/common/IconSymbol";
-import type { FixedGame } from "@/types/fixedGames";
-import { SkillLevel } from "@/types/skillLevel";
-import { Game, GameStatus } from "@/types/games";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookedGames } from "@/contexts/BookedGamesContext";
-import { mockApi } from "@/services/mockApi";
-import { SpotsAvailability } from "@/components/common/SpotsAvailability";
-import { GAME_CONSTANTS } from "@/types/games";
-import { ThemedView } from "@/components/common/ThemedView";
-import { ThemedText } from "@/components/common/ThemedText";
-import { SKILL_LEVELS, SKILL_LEVELS_ALL } from "@/constants/skillLevels";
 import { useGames } from "@/contexts/GameContext";
 import { useFixedGames } from "@/contexts/FixedGamesContext";
-import { DAYS_OF_WEEK } from "@/constants/daysOfWeek";
+import { ThemedView } from "@/components/common/ThemedView";
+import { ThemedText } from "@/components/common/ThemedText";
+import ExploreFilter from "@/components/explore/ExploreFilter";
 import GameCard from "@/components/explore/GameCard";
-import ExploreFilter from "@components/explore/ExploreFilter";
-import { useTheme } from "@contexts/ThemeContext";
+import { IconSymbol } from "@/components/common/IconSymbol";
+import { DAYS_OF_WEEK } from "@constants/daysOfWeek";
 import { BookedGame } from "@/types/bookedGames";
+import { Game, GameStatus } from "@/types/games";
+import { FixedGame } from "@/types/fixedGames";
+import { SkillLevel } from "@/types/skillLevel";
 
 // Type for merged game (scheduled or fixed)
 type MergedGame = Game & {
@@ -168,198 +163,6 @@ export default function ExploreScreen() {
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
   const [selectedGame, setSelectedGame] = useState<MergedGame | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const statusCache = React.useRef<Map<string, number>>(new Map());
-
-  const isGameBooked = React.useCallback(
-    (gameId: string) => {
-      return upcomingGames.some(
-        (bookedGame) =>
-          bookedGame.gameId === gameId && bookedGame.status === "upcoming"
-      );
-    },
-    [upcomingGames]
-  );
-
-  // Replace all usages of MOCK_GAMES with allGames
-  // Example: initialStatuses, getReservationStatus, filteredGames, groupGamesByDate, etc.
-
-  // Update getReservationStatus to accept both scheduled and fixed games
-  const getReservationStatus = React.useCallback(
-    async (game: MergedGame) => {
-      // If it's a fixed game, always allow reservation (or customize as needed)
-      if (game.isFixed) {
-        return {
-          canReserve: true,
-          buttonText: "Reserve",
-          buttonStyle: {
-            backgroundColor: colors.primary, // Use theme color
-            paddingHorizontal: 20,
-            paddingVertical: 10,
-            borderRadius: 20,
-          },
-          textStyle: { color: colors.white, fontWeight: "600" },
-          isBooked: false,
-        };
-      }
-      try {
-        if (isGameBooked(game.id)) {
-          return {
-            canReserve: false,
-            buttonText: "Cancel",
-            buttonStyle: {
-              backgroundColor: colors.danger, // Use theme color
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              borderRadius: 20,
-            },
-            textStyle: { color: colors.white, fontWeight: "600" },
-            isBooked: true,
-          };
-        }
-
-        // Default to 0 if getGameBookings is not available
-        let bookedPlayersCount = 0;
-        try {
-          // TODO: Replace with real API call if available
-          // bookedPlayersCount = await getGameBookings(game.id);
-        } catch (error) {
-          console.warn(
-            `Could not get bookings count for game ${game.id}, using default value`
-          );
-        }
-
-        const totalPlayers = game.players.length + bookedPlayersCount;
-        const spotsAvailable = game.maxPlayers - totalPlayers;
-
-        if (spotsAvailable > 0) {
-          return {
-            canReserve: true,
-            buttonText: "Reserve",
-            buttonStyle: {
-              backgroundColor: colors.primary, // Use theme color
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              borderRadius: 20,
-            },
-            textStyle: { color: colors.white, fontWeight: "600" },
-            isBooked: false,
-          };
-        }
-
-        return {
-          canReserve: false,
-          buttonText: "Join Waitlist",
-          buttonStyle: {
-            backgroundColor: colors.waitlist, // Use theme color
-            paddingHorizontal: 20,
-            paddingVertical: 10,
-            borderRadius: 20,
-          },
-          textStyle: { color: colors.white, fontWeight: "600" },
-          isBooked: false,
-        };
-      } catch (error) {
-        console.warn(
-          `Error getting reservation status for game ${game.id}:`,
-          error
-        );
-        return {
-          canReserve: false,
-          buttonText: "Unavailable",
-          buttonStyle: {
-            backgroundColor: colors.warning, // Use theme color
-            paddingHorizontal: 20,
-            paddingVertical: 10,
-            borderRadius: 20,
-          },
-          textStyle: { color: colors.icon, fontWeight: "600" },
-          isBooked: false,
-        };
-      }
-    },
-    [isGameBooked]
-  );
-
-  // Initialize game statuses for allGames
-  // useEffect(() => {
-  //   // Set initial states for all games
-  //   const initialStatuses = allGames.reduce((acc, game) => {
-  //     acc[game.id] = {
-  //       canReserve: true,
-  //       buttonText: "Reserve",
-  //       buttonStyle: {
-  //         backgroundColor: "#4CAF50",
-  //         paddingHorizontal: 20,
-  //         paddingVertical: 10,
-  //         borderRadius: 20,
-  //       },
-  //       textStyle: { color: "#FFFFFF", fontWeight: "600" },
-  //       isBooked: false,
-  //     };
-  //     return acc;
-  //   }, {} as Record<string, any>);
-
-  //   setGameStatuses(initialStatuses);
-  // }, [allGames]);
-
-  // Load game statuses for allGames
-  // useEffect(() => {
-  //   let isMounted = true;
-  //   const controller = new AbortController();
-
-  //   const loadGameStatuses = async () => {
-  //     if (isLoadingStatuses) return;
-
-  //     try {
-  //       setIsLoadingStatuses(true);
-  //       const games = allGames;
-  //       const currentTime = Date.now();
-  //       const updatedStatuses: Record<string, any> = {};
-
-  //       // Process games in chunks to prevent overwhelming
-  //       for (let i = 0; i < games.length; i++) {
-  //         if (!isMounted) break;
-
-  //         const game = games[i];
-  //         const lastUpdate = statusCache.current.get(game.id) || 0;
-
-  //         // Only update if cache is expired (5 seconds)
-  //         if (currentTime - lastUpdate > 5000) {
-  //           try {
-  //             const status = await getReservationStatus(game);
-  //             updatedStatuses[game.id] = status;
-  //             statusCache.current.set(game.id, currentTime);
-
-  //             // Update state in batches
-  //             if (isMounted && Object.keys(updatedStatuses).length > 0) {
-  //               setGameStatuses((prev) => ({ ...prev, ...updatedStatuses }));
-  //             }
-
-  //             // Add delay between requests
-  //             await new Promise((resolve) => setTimeout(resolve, 200));
-  //           } catch (error) {
-  //             console.warn(`Error loading status for game ${game.id}:`, error);
-  //           }
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error("Error loading game statuses:", error);
-  //     } finally {
-  //       if (isMounted) {
-  //         setIsLoadingStatuses(false);
-  //       }
-  //     }
-  //   };
-
-  //   // Load statuses immediately on mount or when dependencies change
-  //   loadGameStatuses();
-
-  //   // Clean up
-  //   return () => {
-  //     isMounted = false;
-  //     controller.abort();
-  //   };
-  // }, [allGames, upcomingGames, user?.skill_level, getReservationStatus]);
 
   // Refactored: handleGameSelect receives both fixedGame and game
   const handleGameSelect = async (fixedGame: FixedGame, game?: Game) => {
@@ -429,12 +232,6 @@ export default function ExploreScreen() {
     }
   };
 
-  const isSkillLevelMatch = (gameSkillLevel: SkillLevel) => {
-    return (
-      selectedSkillLevel === "all" || gameSkillLevel === selectedSkillLevel
-    );
-  };
-
   const handleCancelRegistration = async (gameId: string) => {
     try {
       setIsLoading(true);
@@ -468,8 +265,6 @@ export default function ExploreScreen() {
         setSelectedSkillLevel={setActualFilter}
         showSkillFilter={showSkillFilter}
         setShowSkillFilter={setShowSkillFilter}
-        skillLevels={SKILL_LEVELS_ALL}
-        styles={styles}
       />
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         {sortedDaysArray.length === 0 && (
@@ -511,7 +306,6 @@ export default function ExploreScreen() {
                 user={user}
                 gameStatus={gameStatuses[game.id]}
                 isLoadingStatuses={isLoadingStatuses}
-                styles={styles}
                 onGamePress={handleGameSelect}
                 onActionPress={(gameId, isBooked) => {
                   if (isBooked) {
@@ -540,23 +334,17 @@ export default function ExploreScreen() {
         transparent
         onRequestClose={() => setIsCancelModalVisible(false)}
       >
-        <ThemedView
-          type="modalContentCustom"
-          style={[
-            styles.modalContainer,
-            { backgroundColor: colors.modalOverlay },
-          ]}
-        >
+        <ThemedView type="modalContentCustom" colorType="soft">
           <ThemedText type="title">Cancel Registration</ThemedText>
-          <ThemedText type="paragraph">
+          <ThemedText>
             Are you sure you want to cancel your registration for this game?
           </ThemedText>
           <ThemedView type="centered">
             <TouchableOpacity
-              style={[styles.cancelButton, { backgroundColor: colors.error }]}
+              style={[styles.cancelButton, { backgroundColor: colors.danger }]}
               onPress={() => setIsCancelModalVisible(false)}
             >
-              <ThemedText type="button">No, go back</ThemedText>
+              <ThemedText>No, go back</ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -569,7 +357,7 @@ export default function ExploreScreen() {
                 }
               }}
             >
-              <ThemedText type="button">Yes, cancel</ThemedText>
+              <ThemedText>Yes, cancel</ThemedText>
             </TouchableOpacity>
           </ThemedView>
         </ThemedView>
