@@ -110,7 +110,7 @@ const GameCard: React.FC<GameCardProps> = ({
         </ThemedView>
         <ThemedView className="flex-row justify-between items-center">
           <ThemedView className="flex flex-col items-start gap-0 m-0">
-            <ThemedView style={cardStyles.rowBottom}>
+            <ThemedView className="flex-row justify-between items-center">
               <SpotsAvailability gameId={displayGame.id} />
             </ThemedView>
           </ThemedView>
@@ -153,12 +153,6 @@ const cardStyles = StyleSheet.create({
   },
   locationAddress: {
     textAlign: "right",
-  },
-  rowBottom: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 0,
   },
 });
 
