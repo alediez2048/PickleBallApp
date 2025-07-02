@@ -22,15 +22,33 @@ export async function getFixedGame(id: string): Promise<FixedGame | null> {
   return data as FixedGame;
 }
 
-export async function createFixedGame(input: FixedGameInput): Promise<FixedGame | null> {
-  const { data, error } = await supabase.from(TABLE_NAME).insert([input]).select().single();
+export async function createFixedGame(
+  input: FixedGameInput
+): Promise<FixedGame | null> {
+  const { data, error } = await supabase
+    .from(TABLE_NAME)
+    .insert([input])
+    .select()
+    .single();
   if (error) return null;
   return data as FixedGame;
 }
 
-export async function updateFixedGame(id: string, input: Partial<FixedGameInput>): Promise<boolean> {
-  const { error } = await supabase.from(TABLE_NAME).update(input).eq("id", id);
-  return !error;
+export async function updateFixedGame(
+  id: string,
+  input: Partial<FixedGameInput>
+): Promise<FixedGame | null> {
+  const { data, error } = await supabase
+    .from(TABLE_NAME)
+    .update(input)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) {
+    console.error("Error updating fixed game:", error);
+    return null;
+  }
+  return data as FixedGame;
 }
 
 export async function deleteFixedGame(id: string): Promise<boolean> {

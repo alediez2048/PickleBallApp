@@ -228,27 +228,45 @@ export default function GameDetailsScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView
+      className="flex flex-col justify-start"
+      style={styles.container}
+    >
       <BackButton />
-      {/* Header */}
       <ThemedView>
-        <ThemedText
-          type="title"
-          style={{
-            textAlign: "center",
-            paddingVertical: 10,
-            marginVertical: 10,
-          }}
-        >
+        <ThemedText className="text-center mb-3" weight={"bold"} type="title">
           Game Details
         </ThemedText>
       </ThemedView>
       {/* Game Summary */}
-      <ThemedView style={styles.twoRows}>
+      <ThemedView className="flex flex-row justify-between items-start p-2 gap-4 mb-3">
+        <ThemedView style={styles.oneRowColumn}>
+          <ThemedText weight="bold" align="left" size={8}>
+            {new Date(game.start_time).toLocaleDateString("en-US", {
+              weekday: "long", // Monday
+              month: "long", // June
+              day: "numeric", // 2
+            })}
+          </ThemedText>
+          <ThemedView>
+            <ThemedText type="subtitle" colorType="primary" align="left">
+              {game.location?.name}
+            </ThemedText>
+            <ThemedView>
+              <ThemedText align="left">{game.location?.address}</ThemedText>
+              <ThemedText type="caption" align="left">
+                {game.location?.city}, {game.location?.state}{" "}
+                {game.location?.zip_code}
+              </ThemedText>
+            </ThemedView>
+          </ThemedView>
+        </ThemedView>
         <ThemedView style={styles.oneRowColumn}>
           <ThemedView>
-            <ThemedText type="badge">Start</ThemedText>
-            <ThemedText type="sectionTitle">
+            <ThemedText type="badge" align="right">
+              Start
+            </ThemedText>
+            <ThemedText size={7} weight={"bold"} align="right">
               {new Date(game.start_time).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -256,36 +274,15 @@ export default function GameDetailsScreen() {
             </ThemedText>
           </ThemedView>
           <ThemedView>
-            <ThemedText type="badge">End</ThemedText>
-            <ThemedText type="sectionTitle">
+            <ThemedText type="badge" align="right">
+              End
+            </ThemedText>
+            <ThemedText size={7} weight={"bold"} align="right">
               {new Date(game.end_time).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
             </ThemedText>
-          </ThemedView>
-        </ThemedView>
-        <ThemedView style={styles.oneRowColumn}>
-          <ThemedText type="sectionTitle" style={styles.alignRight}>
-            {new Date(game.end_time).toLocaleDateString("en-US")}
-          </ThemedText>
-          <ThemedView>
-            <ThemedText
-              type="subtitle"
-              colorType="primary"
-              style={styles.alignRight}
-            >
-              {game.location?.name}
-            </ThemedText>
-            <ThemedView>
-              <ThemedText type="default" style={styles.alignRight}>
-                {game.location?.address}
-              </ThemedText>
-              <ThemedText type="caption" style={styles.alignRight}>
-                {game.location?.city}, {game.location?.state}{" "}
-                {game.location?.zip_code}
-              </ThemedText>
-            </ThemedView>
           </ThemedView>
         </ThemedView>
       </ThemedView>
@@ -318,17 +315,37 @@ export default function GameDetailsScreen() {
         </ThemedView>
       </ThemedView>
       {/* Game Host */}
-      {/* <ThemedView style={styles.section}>
-        <ThemedText type='sectionTitle'>Game Host</ThemedText>
-        <ThemedView style={styles.captainCard}>
-          <ThemedView style={styles.captainInfo}>
-            <ThemedText style={styles.captainName}>{game.host.name}</ThemedText>
-            <ThemedText style={styles.captainStats}>
-              Skill Level: {game.host.skillLevel}
-            </ThemedText>
+      <ThemedView
+        colorType="soft"
+        borderColorType="text"
+        borderWidth={3}
+        className="px-3 mx-2 rounded-xl my-3"
+      >
+        <ThemedText className="text-center my-2" size={5} weight={"bold"}>
+          Game Host
+        </ThemedText>
+        <ThemedView
+          colorType="soft"
+          className="px-4 mx-4 flex flex-row justify-between"
+        >
+          <ThemedView
+            colorType="soft"
+            className="py-1 my-2 mx-4"
+            style={styles.captainInfo}
+          >
+            <ThemedText>{game.host.name}</ThemedText>
+            {game.host.skill_level && (
+              <ThemedText>Skill Level: {game.host.skill_level}</ThemedText>
+            )}
+            {game.host.email && (
+              <ThemedText>Email: {game.host.email}</ThemedText>
+            )}
+            {game.host.phone_number && (
+              <ThemedText>Phone Number: {game.host.phone_number}</ThemedText>
+            )}
           </ThemedView>
         </ThemedView>
-      </ThemedView> */}
+      </ThemedView>
       {/* Players */}
       <ThemedView style={styles.section}>
         {/* TODO: RSVPList component, ensure it uses ThemedText/ThemedView */}
@@ -577,7 +594,9 @@ export default function GameDetailsScreen() {
             </ThemedView>
 
             <ThemedView style={styles.bookingSummaryCard}>
-              <ThemedText style={styles.summaryTitle}>Game Details</ThemedText>
+              <ThemedText size={4} weight={"bold"}>
+                Game Details
+              </ThemedText>
               <ThemedView style={styles.summaryRow}>
                 <ThemedText style={styles.summaryLabel}>Skill Level</ThemedText>
                 <ThemedText style={styles.summaryValue}>
@@ -680,9 +699,6 @@ export default function GameDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
   },
   header: {
     flexDirection: "row",
@@ -692,7 +708,7 @@ const styles = StyleSheet.create({
   twoRows: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
     padding: 2,
     gap: 4,
   },
@@ -754,12 +770,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#000000",
     marginBottom: 16,
-  },
-  captainCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 12,
   },
   captainInfo: {
     flex: 1,

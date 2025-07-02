@@ -18,7 +18,7 @@ interface FixedGamesContextProps {
   updateFixedGame: (
     id: string,
     input: Partial<FixedGameInput>
-  ) => Promise<boolean>;
+  ) => Promise<FixedGame | null>;
   deleteFixedGame: (id: string) => Promise<boolean>;
 }
 
@@ -60,9 +60,9 @@ export const FixedGamesProvider: React.FC<{ children: React.ReactNode }> = ({
   const update = async (id: string, input: Partial<FixedGameInput>) => {
     setLoading(true);
     try {
-      const ok = await updateFixedGame(id, input);
-      if (ok) await fetchFixedGames();
-      return ok;
+      const updated = await updateFixedGame(id, input);
+      if (updated) await fetchFixedGames();
+      return updated;
     } finally {
       setLoading(false);
     }

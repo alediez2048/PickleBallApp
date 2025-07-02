@@ -1,33 +1,21 @@
+import type { Location } from "./locations";
+
 export const SkillLevel = {
-  Beginner: 'Beginner',
-  Intermediate: 'Intermediate',
-  Advanced: 'Advanced',
-  Open: 'Open',
+  Beginner: "Beginner",
+  Intermediate: "Intermediate",
+  Advanced: "Advanced",
+  Open: "Open",
 } as const;
 
-export type SkillLevel = typeof SkillLevel[keyof typeof SkillLevel];
+export type SkillLevel = (typeof SkillLevel)[keyof typeof SkillLevel];
 
 export const GameStatus = {
-  Upcoming: 'upcoming',
-  Completed: 'completed',
-  Cancelled: 'cancelled',
+  Upcoming: "upcoming",
+  Completed: "completed",
+  Cancelled: "cancelled",
 } as const;
 
-export type GameStatus = typeof GameStatus[keyof typeof GameStatus];
-
-export interface Location {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  coordinates: {
-    latitude: number;
-    longitude: number;
-  };
-  imageUrl?: string;
-}
+export type GameStatus = (typeof GameStatus)[keyof typeof GameStatus];
 
 export interface User {
   id: string;
@@ -36,11 +24,13 @@ export interface User {
   skill_level: SkillLevel;
   phone_number?: string;
   rating?: number;
-  profileImage?: string | {
-    uri: string;
-    base64: string;
-    timestamp: number;
-  };
+  profileImage?:
+    | string
+    | {
+        uri: string;
+        base64: string;
+        timestamp: number;
+      };
 }
 
 export const GAME_CONSTANTS = {
@@ -67,6 +57,7 @@ export interface Game {
   created_at: string;
   updated_at: string;
   fixed_game_id?: string;
+  location?: Location;
 }
 
 export interface GameFilters {

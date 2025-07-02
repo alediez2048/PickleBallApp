@@ -61,7 +61,7 @@ export default function TabHomeScreen() {
             Welcome to PicklePass
           </ThemedText>
           <ThemedText type="miniSubtitle" style={styles.subtitle}>
-            Find and join pickleball games near you
+            Find and join Pickleball games near you
           </ThemedText>
 
           <ThemedView style={styles.buttonContainer}>

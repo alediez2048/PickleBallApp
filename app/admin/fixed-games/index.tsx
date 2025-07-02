@@ -16,53 +16,73 @@ export default function FixedGamesList() {
   }, [fetchFixedGames]);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <BackButton />
-      <ThemedView>
-        <ThemedText type='title' style={styles.title}>
-          Fixed Games
-        </ThemedText>
-        <Button
-          title='Create New Fixed Game'
-          onPress={() => router.push("/admin/fixed-games/create")}
-        />
-        {loading && <ThemedText>Loading...</ThemedText>}
-        {fixedGames.map((game) => (
-          <ThemedView key={game.id} type='card' style={styles.card}>
-            <ThemedText type='subtitle'>{game.title}</ThemedText>
-            <ThemedText type='caption'>{game.description}</ThemedText>
-            <ThemedText type='caption'>Day: {game.day_of_week}</ThemedText>
-            <ThemedText type='caption'>Start: {game.start_time}</ThemedText>
-            <ThemedText type='caption'>
-              Duration: {game.duration_minutes} min
-            </ThemedText>
-            <ThemedText type='caption'>
-              Max Players: {game.max_players}
-            </ThemedText>
-            <ThemedText type='caption'>Skill: {game.skill_level}</ThemedText>
-            <ThemedText type='caption'>Price: ${game.price}</ThemedText>
-            <ThemedText type='caption'>Status: {game.status}</ThemedText>
-            <ThemedText type='caption'>Location: {game.location_id}</ThemedText>
-            <ThemedText type='caption'>Created: {game.created_at}</ThemedText>
-            <ThemedText type='caption'>Updated: {game.updated_at}</ThemedText>
-            <ThemedText type='caption'>Image: {game.image_url}</ThemedText>
-            <View style={styles.actions}>
-              <Button
-                title='Edit'
-                onPress={() => router.push(`/admin/fixed-games/${game.id}`)}
-              />
-              <Button
-                title='Delete'
-                color='red'
-                onPress={() =>
-                  router.push(`/admin/fixed-games/delete/${game.id}`)
-                }
-              />
-            </View>
-          </ThemedView>
-        ))}
-      </ThemedView>
-    </ScrollView>
+    <ThemedView>
+      <ScrollView contentContainerStyle={styles.container}>
+        <BackButton />
+        <ThemedView>
+          <ThemedText type="title" style={styles.title}>
+            Fixed Games
+          </ThemedText>
+          <Button
+            title="Create New Fixed Game"
+            onPress={() => router.push("/admin/fixed-games/create")}
+          />
+          {loading && <ThemedText>Loading...</ThemedText>}
+          {fixedGames.map((game) => (
+            <ThemedView
+              key={game.id}
+              colorType="soft"
+              type="card"
+              style={styles.card}
+              borderColorType="border"
+              borderWidth={2}
+            >
+              <ThemedText type="subtitle">{game.title}</ThemedText>
+              <ThemedView
+                colorType="soft"
+                className="flex flex-row justify-between items-start p-2 gap-4 mb-3"
+              >
+                <ThemedView colorType="soft">
+                  <ThemedText type="caption">{game.description}</ThemedText>
+
+                  <ThemedText type="caption">
+                    Max Players: {game.max_players}
+                  </ThemedText>
+                  <ThemedText type="caption">
+                    Skill: {game.skill_level}
+                  </ThemedText>
+                </ThemedView>
+                <ThemedView colorType="soft">
+                  <ThemedText type="caption">
+                    Day: {game.day_of_week}
+                  </ThemedText>
+                  <ThemedText type="caption">
+                    Start: {game.start_time}
+                  </ThemedText>
+                  <ThemedText type="caption">
+                    Duration: {game.duration_minutes} min
+                  </ThemedText>
+                </ThemedView>
+              </ThemedView>
+
+              <View style={styles.actions}>
+                <Button
+                  title="Edit"
+                  onPress={() => router.push(`/admin/fixed-games/${game.id}`)}
+                />
+                <Button
+                  title="Delete"
+                  color="red"
+                  onPress={() =>
+                    router.push(`/admin/fixed-games/delete/${game.id}`)
+                  }
+                />
+              </View>
+            </ThemedView>
+          ))}
+        </ThemedView>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
