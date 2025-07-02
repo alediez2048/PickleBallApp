@@ -1,5 +1,5 @@
 import React from "react";
-import { TouchableOpacity, StyleSheet, View, Button } from "react-native";
+import { TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
 import { SpotsAvailability } from "../common/SpotsAvailability";
@@ -10,6 +10,7 @@ interface GameCardProps {
   fixedGame: any;
   game?: any;
   bookedGame?: any;
+  user?: any;
   isSkillLevelMatch: boolean;
   gameStatus: any;
   isLoadingStatuses: boolean;
@@ -22,15 +23,59 @@ const GameCard: React.FC<GameCardProps> = ({
   fixedGame,
   game,
   bookedGame,
-  gameStatus,
-  isLoadingStatuses,
+  user,
+  styles,
   onGamePress,
-  onActionPress,
 }) => {
   const { colors } = useTheme();
   const displayGame = game && game?.id ? game : fixedGame;
-  const gameID = game && game?.id ? game.id : false;
+  const gameID = game && game?.id ? game.id : fixedGame.id;
   displayGame.game_id = gameID;
+
+  // Determine registered and max players
+  const registeredCount = displayGame.registered_count ?? 0;
+  const maxPlayers = displayGame.max_players ?? 0;
+  const isFull = registeredCount >= maxPlayers && maxPlayers > 0;
+  const isBooked = !!bookedGame;
+  if (isBooked) {
+    console.log(bookedGame);
+  }
+  // Button/description logic
+  let buttonLabel = "Reserve";
+  let buttonDisabled = false;
+  let buttonColorType: "primary" | "success" = "primary";
+  const isSkillLevelMatch = user?.skill_level === fixedGame.skill_level;
+
+  if (!isSkillLevelMatch) {
+    buttonLabel = "Reserve";
+    buttonDisabled = true;
+  } else if (isBooked) {
+    buttonLabel = "Booked";
+    buttonDisabled = false;
+  } else if (isFull) {
+    buttonLabel = "Full";
+    buttonDisabled = true;
+    buttonColorType = "success";
+  }
+
+  // Handle button press
+  const handlePress = () => {
+    if (!isSkillLevelMatch) {
+      Alert.alert(
+        "Skill Level Mismatch",
+        `You can only join games that match your skill level: ${
+          user?.skill_level ?? "registered"
+        }.`
+      );
+      return;
+    }
+    if (!isBooked && isFull) {
+      // Do nothing if not booked and full
+      return;
+    }
+    // Allow navigation for booked or reservable
+    onGamePress(fixedGame, game);
+  };
 
   const level = SKILL_LEVELS.find(
     (sl) =>
@@ -56,6 +101,7 @@ const GameCard: React.FC<GameCardProps> = ({
       });
     }
   }
+
   return (
     <ThemedView
       key={displayGame.id}
@@ -64,67 +110,77 @@ const GameCard: React.FC<GameCardProps> = ({
       borderColorType="border"
       borderWidth={1}
     >
-      <TouchableOpacity onPress={() => onGamePress(fixedGame, game)}>
-        <ThemedView className="flex-row justify-between items-start">
-          <ThemedView className="flex flex-col items-start gap-0 m-0">
-            <ThemedText size={7} type="bold">
-              {startTime}
-            </ThemedText>
-            <ThemedText colorType="primary" weight={"bold"}>
-              {fixedGame.location?.name}
-            </ThemedText>
-            <ThemedText>{fixedGame.location?.address}</ThemedText>
-            <ThemedText type="caption">
-              {fixedGame.location?.city}, {fixedGame.location?.state}
-            </ThemedText>
-          </ThemedView>
-          <ThemedView className="items-end">
+      <ThemedView className="flex-row justify-between items-start">
+        <ThemedView className="flex flex-col items-start gap-0 m-0">
+          <ThemedText size={7} type="bold">
+            {startTime}
+          </ThemedText>
+          <ThemedText colorType="primary" weight={"bold"}>
+            {fixedGame.location?.name}
+          </ThemedText>
+          <ThemedText>{fixedGame.location?.address}</ThemedText>
+          <ThemedText type="caption">
+            {fixedGame.location?.city}, {fixedGame.location?.state}
+          </ThemedText>
+        </ThemedView>
+        <ThemedView className="items-end">
+          <ThemedView
+            colorType="soft"
+            className="flex-row justify-between rounded-xl items-center px-2 py-1"
+          >
             <ThemedView
-              colorType="soft"
-              className="flex-row justify-between rounded-xl items-center px-2 py-1"
+              className={`w-4 h-4 rounded-full mr-1`}
+              colorType={
+                (level?.color ?? "all") as
+                  | "beginner"
+                  | "intermediate"
+                  | "advanced"
+                  | "open"
+                  | "all"
+              }
+            />
+            <ThemedText
+              colorType={
+                (level?.color ?? "all") as
+                  | "beginner"
+                  | "intermediate"
+                  | "advanced"
+                  | "open"
+                  | "all"
+              }
+              type="bold"
             >
-              <ThemedView
-                className={`w-4 h-4 rounded-full mr-1`}
-                colorType={
-                  (level?.color ?? "all") as
-                    | "beginner"
-                    | "intermediate"
-                    | "advanced"
-                    | "open"
-                    | "all"
-                }
-              />
-              <ThemedText
-                colorType={
-                  (level?.color ?? "all") as
-                    | "beginner"
-                    | "intermediate"
-                    | "advanced"
-                    | "open"
-                    | "all"
-                }
-                type="bold"
-              >
-                {fixedGame.skillLevel || displayGame.skill_level || "Open"}
-              </ThemedText>
-            </ThemedView>
+              {fixedGame.skillLevel || displayGame.skill_level || "Open"}
+            </ThemedText>
           </ThemedView>
         </ThemedView>
-        <ThemedView className="flex-row justify-between items-center">
-          <ThemedView className="flex flex-col items-start gap-0 m-0">
-            <ThemedView className="flex-row justify-between items-center">
-              <SpotsAvailability gameId={displayGame.id} />
-            </ThemedView>
+      </ThemedView>
+      <ThemedView className="flex-row justify-between items-center mt-2">
+        <ThemedView className="flex flex-col items-start gap-0 m-0">
+          <ThemedView className="flex-column justify-between items-center mx-2">
+            <ThemedText type="value">Spots Available</ThemedText>
+            <ThemedText className="text-xs mt-1" colorType="label">
+              {registeredCount} of {maxPlayers}
+            </ThemedText>
           </ThemedView>
-          <TouchableOpacity onPress={() => onGamePress(fixedGame, game)}>
-            <ThemedView colorType="primary" className="px-7 py-3 rounded-3xl">
-              <ThemedText colorType="white" size={5} weight={"bold"}>
-                Reserve
-              </ThemedText>
-            </ThemedView>
-          </TouchableOpacity>
         </ThemedView>
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handlePress}
+          disabled={!isSkillLevelMatch ? false : buttonDisabled}
+          className="ml-2"
+        >
+          <ThemedView
+            colorType={buttonColorType}
+            className={`px-7 py-3 rounded-3xl ${
+              buttonDisabled ? "opacity-60" : ""
+            }`}
+          >
+            <ThemedText colorType="white" size={5} weight={"bold"}>
+              {buttonLabel}
+            </ThemedText>
+          </ThemedView>
+        </TouchableOpacity>
+      </ThemedView>
     </ThemedView>
   );
 };

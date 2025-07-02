@@ -508,7 +508,7 @@ export default function ExploreScreen() {
                 game={game.game}
                 fixedGame={game.fixedGame}
                 bookedGame={game.bookedGame}
-                isSkillLevelMatch={isSkillLevelMatch(game.skillLevel)}
+                user={user}
                 gameStatus={gameStatuses[game.id]}
                 isLoadingStatuses={isLoadingStatuses}
                 styles={styles}
