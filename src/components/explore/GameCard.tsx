@@ -1,9 +1,7 @@
 import React from "react";
-import { TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { TouchableOpacity, Alert } from "react-native";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
-import { SpotsAvailability } from "../common/SpotsAvailability";
-import { useTheme } from "@contexts/ThemeContext";
 import { SKILL_LEVELS } from "@/constants/skillLevels";
 
 interface GameCardProps {
@@ -14,7 +12,6 @@ interface GameCardProps {
   isSkillLevelMatch: boolean;
   gameStatus: any;
   isLoadingStatuses: boolean;
-  styles: any;
   onGamePress: (fixedGame: any, game: any) => void;
   onActionPress: (gameId: string, isBooked: boolean) => void;
 }
@@ -24,10 +21,8 @@ const GameCard: React.FC<GameCardProps> = ({
   game,
   bookedGame,
   user,
-  styles,
   onGamePress,
 }) => {
-  const { colors } = useTheme();
   const displayGame = game && game?.id ? game : fixedGame;
   const gameID = game && game?.id ? game.id : fixedGame.id;
   displayGame.game_id = gameID;
@@ -37,9 +32,7 @@ const GameCard: React.FC<GameCardProps> = ({
   const maxPlayers = displayGame.max_players ?? 0;
   const isFull = registeredCount >= maxPlayers && maxPlayers > 0;
   const isBooked = !!bookedGame;
-  if (isBooked) {
-    console.log(bookedGame);
-  }
+
   // Button/description logic
   let buttonLabel = "Reserve";
   let buttonDisabled = false;
@@ -184,34 +177,5 @@ const GameCard: React.FC<GameCardProps> = ({
     </ThemedView>
   );
 };
-
-const cardStyles = StyleSheet.create({
-  skillLevelBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  badgeDot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    marginLeft: 5,
-    marginRight: 5,
-  },
-  durationText: {
-    fontSize: 14,
-  },
-  titleText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  locationName: {
-    fontWeight: "600",
-    textAlign: "right",
-  },
-  locationAddress: {
-    textAlign: "right",
-  },
-});
 
 export default GameCard;
