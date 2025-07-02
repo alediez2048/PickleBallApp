@@ -9,6 +9,7 @@ import { SKILL_LEVELS } from "@/constants/skillLevels";
 interface GameCardProps {
   fixedGame: any;
   game?: any;
+  bookedGame?: any;
   isSkillLevelMatch: boolean;
   gameStatus: any;
   isLoadingStatuses: boolean;
@@ -20,6 +21,7 @@ interface GameCardProps {
 const GameCard: React.FC<GameCardProps> = ({
   fixedGame,
   game,
+  bookedGame,
   gameStatus,
   isLoadingStatuses,
   onGamePress,

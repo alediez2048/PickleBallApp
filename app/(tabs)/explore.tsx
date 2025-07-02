@@ -84,7 +84,8 @@ export default function ExploreScreen() {
   const buildSortedDaysArray = (
     fixedGames: FixedGame[],
     games: Game[],
-    filter: string
+    filter: string,
+    upcomingGames: BookedGame[] // <-- add this argument
   ) => {
     if (!fixedGames || fixedGames.length === 0) return [];
     const activeFixedGames = fixedGames.filter((fg) => fg.status === "active");
@@ -95,7 +96,7 @@ export default function ExploreScreen() {
       displayDate: string;
       day: string;
       fixedGame?: FixedGame;
-      games: { fixedGame: FixedGame; game?: Game }[];
+      games: { fixedGame: FixedGame; game?: Game; bookedGame?: BookedGame }[];
     }[] = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
@@ -115,7 +116,14 @@ export default function ExploreScreen() {
       const mergedGames = fixedGamesForDay
         .map((fg) => {
           const scheduledGame = fixedGameIdToGame[fg.id];
-          return { fixedGame: fg, game: scheduledGame };
+          // Find the bookedGame for this scheduledGame
+          let bookedGame: BookedGame | undefined = undefined;
+          if (scheduledGame) {
+            bookedGame = upcomingGames.find(
+              (bg) => bg.game_id === scheduledGame.id
+            );
+          }
+          return { fixedGame: fg, game: scheduledGame, bookedGame };
         })
         .filter(({ fixedGame }) =>
           filter === "all" ? true : fixedGame.skill_level === filter
@@ -133,7 +141,12 @@ export default function ExploreScreen() {
     return daysArray.sort((a, b) => a.dateUTC.localeCompare(b.dateUTC));
   };
 
-  const sortedDaysArray = buildSortedDaysArray(fixedGames, games, actualFilter);
+  const sortedDaysArray = buildSortedDaysArray(
+    fixedGames,
+    games,
+    actualFilter,
+    upcomingGames
+  );
 
   const [selectedSkillLevel, setSelectedSkillLevel] = useState<
     SkillLevel | "all"
@@ -494,6 +507,7 @@ export default function ExploreScreen() {
                 key={game?.fixedGame?.id}
                 game={game.game}
                 fixedGame={game.fixedGame}
+                bookedGame={game.bookedGame}
                 isSkillLevelMatch={isSkillLevelMatch(game.skillLevel)}
                 gameStatus={gameStatuses[game.id]}
                 isLoadingStatuses={isLoadingStatuses}
