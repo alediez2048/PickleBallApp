@@ -1,108 +1,39 @@
 import React from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
-import { useGameRegistration } from "@/hooks/useGameRegistration";
-import { useTheme } from "@contexts/ThemeContext";
+import { Game } from "@/types/games";
 import { ThemedText } from "../common/ThemedText";
 import { ThemedView } from "@/components/common/ThemedView";
 
 interface SpotsAvailabilityProps {
-  gameId: string;
-  variant?: "card" | "detail";
-  showLoadingState?: boolean;
+  game: Game;
+  variant?: "default" | "detail";
 }
 
 export function SpotsAvailability({
-  gameId,
-  variant = "card",
-  showLoadingState = true,
+  game,
+  variant = "default",
 }: SpotsAvailabilityProps) {
-  const { isLoading, error, isFull, spotsLeft, formatSpotsMessage } =
-    useGameRegistration(gameId);
-  const { colors } = useTheme();
-
-  if (!showLoadingState && isLoading) {
-    return null;
-  }
+  // Determine registered and max players
+  const registeredCount = game.registered_count ?? 0;
+  const maxPlayers = game.max_players ?? 0;
 
   return (
-    <ThemedView
-      style={[
-        styles.container,
-        variant === "detail" && {
-          ...styles.detailContainer,
-          backgroundColor: colors.background,
-        },
-      ]}
-    >
-      {isLoading ? (
-        <ThemedView style={styles.loadingContainer}>
-          <ActivityIndicator size='small' color={colors.icon} />
-          <ThemedText style={[styles.loadingText, { color: colors.icon }]}>
-            Checking availability...
-          </ThemedText>
-        </ThemedView>
-      ) : error ? (
-        <ThemedText style={[styles.errorText, { color: colors.error }]}>
-          Unable to check availability
+    <ThemedView className="flex flex-col items-start gap-0 m-0">
+      <ThemedView className="flex-column justify-between items-center mx-2">
+        <ThemedText
+          type={variant == "detail" ? "label" : "value"}
+          className="my-0 py-0"
+        >
+          Spots Available
         </ThemedText>
-      ) : (
-        <ThemedView style={styles.contentContainer}>
-          <ThemedText
-            type='label'
-            align='center'
-            colorType='label'
-            style={[variant === "detail" && styles.detailLabel]}
-          >
-            Spots Available
-          </ThemedText>
-          <ThemedText
-            type='value'
-            align='center'
-            style={[
-              { color: isFull ? colors.error : colors.text },
-              variant === "detail" && styles.detailValue,
-            ]}
-          >
-            {formatSpotsMessage()}
-          </ThemedText>
-        </ThemedView>
-      )}
+        <ThemedText
+          type={variant == "detail" ? "value" : "text"}
+          className="my-0 py-0"
+          colorType="label"
+        >
+          {registeredCount} of {maxPlayers}
+        </ThemedText>
+      </ThemedView>
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 8,
-  },
-  detailContainer: {
-    borderRadius: 12,
-    padding: 16,
-  },
-  loadingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  loadingText: {
-    fontSize: 14,
-  },
-  errorText: {
-    fontSize: 14,
-  },
-  contentContainer: {
-    gap: 2,
-  },
-  label: {
-    fontSize: 12,
-  },
-  detailLabel: {
-    fontSize: 14,
-  },
-  fullValue: {
-    // color handled inline
-  },
-  detailValue: {
-    fontSize: 18,
-  },
-});

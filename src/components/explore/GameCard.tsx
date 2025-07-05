@@ -2,6 +2,7 @@ import React from "react";
 import { TouchableOpacity, Alert } from "react-native";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
+import { SpotsAvailability } from "@/components/common/SpotsAvailability";
 import { SKILL_LEVELS } from "@/constants/skillLevels";
 
 interface GameCardProps {
@@ -148,14 +149,7 @@ const GameCard: React.FC<GameCardProps> = ({
         </ThemedView>
       </ThemedView>
       <ThemedView className="flex-row justify-between items-center mt-2">
-        <ThemedView className="flex flex-col items-start gap-0 m-0">
-          <ThemedView className="flex-column justify-between items-center mx-2">
-            <ThemedText type="value">Spots Available</ThemedText>
-            <ThemedText className="text-xs mt-1" colorType="label">
-              {registeredCount} of {maxPlayers}
-            </ThemedText>
-          </ThemedView>
-        </ThemedView>
+        <SpotsAvailability game={displayGame} />
         <TouchableOpacity
           onPress={handlePress}
           disabled={!isSkillLevelMatch ? false : buttonDisabled}

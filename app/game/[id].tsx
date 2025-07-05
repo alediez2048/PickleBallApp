@@ -311,7 +311,7 @@ export default function GameDetailsScreen() {
         </ThemedView>
         <ThemedView style={styles.statDivider} />
         <ThemedView style={styles.statItem}>
-          <SpotsAvailability gameId={game.id} />
+          <SpotsAvailability game={game} variant="detail" />
         </ThemedView>
       </ThemedView>
       {/* Game Host */}
@@ -348,7 +348,7 @@ export default function GameDetailsScreen() {
       </ThemedView>
       {/* Players */}
       <ThemedView style={styles.section}>
-        {/* TODO: RSVPList component, ensure it uses ThemedText/ThemedView */}
+        <RSVPList game={game} />
       </ThemedView>
       {/* Footer with conditional buttons */}
       <ThemedView style={styles.footer}>
@@ -364,21 +364,22 @@ export default function GameDetailsScreen() {
           <TouchableOpacity
             style={[
               styles.reserveButton,
-              game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS &&
+              game.registered_count >= GAME_CONSTANTS.MAX_PLAYERS &&
                 styles.disabledButton,
             ]}
             onPress={handleBookButtonPress}
             activeOpacity={0.7}
-            disabled={game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS}
+            disabled={game.registered_count >= GAME_CONSTANTS.MAX_PLAYERS}
           >
             <ThemedText
+              colorType="white"
               style={[
                 styles.reserveText,
-                game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS &&
+                game.registered_count >= GAME_CONSTANTS.MAX_PLAYERS &&
                   styles.disabledButtonText,
               ]}
             >
-              {game.registeredCount >= GAME_CONSTANTS.MAX_PLAYERS
+              {game.registered_count >= GAME_CONSTANTS.MAX_PLAYERS
                 ? "Game Full"
                 : "Book"}
             </ThemedText>
