@@ -21,7 +21,6 @@ export function RSVPList({ game }: RSVPListProps) {
   const [error, setError] = useState<Error | null>(null);
 
   const totalPlayers = players.length + registeredPlayers.length;
-  const isLoading = isLoadingRegistration || isLoadingPlayers;
   const players = game.players || [];
 
   return (
