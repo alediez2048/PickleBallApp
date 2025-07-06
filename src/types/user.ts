@@ -1,5 +1,5 @@
-import type { MembershipPlan } from './membership';
-import type { SkillLevel } from './games';
+import type { MembershipPlan } from "./membership";
+import type { SkillLevel } from "./games";
 
 export interface Address {
   street?: string;
@@ -19,14 +19,7 @@ export interface UserProfile {
   date_of_birth?: string;
   address?: Address | null;
   skill_level?: SkillLevel | null;
-  profile_image?:
-    | string
-    | {
-        uri: string;
-        base64: string;
-        timestamp: number;
-      }
-    | null;
+  profile_image?: string | null;
 
   membership?: MembershipPlan | null;
   paymentMethods?: any[] | null;
@@ -45,13 +38,13 @@ export interface UserProfile {
   is_anonymous?: boolean;
 
   // Extended profile
-  status?: 'incomplete' | 'active' | 'suspended' | 'deleted';
+  status?: "incomplete" | "active" | "suspended" | "deleted";
   display_name?: string | null;
   bio?: string | null;
   avatar_url?: string | null;
-  visibility?: 'public' | 'private' | 'friends-only' | null;
+  visibility?: "public" | "private" | "friends-only" | null;
   playing_experience?: number | null;
-  preferred_play_style?: 'singles' | 'doubles' | 'both' | null;
+  preferred_play_style?: "singles" | "doubles" | "both" | null;
   availability?: {
     weekdays?: boolean;
     weekends?: boolean;
@@ -89,5 +82,7 @@ export interface UserProfile {
 }
 
 // Corrected AuthenticatedUser type
-export type AuthenticatedUser = Required<Pick<UserProfile, "id" | "email" | "name">> &
+export type AuthenticatedUser = Required<
+  Pick<UserProfile, "id" | "email" | "name">
+> &
   UserProfile;

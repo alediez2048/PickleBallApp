@@ -24,7 +24,8 @@ export type ThemedViewProps = ViewProps & {
     | "gameFooter"
     | "badgeContainer"
     | "modalContentCustom"
-    | "none";
+    | "none"
+    | "blur";
   colorType?:
     | "default"
     | "primary"
@@ -192,6 +193,10 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 16,
   },
+  blur: {
+    backgroundColor: "rgba(133, 133, 133, 0.5)",
+    backdropFilter: "blur(10px)",
+  },
   elevated: {
     elevation: 4,
     shadowOffset: { width: 0, height: 4 },
@@ -202,10 +207,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
-  },
-  centered: {
-    alignItems: "center",
-    justifyContent: "center",
   },
   dateSection: {
     marginBottom: 16,

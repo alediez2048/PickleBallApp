@@ -29,6 +29,8 @@ import { MembershipPlan } from "@/types/membership";
 import { IconSymbol } from "@/components/common/IconSymbol";
 import BackButton from "@/components/common/BackButton";
 import { BookedGame } from "@/types/bookedGames";
+import { Game } from "@/types/games";
+import { set } from "date-fns";
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -37,19 +39,17 @@ export default function GameDetailsScreen() {
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
+  const [actualGame, setActualGame] = useState({} as Game);
   const [isLoading, setIsLoading] = useState(false);
   const [totalBookedPlayers, setTotalBookedPlayers] = useState(0);
   const { addBookedGame, cancelBooking, listBookedGamesForUser } =
     useBookedGames();
   const [upcomingGames, setUpcomingGames] = useState<BookedGame[]>([]);
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
-  const [selectedGame, setSelectedGame] = useState<
-    (typeof MOCK_GAMES)[keyof typeof MOCK_GAMES] | null
-  >(null);
   const [showMembershipModal, setShowMembershipModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
-  const { getGame } = useGames();
+  const { getGame, fetchGame } = useGames();
   const { colors } = useTheme();
 
   // Get the correct game based on the ID
@@ -57,15 +57,10 @@ export default function GameDetailsScreen() {
 
   // Load total booked players using the global tracking system
   useEffect(() => {
-    const loadTotalBookedPlayers = async () => {
-      if (game) {
-        // const count = await mockApi.getGameBookings(game.id);
-        // setTotalBookedPlayers(count);
-      }
-    };
-    loadTotalBookedPlayers();
+    setUpcomingGames([]);
     fetchBookedGames();
-  }, [game]);
+    fetchActualGame();
+  }, []);
 
   const fetchBookedGames = async () => {
     try {
@@ -77,19 +72,19 @@ export default function GameDetailsScreen() {
     }
   };
 
+  const fetchActualGame = async () => {
+    await fetchGame(id as string);
+    const game = getGame(id as string);
+    setActualGame(game ?? ({} as Game));
+  };
+
   // Defensive: players array may be undefined
   const totalPlayers =
     (game?.players?.length || 0) +
     (typeof totalBookedPlayers !== "undefined" ? totalBookedPlayers : 0);
 
-  // Check if user has already registered for this game
-  const isRegistered = upcomingGames.some(
-    (bookedGame: BookedGame) =>
-      bookedGame.gameId === id && bookedGame.status === "upcoming"
-  );
-
   // If game not found, show error or redirect
-  if (!game) {
+  if (!actualGame) {
     return (
       <ThemedView style={styles.container}>
         <ThemedText style={styles.errorText}>Game not found.</ThemedText>
@@ -99,8 +94,11 @@ export default function GameDetailsScreen() {
 
   // Find the booked game to get its ID
   const bookedGame = upcomingGames.find(
-    (game: BookedGame) => game.gameId === id && game.status === "upcoming"
+    (game: BookedGame) => game.game_id === id && game.status === "upcoming"
   );
+
+  // Check if user has already registered for this game
+  const isRegistered = bookedGame ? true : false;
 
   const handleBookingConfirm = async () => {
     // Prevent double submission
@@ -124,18 +122,19 @@ export default function GameDetailsScreen() {
           minute: "2-digit",
           hour12: false,
         }),
-        court_name: game.location?.name || "",
-        location_id: game.location_id || "",
-        price: game.price,
+        court_name: actualGame.location?.name || "",
+        location_id: actualGame.location_id || "",
+        price: actualGame.price,
         user_id: user?.id || "",
         skill_rating: 5,
         user_info: user,
-        status: "upcoming",
+        status: "upcoming" as "upcoming",
       };
 
       await addBookedGame(bookingData);
       setIsBookingModalVisible(false); // Close modal after successful booking
       setIsSuccessModalVisible(true);
+      await fetchGame(bookingData.game_id);
     } catch (error) {
       Alert.alert(
         "Sign Up Failed",
@@ -174,17 +173,22 @@ export default function GameDetailsScreen() {
 
   const handleConfirmCancel = async () => {
     try {
-      if (!bookedGame) {
+      const bookedGameCancel = upcomingGames.find(
+        (game: BookedGame) => game.game_id === id && game.status === "upcoming"
+      );
+      if (!bookedGameCancel) {
         throw new Error("Could not find your registration for this game");
       }
 
       setIsLoading(true);
-      await cancelBooking(bookedGame.id);
+      await cancelBooking(bookedGameCancel.game_id, bookedGameCancel.id);
+      await fetchGame(bookedGameCancel.game_id);
       setIsCancelModalVisible(false);
       Alert.alert("Success", "Your registration has been cancelled.");
       router.back();
     } catch (error) {
       Alert.alert("Error", "Failed to cancel registration. Please try again.");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -194,16 +198,16 @@ export default function GameDetailsScreen() {
     // Check if user has completed their profile
     console.debug("[GameDetails] Platform:", Platform.OS);
 
-    // if (!user?.has_completed_profile) {
-    console.debug("[GameDetails] Showing profile form modal");
-    // Show profile completion modal directly
-    setIsProfileFormVisible(true);
-    return;
-    // }
+    if (!user?.has_completed_profile) {
+      console.debug("[GameDetails] Showing profile form modal");
+      // Show profile completion modal directly
+      setIsProfileFormVisible(true);
+      return;
+    }
 
     console.debug("[GameDetails] Showing booking confirmation modal");
     // Proceed with booking
-    // setIsBookingModalVisible(true);
+    setIsBookingModalVisible(true);
   };
 
   const handleProfileComplete = () => {
@@ -242,7 +246,7 @@ export default function GameDetailsScreen() {
       <ThemedView className="flex flex-row justify-between items-start p-2 gap-4 mb-3">
         <ThemedView style={styles.oneRowColumn}>
           <ThemedText weight="bold" align="left" size={8}>
-            {new Date(game.start_time).toLocaleDateString("en-US", {
+            {new Date(actualGame.start_time).toLocaleDateString("en-US", {
               weekday: "long", // Monday
               month: "long", // June
               day: "numeric", // 2
@@ -250,13 +254,15 @@ export default function GameDetailsScreen() {
           </ThemedText>
           <ThemedView>
             <ThemedText type="subtitle" colorType="primary" align="left">
-              {game.location?.name}
+              {actualGame.location?.name}
             </ThemedText>
             <ThemedView>
-              <ThemedText align="left">{game.location?.address}</ThemedText>
+              <ThemedText align="left">
+                {actualGame.location?.address}
+              </ThemedText>
               <ThemedText type="caption" align="left">
-                {game.location?.city}, {game.location?.state}{" "}
-                {game.location?.zip_code}
+                {actualGame.location?.city}, {actualGame.location?.state}{" "}
+                {actualGame.location?.zip_code}
               </ThemedText>
             </ThemedView>
           </ThemedView>
@@ -267,7 +273,7 @@ export default function GameDetailsScreen() {
               Start
             </ThemedText>
             <ThemedText size={7} weight={"bold"} align="right">
-              {new Date(game.start_time).toLocaleTimeString([], {
+              {new Date(actualGame.start_time).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
@@ -278,7 +284,7 @@ export default function GameDetailsScreen() {
               End
             </ThemedText>
             <ThemedText size={7} weight={"bold"} align="right">
-              {new Date(game.end_time).toLocaleTimeString([], {
+              {new Date(actualGame.end_time).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
@@ -297,7 +303,7 @@ export default function GameDetailsScreen() {
             Skill Level
           </ThemedText>
           <ThemedText type="value" align="center">
-            {game.skill_level}
+            {actualGame.skill_level}
           </ThemedText>
         </ThemedView>
         <ThemedView style={styles.statDivider} />
@@ -306,49 +312,53 @@ export default function GameDetailsScreen() {
             Price
           </ThemedText>
           <ThemedText type="value" align="center">
-            ${game.price}
+            ${actualGame.price}
           </ThemedText>
         </ThemedView>
         <ThemedView style={styles.statDivider} />
         <ThemedView style={styles.statItem}>
-          <SpotsAvailability game={game} variant="detail" />
+          <SpotsAvailability game={actualGame} variant="detail" />
         </ThemedView>
       </ThemedView>
       {/* Game Host */}
       <ThemedView
-        colorType="soft"
         borderColorType="text"
         borderWidth={3}
-        className="px-3 mx-2 rounded-xl my-3"
+        className="px-0 mx-2 rounded-xl my-3"
       >
         <ThemedText className="text-center my-2" size={5} weight={"bold"}>
           Game Host
         </ThemedText>
-        <ThemedView
-          colorType="soft"
-          className="px-4 mx-4 flex flex-row justify-between"
-        >
+        <ThemedView className="px-0 mx-1 flex flex-row justify-between rounded-xl">
           <ThemedView
-            colorType="soft"
-            className="py-1 my-2 mx-4"
+            className="py-0 px-0 my-2 mx-1 rounded-xl"
             style={styles.captainInfo}
           >
-            <ThemedText>{game.host.name}</ThemedText>
-            {game.host.skill_level && (
-              <ThemedText>Skill Level: {game.host.skill_level}</ThemedText>
+            <ThemedText>{actualGame.host?.name}</ThemedText>
+            {actualGame.host?.skill_level && (
+              <ThemedText>
+                Skill Level: {actualGame.host.skill_level}
+              </ThemedText>
             )}
-            {game.host.email && (
-              <ThemedText>Email: {game.host.email}</ThemedText>
+          </ThemedView>
+          <ThemedView
+            className="py-0 px-0 my-2 mx-1"
+            style={styles.captainInfo}
+          >
+            {actualGame.host?.email && (
+              <ThemedText align="right">{actualGame.host.email}</ThemedText>
             )}
-            {game.host.phone_number && (
-              <ThemedText>Phone Number: {game.host.phone_number}</ThemedText>
+            {actualGame.host?.phone_number && (
+              <ThemedText align="right">
+                Tel.: {actualGame.host.phone_number}
+              </ThemedText>
             )}
           </ThemedView>
         </ThemedView>
       </ThemedView>
       {/* Players */}
       <ThemedView className="mx-2 ">
-        <RSVPList game={game} />
+        <RSVPList gameId={actualGame.id} />
       </ThemedView>
       {/* Footer with conditional buttons */}
       <ThemedView style={styles.footer}>
@@ -364,22 +374,22 @@ export default function GameDetailsScreen() {
           <TouchableOpacity
             style={[
               styles.reserveButton,
-              game.registered_count >= GAME_CONSTANTS.MAX_PLAYERS &&
+              actualGame.registered_count >= actualGame.max_players &&
                 styles.disabledButton,
             ]}
             onPress={handleBookButtonPress}
             activeOpacity={0.7}
-            disabled={game.registered_count >= GAME_CONSTANTS.MAX_PLAYERS}
+            disabled={actualGame.registered_count >= actualGame.max_players}
           >
             <ThemedText
               colorType="white"
               style={[
                 styles.reserveText,
-                game.registered_count >= GAME_CONSTANTS.MAX_PLAYERS &&
+                actualGame.registered_count >= actualGame.max_players &&
                   styles.disabledButtonText,
               ]}
             >
-              {game.registered_count >= GAME_CONSTANTS.MAX_PLAYERS
+              {actualGame.registered_count >= actualGame.max_players
                 ? "Game Full"
                 : "Book"}
             </ThemedText>
@@ -394,21 +404,31 @@ export default function GameDetailsScreen() {
         transparent={true}
         onRequestClose={() => !isLoading && setIsBookingModalVisible(false)}
       >
-        <ThemedView style={styles.modalOverlay}>
-          <ThemedView style={styles.modalContent}>
+        <ThemedView
+          className="flex-1 justify-center items-center"
+          type="blur"
+          colorType="none"
+        >
+          <ThemedView
+            type="modalContentCustom"
+            className="w-11/12 max-w-xl max-h-[80vh] bg-white dark:bg-background rounded-2xl"
+            colorType="background"
+            borderColorType="label"
+            borderWidth={3}
+          >
             <TouchableOpacity
               onPress={() => !isLoading && setIsBookingModalVisible(false)}
               style={styles.modalCloseButton}
             >
-              {/* <IconSymbol name='xmark' size={24} color='#666666' /> */}
+              <IconSymbol name="xmark" size={24} />
             </TouchableOpacity>
             <ThemedText className="mb-4" type="subtitle">
-              {new Date(game.start_time).toLocaleDateString("en-US")}
+              Confirm Booking
             </ThemedText>
             <ThemedView style={styles.bookingGameCard}>
               <ThemedView style={styles.bookingTimeContainer}>
                 <ThemedText type="bold" colorType={"white"}>
-                  {new Date(game.start_time).toLocaleTimeString([], {
+                  {new Date(actualGame.start_time).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                     hour12: true,
@@ -417,39 +437,39 @@ export default function GameDetailsScreen() {
               </ThemedView>
               <ThemedView style={styles.bookingLocationContainer}>
                 <ThemedText style={styles.bookingLocationName}>
-                  {game.location?.name}
+                  {actualGame.location?.name}
                 </ThemedText>
                 <ThemedText style={styles.bookingLocationAddress}>
-                  {game.location?.address}
+                  {actualGame.location?.address}
                 </ThemedText>
               </ThemedView>
             </ThemedView>
 
-            <ThemedView style={styles.bookingSummaryCard}>
-              <ThemedText style={styles.summaryTitle}>Summary</ThemedText>
-              <ThemedView style={styles.summaryRow}>
-                <ThemedText style={styles.summaryLabel}>Price</ThemedText>
-                <ThemedText style={styles.summaryValue}>
-                  ${game.price}
-                </ThemedText>
+            <ThemedView
+              colorType="soft"
+              className="mx-4 px-4 my-4 p-4 mb-4 w-full"
+            >
+              <ThemedText className="my-2" size={4} weight={"bold"}>
+                Summary
+              </ThemedText>
+              <ThemedView colorType="soft" style={styles.summaryRow}>
+                <ThemedText type="label">Price</ThemedText>
+                <ThemedText type="value">${actualGame.price}</ThemedText>
               </ThemedView>
-              <ThemedView style={styles.summaryRow}>
-                <ThemedText style={styles.summaryLabel}>Skill Level</ThemedText>
-                <ThemedText style={styles.summaryValue}>
-                  {game.skill_level}
-                </ThemedText>
+              <ThemedView colorType="soft" style={styles.summaryRow}>
+                <ThemedText type="label">Skill Level</ThemedText>
+                <ThemedText type="value">{actualGame.skill_level}</ThemedText>
               </ThemedView>
-              <ThemedView style={styles.summaryRow}>
-                <ThemedText style={styles.summaryLabel}>
-                  Available Spots
-                </ThemedText>
-                <ThemedText style={styles.summaryValue}>
-                  {game.max_players - totalPlayers} of {game.max_players}
+              <ThemedView colorType="soft" style={styles.summaryRow}>
+                <ThemedText type="label">Available Spots</ThemedText>
+                <ThemedText type="value">
+                  {actualGame.max_players - totalPlayers} of{" "}
+                  {actualGame.max_players}
                 </ThemedText>
               </ThemedView>
             </ThemedView>
 
-            <ThemedText style={styles.bookingNote}>
+            <ThemedText className="my-2 py-2" colorType="danger">
               By booking, you agree to participate in this game and follow court
               rules and etiquette.
             </ThemedText>
@@ -486,12 +506,24 @@ export default function GameDetailsScreen() {
         transparent={true}
         onRequestClose={() => setIsSuccessModalVisible(false)}
       >
-        <ThemedView style={styles.successModalOverlay}>
-          <ThemedView style={styles.successModalContent}>
+        <ThemedView
+          className="flex-1 justify-center items-center"
+          type="blur"
+          colorType="none"
+        >
+          <ThemedView
+            type="modalContentCustom"
+            className="w-11/12 max-w-xl max-h-[80vh] bg-white dark:bg-background rounded-2xl"
+            colorType="background"
+            borderColorType="label"
+            borderWidth={3}
+          >
             <TouchableOpacity
               onPress={() => setIsSuccessModalVisible(false)}
               style={styles.successCloseButton}
-            ></TouchableOpacity>
+            >
+              <IconSymbol name="xmark" size={24} />
+            </TouchableOpacity>
 
             <ThemedView style={styles.successIconContainer}>
               <ThemedView style={styles.successIconCircle}>
@@ -499,45 +531,65 @@ export default function GameDetailsScreen() {
               </ThemedView>
             </ThemedView>
 
-            <ThemedText style={styles.successTitle}>You're all set!</ThemedText>
-            <ThemedText style={styles.successSubtitle}>
+            <ThemedText type="title" weight={"bold"}>
+              You're all set!
+            </ThemedText>
+            <ThemedText
+              type="miniSubtitle"
+              className="mx-2 px-2"
+              colorType="label"
+            >
               Get ready to play!
             </ThemedText>
 
-            <ThemedView colorType="primary" style={styles.successGameCard}>
-              <ThemedView style={styles.successTimeContainer}>
-                <ThemedText type="value">
-                  {new Date(game.start_time).toLocaleDateString("en-US")}
-                </ThemedText>
-                <ThemedText style={styles.successTime}>
-                  {new Date(game.start_time).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
-                </ThemedText>
+            <ThemedView
+              colorType="soft"
+              borderColorType="border"
+              borderWidth={2}
+              style={styles.successGameCard}
+            >
+              <ThemedView
+                colorType="primary"
+                style={styles.successTimeContainer}
+              >
+                <ThemedView colorType="primary" className="flex flex-row py-1">
+                  <IconSymbol name="calendar" size={20} color="#FFFFFF" />
+                  <ThemedText type="value" className="mx-1" colorType="white">
+                    {new Date(actualGame.start_time).toLocaleDateString(
+                      "en-US"
+                    )}
+                  </ThemedText>
+                </ThemedView>
+                <ThemedView colorType="primary" className="flex flex-row py-1">
+                  <IconSymbol name="time" size={20} color="#FFFFFF" />
+                  <ThemedText type="value" className="mx-1" colorType="white">
+                    {new Date(actualGame.start_time).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })}
+                  </ThemedText>
+                </ThemedView>
               </ThemedView>
-              <ThemedView>
+              <ThemedView colorType="soft">
                 <ThemedText type="bold" colorType="primary">
-                  {game.location?.city}
+                  {actualGame.location?.city}
                 </ThemedText>
-                <ThemedText type="bold">{game.location?.name}</ThemedText>
+                <ThemedText type="bold">{actualGame.location?.name}</ThemedText>
               </ThemedView>
             </ThemedView>
 
             <ThemedView style={styles.successDetailsContainer}>
               <ThemedView style={styles.successDetailItem}>
-                {/* <IconSymbol name='trophy.fill' size={20} color='#4CAF50' /> */}
-                <ThemedText style={styles.successDetailText}>
-                  {game.skill_level}
-                </ThemedText>
+                <IconSymbol name="trophy.fill" size={20} color="#4CAF50" />
+                <ThemedText type="value">{actualGame.skill_level}</ThemedText>
               </ThemedView>
               <ThemedView style={styles.successDetailDivider} />
               <ThemedView style={styles.successDetailItem}>
-                {/* <IconSymbol name='person.2.fill' size={20} color='#4CAF50' /> */}
-                <ThemedText style={styles.successDetailText}>
-                  {game.max_players -
-                    (game.players.length + totalBookedPlayers)}{" "}
+                <IconSymbol name="person.2.fill" size={20} color="#4CAF50" />
+                <ThemedText type="value">
+                  {actualGame.max_players -
+                    (actualGame.players?.length + totalBookedPlayers)}
                   spots left
                 </ThemedText>
               </ThemedView>
@@ -562,23 +614,36 @@ export default function GameDetailsScreen() {
         transparent={true}
         onRequestClose={() => !isLoading && setIsCancelModalVisible(false)}
       >
-        <ThemedView style={styles.modalOverlay}>
-          <ThemedView style={styles.modalContent}>
+        <ThemedView
+          className="flex-1 justify-center items-center"
+          type="blur"
+          colorType="none"
+        >
+          <ThemedView
+            type="modalContentCustom"
+            className="w-11/12 max-w-xl max-h-[80vh] bg-white dark:bg-background rounded-2xl"
+            colorType="background"
+            borderColorType="label"
+            borderWidth={3}
+          >
             <TouchableOpacity
               onPress={() => !isLoading && setIsCancelModalVisible(false)}
               style={styles.modalCloseButton}
             >
-              {/* <IconSymbol name='xmark' size={24} color='#666666' /> */}
+              <IconSymbol name="xmark" size={24} />
             </TouchableOpacity>
 
-            <ThemedText style={styles.modalTitle}>
+            <ThemedText type="subtitle" weight={"bold"}>
               Cancel Registration
             </ThemedText>
 
             <ThemedView style={styles.bookingGameCard}>
-              <ThemedView style={styles.bookingTimeContainer}>
-                <ThemedText colorType={"default"}>
-                  {new Date(game.start_time).toLocaleTimeString([], {
+              <ThemedView
+                className="px-2 py-2 mx-2 rounded-lg"
+                colorType="primary"
+              >
+                <ThemedText colorType="white" type="value">
+                  {new Date(actualGame.start_time).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
@@ -586,34 +651,33 @@ export default function GameDetailsScreen() {
               </ThemedView>
               <ThemedView style={styles.bookingLocationContainer}>
                 <ThemedText style={styles.bookingLocationName}>
-                  {game.location?.name}
+                  {actualGame.location?.name}
                 </ThemedText>
-                <ThemedText style={styles.bookingLocationAddress}>
-                  {game.location?.address}
+                <ThemedText colorType="label">
+                  {actualGame.location?.address}
                 </ThemedText>
               </ThemedView>
             </ThemedView>
 
-            <ThemedView style={styles.bookingSummaryCard}>
-              <ThemedText size={4} weight={"bold"}>
+            <ThemedView
+              colorType="soft"
+              className="mx-4 px-4 my-4 p-4 mb-4 w-full"
+            >
+              <ThemedText className="my-2" size={4} weight={"bold"}>
                 Game Details
               </ThemedText>
-              <ThemedView style={styles.summaryRow}>
-                <ThemedText style={styles.summaryLabel}>Skill Level</ThemedText>
-                <ThemedText style={styles.summaryValue}>
-                  {game.skill_level}
-                </ThemedText>
+              <ThemedView colorType="soft" style={styles.summaryRow}>
+                <ThemedText type="label">Skill Level</ThemedText>
+                <ThemedText type="value">{actualGame.skill_level}</ThemedText>
               </ThemedView>
-              <ThemedView style={styles.summaryRow}>
-                <ThemedText style={styles.summaryLabel}>Price</ThemedText>
-                <ThemedText style={styles.summaryValue}>
-                  ${game.price}
-                </ThemedText>
+              <ThemedView colorType="soft" style={styles.summaryRow}>
+                <ThemedText type="label">Price</ThemedText>
+                <ThemedText type="value">${actualGame.price}</ThemedText>
               </ThemedView>
-              <ThemedView style={styles.summaryRow}>
-                <ThemedText style={styles.summaryLabel}>Booking ID</ThemedText>
-                <ThemedText style={styles.summaryValue}>
-                  {bookedGame?.id ? bookedGame.id.split("_")[0] : "N/A"}
+              <ThemedView colorType="soft" style={styles.summaryRow}>
+                <ThemedText type="label">Booking ID</ThemedText>
+                <ThemedText type="value">
+                  {bookedGame?.id ? bookedGame.id.split("-")[0] : "N/A"}
                 </ThemedText>
               </ThemedView>
             </ThemedView>
@@ -666,9 +730,7 @@ export default function GameDetailsScreen() {
               >
                 <IconSymbol name="xmark" size={24} />
               </TouchableOpacity>
-              <ThemedText type="defaultSemiBold">
-                Complete Your Profile
-              </ThemedText>
+              <ThemedText type="title">Complete Your Profile</ThemedText>
             </ThemedView>
             <ScrollView style={styles.profileFormScroll}>
               <FirstTimeProfileForm onComplete={handleProfileComplete} />
@@ -775,17 +837,14 @@ const styles = StyleSheet.create({
   captainInfo: {
     flex: 1,
   },
-  captainName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000000",
-    marginBottom: 4,
-  },
   captainStats: {
     fontSize: 14,
     color: "#666666",
   },
   footer: {
+    position: "absolute",
+    width: "100%",
+    bottom: 0,
     padding: 16,
     gap: 12,
   },
@@ -843,7 +902,8 @@ const styles = StyleSheet.create({
   },
   modalCloseButton: {
     position: "absolute",
-    left: 16,
+    top: 5,
+    right: 5,
     padding: 8,
     zIndex: 1,
   },
@@ -1087,14 +1147,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 10,
     width: "100%",
+    marginTop: 10,
     marginBottom: 10,
   },
   successTimeContainer: {
-    backgroundColor: "#4CAF50",
     padding: 12,
     borderRadius: 12,
-    marginBottom: 12,
-    flexDirection: "row",
+    marginBottom: 0,
+    flexDirection: "column",
     alignItems: "center",
     alignSelf: "flex-start",
   },

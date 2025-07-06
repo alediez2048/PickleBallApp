@@ -98,6 +98,7 @@ export const StripeNative: React.FC<StripeNativeProps> = (props) => {
         cardStyle={{
           backgroundColor: colors.background,
           textColor: colors.text,
+          placeholderColor: colors.label,
           borderRadius: 8,
           borderWidth: 2,
           borderColor: colors.primary,

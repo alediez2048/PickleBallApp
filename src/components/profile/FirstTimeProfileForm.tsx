@@ -15,6 +15,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SkillLevel } from "@/types/games";
 import { Address } from "@/types/user";
 import { useTheme } from "@/contexts/ThemeContext";
+import { TermsModal } from "./TermsModal";
+import { set } from "date-fns";
 
 const SKILL_LEVELS = [
   { value: SkillLevel.Beginner, label: "Beginner" },
@@ -53,6 +55,9 @@ export function FirstTimeProfileForm({
 }: FirstTimeProfileFormProps) {
   const { user, updateProfile } = useAuth();
   const { colors } = useTheme();
+  const [activeModal, setActiveModal] = useState<
+    "terms" | "privacy" | "waiver" | null
+  >(null);
   const [form, setForm] = useState<FormData>({
     displayName: "",
     phoneNumber: "",
@@ -96,6 +101,34 @@ export function FirstTimeProfileForm({
       }));
     }
   }, [user]);
+
+  const handleTermsAccept = async () => {
+    const now = new Date().toISOString();
+    switch (activeModal) {
+      case "terms":
+        setForm((prev) => ({
+          ...prev,
+          termsAccepted: true,
+          termsAcceptedAt: now,
+        }));
+        break;
+      case "privacy":
+        setForm((prev) => ({
+          ...prev,
+          privacyPolicyAccepted: true,
+          privacyPolicyAcceptedAt: now,
+        }));
+        break;
+      case "waiver":
+        setForm((prev) => ({
+          ...prev,
+          waiverAccepted: true,
+          waiverSignedAt: now,
+        }));
+        break;
+    }
+    setActiveModal(null);
+  };
 
   const handleSubmit = async () => {
     try {
@@ -184,16 +217,21 @@ export function FirstTimeProfileForm({
         style={styles.keyboardAvoidingView}
       >
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
-          <ThemedText type='sectionTitle' style={styles.title}>
+          <ThemedText
+            className="py-0 mx-0"
+            size={6}
+            weight={"bold"}
+            align="center"
+          >
             Complete Your Profile
           </ThemedText>
-          <ThemedText type='subtitle' style={styles.subtitle}>
+          <ThemedText className="py-0 mt-0 mb-2" size={4} align="center">
             Tell us a bit about yourself to get started
           </ThemedText>
 
           <View style={styles.form}>
             <TextInput
-              label='Display Name'
+              label="Display Name"
               value={form.displayName}
               onChangeText={(text) =>
                 setForm((prev) => ({ ...prev, displayName: text }))
@@ -201,29 +239,29 @@ export function FirstTimeProfileForm({
               editable={!isSubmitting}
             />
             <TextInput
-              label='Phone Number'
+              label="Phone Number"
               value={form.phoneNumber}
               onChangeText={(text) =>
                 setForm((prev) => ({ ...prev, phoneNumber: text }))
               }
-              keyboardType='phone-pad'
+              keyboardType="phone-pad"
               editable={!isSubmitting}
             />
             <TextInput
-              label='Date of Birth'
+              label="Date of Birth"
               value={form.dateOfBirth}
               onChangeText={(text) =>
                 setForm((prev) => ({ ...prev, dateOfBirth: text }))
               }
-              placeholder='YYYY-MM-DD'
+              placeholder="YYYY-MM-DD"
               editable={!isSubmitting}
             />
             {/* Address Fields */}
-            <ThemedText type='subtitle' style={styles.sectionTitle}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
               Address
             </ThemedText>
             <TextInput
-              label='Street'
+              label="Street"
               value={form.address.street}
               onChangeText={(text) =>
                 setForm((prev) => ({
@@ -234,7 +272,7 @@ export function FirstTimeProfileForm({
               editable={!isSubmitting}
             />
             <TextInput
-              label='City'
+              label="City"
               value={form.address.city}
               onChangeText={(text) =>
                 setForm((prev) => ({
@@ -245,7 +283,7 @@ export function FirstTimeProfileForm({
               editable={!isSubmitting}
             />
             <TextInput
-              label='State'
+              label="State"
               value={form.address.state}
               onChangeText={(text) =>
                 setForm((prev) => ({
@@ -256,7 +294,7 @@ export function FirstTimeProfileForm({
               editable={!isSubmitting}
             />
             <TextInput
-              label='Zip Code'
+              label="Zip Code"
               value={form.address.zipCode}
               onChangeText={(text) =>
                 setForm((prev) => ({
@@ -264,11 +302,11 @@ export function FirstTimeProfileForm({
                   address: { ...prev.address, zipCode: text },
                 }))
               }
-              keyboardType='numeric'
+              keyboardType="numeric"
               editable={!isSubmitting}
             />
             <TextInput
-              label='Country'
+              label="Country"
               value={form.address.country}
               onChangeText={(text) =>
                 setForm((prev) => ({
@@ -280,7 +318,7 @@ export function FirstTimeProfileForm({
             />
 
             {/* Skill Level */}
-            <ThemedText type='subtitle' style={styles.sectionTitle}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
               Skill Level
             </ThemedText>
             {SKILL_LEVELS.map((level) => (
@@ -307,7 +345,7 @@ export function FirstTimeProfileForm({
             ))}
 
             {/* Play Style */}
-            <ThemedText type='subtitle' style={styles.sectionTitle}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
               Preferred Play Style
             </ThemedText>
             <View style={styles.playStyleButtons}>
@@ -335,7 +373,7 @@ export function FirstTimeProfileForm({
             </View>
 
             {/* Legal Agreements */}
-            <ThemedText type='subtitle' style={styles.sectionTitle}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
               Legal Agreements
             </ThemedText>
             <TouchableOpacity
@@ -343,12 +381,9 @@ export function FirstTimeProfileForm({
                 styles.legalButton,
                 form.termsAccepted && styles.acceptedLegalButton,
               ]}
-              onPress={() =>
-                setForm((prev) => ({
-                  ...prev,
-                  termsAccepted: !prev.termsAccepted,
-                }))
-              }
+              onPress={() => {
+                setActiveModal("terms");
+              }}
             >
               <ThemedText style={styles.legalButtonText}>
                 Accept Terms & Conditions
@@ -359,12 +394,9 @@ export function FirstTimeProfileForm({
                 styles.legalButton,
                 form.privacyPolicyAccepted && styles.acceptedLegalButton,
               ]}
-              onPress={() =>
-                setForm((prev) => ({
-                  ...prev,
-                  privacyPolicyAccepted: !prev.privacyPolicyAccepted,
-                }))
-              }
+              onPress={() => {
+                setActiveModal("privacy");
+              }}
             >
               <ThemedText style={styles.legalButtonText}>
                 Accept Privacy Policy
@@ -375,12 +407,9 @@ export function FirstTimeProfileForm({
                 styles.legalButton,
                 form.waiverAccepted && styles.acceptedLegalButton,
               ]}
-              onPress={() =>
-                setForm((prev) => ({
-                  ...prev,
-                  waiverAccepted: !prev.waiverAccepted,
-                }))
-              }
+              onPress={() => {
+                setActiveModal("waiver");
+              }}
             >
               <ThemedText style={styles.legalButtonText}>
                 Accept Liability Waiver
@@ -398,6 +427,12 @@ export function FirstTimeProfileForm({
           </Button>
         </ScrollView>
       </KeyboardAvoidingView>
+      <TermsModal
+        visible={activeModal !== null}
+        type={activeModal || "terms"}
+        onAccept={handleTermsAccept}
+        onClose={() => setActiveModal(null)}
+      />
     </View>
   );
 }
@@ -413,14 +448,6 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
     paddingBottom: 40,
-  },
-  title: {
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  subtitle: {
-    textAlign: "center",
-    marginBottom: 20,
   },
   form: {
     gap: 16,

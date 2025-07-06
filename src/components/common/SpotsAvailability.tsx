@@ -20,19 +20,25 @@ export function SpotsAvailability({
   return (
     <ThemedView className="flex flex-col items-start gap-0 m-0">
       <ThemedView className="flex-column justify-between items-center mx-2">
-        <ThemedText
-          type={variant == "detail" ? "label" : "value"}
-          className="my-0 py-0"
-        >
-          Spots Available
-        </ThemedText>
-        <ThemedText
-          type={variant == "detail" ? "value" : "text"}
-          className="my-0 py-0"
-          colorType="label"
-        >
-          {registeredCount} of {maxPlayers}
-        </ThemedText>
+        {variant == "detail" ? (
+          <>
+            <ThemedText type="label" align="center" colorType="label">
+              Spots Available
+            </ThemedText>
+            <ThemedText type="value" align="center">
+              {registeredCount} of {maxPlayers}
+            </ThemedText>
+          </>
+        ) : (
+          <>
+            <ThemedText type="label" className="my-0 py-0">
+              Spots Available
+            </ThemedText>
+            <ThemedText type="value" className="my-0 py-0">
+              {registeredCount} of {maxPlayers}
+            </ThemedText>
+          </>
+        )}
       </ThemedView>
     </ThemedView>
   );

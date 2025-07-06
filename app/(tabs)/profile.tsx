@@ -129,7 +129,6 @@ export default function ProfileScreen() {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <ThemedText>+++</ThemedText>
         <ProfileHeader
           user={user}
           onImagePick={handleImagePick}

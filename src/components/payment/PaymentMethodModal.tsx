@@ -31,7 +31,7 @@ export function PaymentMethodModal({
   return (
     <Modal
       visible={visible}
-      animationType='slide'
+      animationType="slide"
       transparent={true}
       onRequestClose={onClose}
     >
@@ -39,14 +39,14 @@ export function PaymentMethodModal({
         <ThemedView style={styles.content}>
           <ThemedView style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <IconSymbol name='xmark' size={24} color='#666666' />
+              <IconSymbol name="xmark" size={24} color="#666666" />
             </TouchableOpacity>
             <ThemedText style={styles.title}>Payment Method</ThemedText>
-            <ThemedText type='miniSubtitle'>
+            <ThemedText type="miniSubtitle">
               {`Add a payment method for ${selectedPlan.name}`}
             </ThemedText>
           </ThemedView>
-          <ThemedView style={{ flex: 1, justifyContent: "center" }}>
+          <ThemedView style={{ flex: 1, justifyContent: "flex-start" }}>
             <StripeCheckout
               selectedPlan={selectedPlan}
               onComplete={onComplete}

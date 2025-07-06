@@ -59,7 +59,7 @@ const TextInputComponent = forwardRef<RNTextInput, TextInputProps>(
               styles.label,
               { color: isInvalid ? colors.primary : colors.text },
             ]}
-            accessibilityRole='text'
+            accessibilityRole="text"
           >
             {label}
           </ThemedText>
@@ -72,21 +72,19 @@ const TextInputComponent = forwardRef<RNTextInput, TextInputProps>(
           ]}
         >
           {startIcon && (
-            <ThemedView style={styles.iconContainer} accessibilityRole='image'>
+            <ThemedView style={styles.iconContainer} accessibilityRole="image">
               {startIcon}
             </ThemedView>
           )}
 
           <RNTextInput
             ref={ref}
-            testID='text-input'
+            testID="text-input"
             style={[
               styles.input,
               {
-                backgroundColor: editable
-                  ? colors.secondary
-                  : colors.background,
-                borderColor: isInvalid ? colors.primary : colors.tabIconDefault,
+                backgroundColor: editable ? colors.soft : colors.background,
+                borderColor: isInvalid ? colors.primary : colors.border,
                 color: colors.text,
               },
               startIcon && styles.inputWithStartIcon,
@@ -95,7 +93,7 @@ const TextInputComponent = forwardRef<RNTextInput, TextInputProps>(
               inputStyle,
             ]}
             editable={editable}
-            placeholderTextColor={colors.tabIconDefault}
+            placeholderTextColor={colors.secondary}
             accessibilityLabel={accessibilityLabel || label}
             accessibilityHint={combinedAccessibilityHint || undefined}
             accessibilityState={{
@@ -107,16 +105,16 @@ const TextInputComponent = forwardRef<RNTextInput, TextInputProps>(
           {endIcon &&
             (onEndIconPress ? (
               <TouchableOpacity
-                testID='end-icon-button'
+                testID="end-icon-button"
                 style={styles.iconContainer}
                 onPress={onEndIconPress}
-                accessibilityRole='button'
-                accessibilityLabel='Toggle password visibility'
+                accessibilityRole="button"
+                accessibilityLabel="Toggle password visibility"
               >
                 {endIcon}
               </TouchableOpacity>
             ) : (
-              <ThemedView testID='end-icon' style={styles.iconContainer}>
+              <ThemedView testID="end-icon" style={styles.iconContainer}>
                 {endIcon}
               </ThemedView>
             ))}
@@ -128,7 +126,7 @@ const TextInputComponent = forwardRef<RNTextInput, TextInputProps>(
               styles.helpText,
               { color: isInvalid ? colors.primary : colors.text },
             ]}
-            accessibilityRole='text'
+            accessibilityRole="text"
             accessibilityLiveRegion={isInvalid ? "polite" : "none"}
           >
             {helpText}

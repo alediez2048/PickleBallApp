@@ -13,6 +13,7 @@ interface GameContextType {
   loading: boolean;
   error: string | null;
   fetchGames: () => Promise<void>;
+  fetchGame: (gameId: string) => Promise<void>;
   createGame: (
     gameData: Omit<Game, "id" | "created_at" | "updated_at">
   ) => Promise<Game>;
@@ -34,6 +35,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const fetchGames = async () => {
     setLoading(true);
+    setGames([]);
     setError(null);
     try {
       // Calculate today and 7 days ahead in ISO format (timestamp)
@@ -160,6 +162,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
     return undefined;
   };
 
+  const fetchGame = async (gameId: string): Promise<void> => {
+    const game = await getGameService(gameId);
+    if (game) {
+      setGames((prev) => {
+        if (prev.some((g) => g.id === game.id)) return prev;
+        return [...prev, game];
+      });
+    }
+  };
+
   return (
     <GameContext.Provider
       value={{
@@ -167,6 +179,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
         loading,
         error,
         fetchGames,
+        fetchGame,
         createGame,
         updateGame,
         deleteGame,

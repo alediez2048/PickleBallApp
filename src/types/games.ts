@@ -24,13 +24,7 @@ export interface User {
   skill_level: SkillLevel;
   phone_number?: string;
   rating?: number;
-  profileImage?:
-    | string
-    | {
-        uri: string;
-        base64: string;
-        timestamp: number;
-      };
+  profile_image?: string | null;
 }
 
 export const GAME_CONSTANTS = {

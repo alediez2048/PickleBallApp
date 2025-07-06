@@ -16,7 +16,7 @@ interface BookedGamesContextType {
   error: Error | null;
   refreshBookedGames: () => Promise<void>;
   addBookedGame: (game: Omit<BookedGame, "id">) => Promise<BookedGame | null>;
-  cancelBooking: (gameId: string) => Promise<void>;
+  cancelBooking: (gameId: string, id: string) => Promise<void>;
   clearAllGames: () => Promise<void>;
   listBookedGamesForUser: () => Promise<BookedGame[]>;
 }
@@ -64,6 +64,8 @@ export const BookedGamesProvider: React.FC<{ children: React.ReactNode }> = ({
         name: user.display_name || user.name || "",
         skill_level: currentGameData.skill_level,
         phone_number: user.phone_number || "",
+        profile_image:
+          typeof user.profile_image === "string" ? user.profile_image : null,
       };
 
       // Prepare the updated players array
@@ -90,10 +92,26 @@ export const BookedGamesProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const cancelBooking = async (gameId: string) => {
+  const cancelBooking = async (gameId: string, id: string) => {
     if (!user?.email) throw new Error("User not authenticated");
     try {
-      await updateBookedGameService(gameId, { status: "cancelled" });
+      // Fetch the current game details first
+      const currentGameData = await getGame(gameId);
+      if (!currentGameData) throw new Error("Game not found");
+
+      // Remove the current user from the players array
+      const updatedPlayers = (currentGameData.players || []).filter(
+        (player: User) => player.id !== user.id
+      );
+
+      // Update the game with the new players array and registered_count
+      await updateGame(gameId, {
+        registered_count: updatedPlayers.length,
+        players: updatedPlayers,
+      });
+
+      // Update the booking status to cancelled
+      await updateBookedGameService(id, { status: "cancelled" });
       setBookedGames((prev) =>
         prev.map((game) =>
           game.id === gameId ? { ...game, status: "cancelled" as const } : game

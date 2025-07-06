@@ -1,7 +1,7 @@
 export const colors = {
   primary: {
     light: "#4CAF50",
-    dark: "#81C784",
+    dark: "#4CAF50",
   },
   secondary: {
     light: "#FF9800",
@@ -29,7 +29,7 @@ export const colors = {
   },
   label: {
     light: "#333333",
-    dark: "#E0E0E0",
+    dark: "#80a09b",
   },
   danger: {
     light: "#D32F2F",
