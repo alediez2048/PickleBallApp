@@ -15,6 +15,7 @@ export interface UserProfile {
   name?: string;
   isVerified?: boolean;
   skillLevel?: string;
+  uri_image?: string | null;
   profileImage?:
     | string
     | {

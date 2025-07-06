@@ -42,3 +42,10 @@ export const getSignedUrl = async (path: string) => {
 
   return data?.signedUrl || null;
 };
+
+export const getPublicUrl = (path: string): string | null => {
+  const bucket = "images";
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+
+  return data?.publicUrl || null;
+};

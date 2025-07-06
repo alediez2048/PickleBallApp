@@ -49,7 +49,7 @@ export default function GameDetailsScreen() {
   const [showMembershipModal, setShowMembershipModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
-  const { getGame, fetchGame } = useGames();
+  const { getGame, fetchGame, fetchGames } = useGames();
   const { colors } = useTheme();
 
   // Get the correct game based on the ID
@@ -57,10 +57,17 @@ export default function GameDetailsScreen() {
 
   // Load total booked players using the global tracking system
   useEffect(() => {
+    const fetchAll = async () => {
+      await fetchGames(); // Refresh the global list for the last 7 days
+      await fetchGame(id as string); // Fetch the latest game details
+      const game = getGame(id as string);
+      setActualGame(game ?? ({} as Game));
+    };
+
     setUpcomingGames([]);
     fetchBookedGames();
-    fetchActualGame();
-  }, []);
+    fetchAll();
+  }, [id]);
 
   const fetchBookedGames = async () => {
     try {

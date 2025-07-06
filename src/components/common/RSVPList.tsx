@@ -7,9 +7,8 @@ import { ThemedView } from "@/components/common/ThemedView";
 import type { Game } from "@/types/games";
 import type { UserProfile } from "@/types/user";
 import { useTheme } from "@/contexts/ThemeContext";
-import { getSignedUrl } from "@/services/image";
+import { getPublicUrl } from "@/services/image";
 import { useGames } from "@contexts/GameContext";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 interface RSVPListProps {
   gameId: string;
@@ -28,38 +27,27 @@ export function RSVPList({ gameId }: RSVPListProps) {
   const [registeredPlayers, setRegisteredPlayers] = useState<UserProfile[]>([]);
   const [isMounted, setIsMounted] = useState<any>(true);
   const [actualGame, setActualGame] = useState<Game | null>(null);
-  const { fetchGame, games } = useGames();
+  const { fetchGame, games, getGame } = useGames();
 
   const [showLeftShadow, setShowLeftShadow] = useState(false);
   const [showRightShadow, setShowRightShadow] = useState(true);
 
   useEffect(() => {
-    let isMounted = true;
-    if (gameId) {
+    const loadGame = async () => {
+      if (!gameId) return;
       setRegisteredPlayers([]);
-      getGameDetails();
-      isMounted = false;
-      setIsMounted(isMounted);
-    }
-  }, []);
-
-  console.log("[RSVPList] Mounted with gameId:", gameId);
-
-  const getGameDetails = async () => {
-    try {
-      await fetchGame(gameId);
-      setTimeout(async () => {
-        // After fetching, get the game from the context's games state
-        const gameDetails = games.find((g: Game) => g.id === gameId);
-        if (gameDetails) {
-          await fetchPlayersWithProfile(gameDetails);
-          setActualGame(gameDetails);
-        }
-      }, 2000); // Delay to ensure the game is fetched
-    } catch (error) {
-      console.error("Error fetching game details:", error);
-    }
-  };
+      await fetchGame(gameId); // Always fetch latest from server
+      // Get the updated game from context
+      const updatedGame = getGame(gameId);
+      if (updatedGame) {
+        await fetchPlayersWithProfile(updatedGame);
+        setActualGame(updatedGame);
+      } else {
+        setActualGame(null);
+      }
+    };
+    loadGame();
+  }, [gameId, fetchGame, getGame]);
 
   const fetchPlayersWithProfile = async (game: Game) => {
     const playersWithProfile = await searchImageForPlayers(game.players);
@@ -74,11 +62,7 @@ export function RSVPList({ gameId }: RSVPListProps) {
       );
       if (player.profile_image && typeof player.profile_image === "string") {
         const urlImage = await fetchProfileImage(player.profile_image);
-        if (urlImage) {
-          player.profile_image = urlImage;
-        } else {
-          player.profile_image = null;
-        }
+        player.uri_image = urlImage ?? player.uri_image ?? null;
       }
     }
     // Filter out players without profile images
@@ -87,7 +71,7 @@ export function RSVPList({ gameId }: RSVPListProps) {
 
   const fetchProfileImage = async (path: string) => {
     try {
-      const urlImage = await getSignedUrl(path);
+      const urlImage = await getPublicUrl(path);
       return urlImage ? urlImage : null;
     } catch (error) {
       console.error("Error fetching profile image:", error);
@@ -146,7 +130,7 @@ export function RSVPList({ gameId }: RSVPListProps) {
             key={player.id}
             className="flex flex-col items-center mx-2"
           >
-            {player.profile_image ? (
+            {player.uri_image ? (
               <Image
                 style={{
                   borderRadius: 65,
@@ -154,7 +138,7 @@ export function RSVPList({ gameId }: RSVPListProps) {
                   height: 65,
                   resizeMode: "cover",
                 }}
-                source={{ uri: player.profile_image }}
+                source={{ uri: player.uri_image }}
               />
             ) : (
               <ThemedView

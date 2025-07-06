@@ -20,7 +20,7 @@ export interface UserProfile {
   address?: Address | null;
   skill_level?: SkillLevel | null;
   profile_image?: string | null;
-
+  uri_image?: string | null; // New field for URI image
   membership?: MembershipPlan | null;
   paymentMethods?: any[] | null;
   games_played?: any[] | null;

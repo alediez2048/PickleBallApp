@@ -23,10 +23,14 @@ export default function TabHomeScreen() {
 
   // Fetch upcoming booked games for the user
   useEffect(() => {
+    // Reset the upcomingGames to empty before fetching
+    setUpcomingGames([]);
     fetchBookedGames();
   }, []);
 
   const fetchBookedGames = async () => {
+    // Ensure state is reset before fetching
+    setUpcomingGames([]);
     try {
       const games = await listBookedGamesForUser();
       setUpcomingGames(games);
