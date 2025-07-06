@@ -347,7 +347,7 @@ export default function GameDetailsScreen() {
         </ThemedView>
       </ThemedView>
       {/* Players */}
-      <ThemedView style={styles.section}>
+      <ThemedView className="mx-2 ">
         <RSVPList game={game} />
       </ThemedView>
       {/* Footer with conditional buttons */}

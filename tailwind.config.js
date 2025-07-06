@@ -27,6 +27,10 @@ module.exports = {
         "sans-medium": ["System-Medium"],
         "sans-bold": ["System-Bold"],
       },
+      spacing: {
+        '3': '12px', // px-4
+        '4': '16px', // px-4
+      },
     },
   },
   future: {

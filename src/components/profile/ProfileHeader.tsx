@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Image, TouchableOpacity, StyleSheet } from "react-native";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
 import { IconSymbol } from "@/components/common/IconSymbol";
+import { getSignedUrl } from "@/services/image";
 
 interface ProfileHeaderProps {
   user: any;
@@ -15,12 +16,31 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onImagePick,
   refreshKey,
 }) => {
-  const getProfileImageSource = (profile_image: any) => {
-    if (!profile_image) return undefined;
-    if (typeof profile_image === "string") return { uri: profile_image };
-    if (profile_image?.uri) return { uri: profile_image.uri };
-    return undefined;
+  const [profileImageSource, setProfileImageSource] = useState<any>(undefined);
+  const [isMounted, setIsMounted] = useState<any>(true);
+  const fetchProfileImage = async () => {
+    if (!user?.profile_image) {
+      if (isMounted) setProfileImageSource(undefined);
+      return;
+    }
+    if (typeof user.profile_image === "string") {
+      const urlImage = await getSignedUrl(user.profile_image);
+      if (isMounted)
+        setProfileImageSource(urlImage ? { uri: urlImage } : undefined);
+    } else {
+      if (isMounted) setProfileImageSource(undefined);
+    }
   };
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchProfileImage();
+    setIsMounted(isMounted);
+    return () => {
+      isMounted = false;
+      setIsMounted(isMounted);
+    };
+  }, []);
 
   return (
     <ThemedView
@@ -34,10 +54,15 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           onPress={onImagePick}
           accessibilityLabel="Change profile picture"
         >
-          {user?.profile_image ? (
+          {user?.profile_image && profileImageSource ? (
             <Image
-              source={getProfileImageSource(user.profile_image)}
-              style={styles.profileImage}
+              style={{
+                borderRadius: 120,
+                width: 120,
+                height: 120,
+                resizeMode: "cover",
+              }}
+              source={profileImageSource}
               key={refreshKey}
             />
           ) : (
@@ -58,12 +83,10 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             <IconSymbol name="pencil" size={14} color="white" />
           </ThemedView>
         </TouchableOpacity>
-        <ThemedText type="title" style={styles.name}>
+        <ThemedText type="subtitle" weight={"bold"}>
           {user.display_name || user.name || user.email}
         </ThemedText>
-        <ThemedText type="caption" style={styles.email}>
-          {user.email}
-        </ThemedText>
+        <ThemedText type="label">{user.email}</ThemedText>
       </ThemedView>
     </ThemedView>
   );

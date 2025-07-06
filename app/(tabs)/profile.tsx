@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Modal,
-  Alert,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-} from "react-native";
+import { StyleSheet, Alert, ScrollView } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
@@ -17,6 +7,7 @@ import { MembershipPlan } from "@/types/membership";
 import { ThemedText } from "@/components/common/ThemedText";
 import { ThemedView } from "@/components/common/ThemedView";
 import ThemeToggleButton from "@/components/common/ThemeToggleButton";
+import { uploadImage } from "@/components/common/uploadImage";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { QuickActions } from "@/components/profile/QuickActions";
 import { SkillLevelCard } from "@/components/profile/SkillLevelCard";
@@ -25,8 +16,6 @@ import { ProfileInfoCard } from "@/components/profile/ProfileInfoCard";
 import { SignOutButton } from "@/components/profile/SignOutButton";
 import { SkillLevelModal } from "@/components/profile/SkillLevelModal";
 import { ProfileFormModal } from "@/components/profile/ProfileFormModal";
-import { SKILL_LEVELS } from "@/constants/skillLevels";
-import type { UserProfile, GameHistory } from "@/types/userProfile";
 
 export default function ProfileScreen() {
   const { user } = useAuth();
@@ -86,31 +75,20 @@ export default function ProfileScreen() {
     }
 
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.5,
-        base64: true,
+      setIsLoading(true);
+
+      const publicUrl = await uploadImage({
+        destinationPath: (filename) =>
+          `users/${user?.id || "avatar"}/${filename}`,
       });
 
-      if (!result.canceled && result.assets[0]) {
-        setIsLoading(true);
-        const imageUri = result.assets[0].uri;
-        const base64Data = result.assets[0].base64;
+      console.log("Uploaded image URL:", publicUrl);
 
-        if (!base64Data) {
-          throw new Error("Failed to get image data");
-        }
-
-        const imageData = {
-          uri: imageUri,
-          base64: `data:image/jpeg;base64,${base64Data}`,
-          timestamp: Date.now(),
-        };
-
-        await updateProfile({ profileImage: imageData });
+      if (publicUrl) {
+        await updateProfile({ profile_image: publicUrl });
         setRefreshKey(Date.now());
+      } else {
+        Alert.alert("Upload Error", "Could not upload the image.");
       }
     } catch (error) {
       console.error("Image pick error:", error);
@@ -121,16 +99,6 @@ export default function ProfileScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getImageSource = (profileImage: UserProfile["profileImage"]) => {
-    if (!profileImage) return undefined;
-
-    if (typeof profileImage === "string") {
-      return { uri: profileImage };
-    }
-
-    return { uri: profileImage.base64 };
   };
 
   const handleSkillUpdate = async (newSkillLevel: string) => {
@@ -161,6 +129,7 @@ export default function ProfileScreen() {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
+        <ThemedText>+++</ThemedText>
         <ProfileHeader
           user={user}
           onImagePick={handleImagePick}
@@ -187,7 +156,6 @@ export default function ProfileScreen() {
           onSignOut={async () => {
             try {
               await signOut();
-              router.replace("/");
             } catch (error) {
               console.error("Error during sign out:", error);
               Alert.alert("Error", "Failed to sign out. Please try again.");

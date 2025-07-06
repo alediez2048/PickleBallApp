@@ -99,6 +99,9 @@ export function IconSymbol({
   const { colors } = useTheme();
   // Accept colorType or a valid hex color string
   const isHexColor = (val: string) => /^#([0-9A-Fa-f]{6})$/.test(val);
+  const localStyle = {
+    backgroundColor: "transparent",
+  };
 
   if (typeof color === "string" && isHexColor(color)) {
     themedColor = color;
@@ -135,7 +138,7 @@ export function IconSymbol({
         name={SF_SYMBOL_MAPPING[name]}
         size={size}
         color={themedColor}
-        style={style}
+        style={[localStyle, style]}
       />
     );
   }

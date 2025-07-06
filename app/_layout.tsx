@@ -64,10 +64,16 @@ function RootLayoutNav() {
 
   return (
     <Stack>
+      <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="(profile-setup)/index"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="(skill-select)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="game" options={{ headerShown: false }} />
-      <Stack.Screen name="admin" options={{ headerShown: false }} />
+
       <Stack.Screen
         name="admin/locations/index"
         options={{ headerShown: false }}
@@ -80,7 +86,7 @@ function RootLayoutNav() {
         name="admin/locations/[id]"
         options={{ headerShown: false }}
       />
-      <Stack.Screen name="admin/fixed-games" options={{ headerShown: false }} />
+
       <Stack.Screen
         name="admin/fixed-games/[id]"
         options={{ headerShown: false }}
@@ -93,10 +99,11 @@ function RootLayoutNav() {
         name="admin/fixed-games/index"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="admin/fixed-games/delete/[id]"
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="game/[id]" options={{ headerShown: false }} />
-      <Stack.Screen name="(profile-setup)" options={{ headerShown: false }} />
-      <Stack.Screen name="(skill-select)" options={{ headerShown: false }} />
-      <Stack.Screen name="+not-found" options={{ headerShown: false }} />
     </Stack>
   );
 }
