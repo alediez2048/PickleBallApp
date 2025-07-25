@@ -29,8 +29,6 @@ export default function TabHomeScreen() {
   }, []);
 
   const fetchBookedGames = async () => {
-    // Ensure state is reset before fetching
-    setUpcomingGames([]);
     try {
       const games = await listBookedGamesForUser();
       setUpcomingGames(games);

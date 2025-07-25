@@ -35,7 +35,7 @@ import { set } from "date-fns";
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { signOut, user } = useAuth();
+  const { user } = useAuth();
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
@@ -50,23 +50,27 @@ export default function GameDetailsScreen() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
   const { getGame, fetchGame, fetchGames } = useGames();
-  const { colors } = useTheme();
 
   // Get the correct game based on the ID
   const game = getGame(id as string);
 
-  // Load total booked players using the global tracking system
-  useEffect(() => {
-    const fetchAll = async () => {
-      await fetchGames(); // Refresh the global list for the last 7 days
-      await fetchGame(id as string); // Fetch the latest game details
-      const game = getGame(id as string);
-      setActualGame(game ?? ({} as Game));
-    };
-
+  const fetchAll = async () => {
     setUpcomingGames([]);
     fetchBookedGames();
+
+    await fetchGames(); // Refresh the global list for the last 7 days
+    await fetchGame(id as string); // Fetch the latest game details
+    const game = getGame(id as string);
+    setActualGame(game ?? ({} as Game));
+  };
+
+  // Load total booked players using the global tracking system
+  useEffect(() => {
     fetchAll();
+
+    if (user?.membership_tier) {
+      setSelectedPlan(user.membership as MembershipPlan);
+    }
   }, [id]);
 
   const fetchBookedGames = async () => {
@@ -141,7 +145,7 @@ export default function GameDetailsScreen() {
       await addBookedGame(bookingData);
       setIsBookingModalVisible(false); // Close modal after successful booking
       setIsSuccessModalVisible(true);
-      await fetchGame(bookingData.game_id);
+      await fetchAll();
     } catch (error) {
       Alert.alert(
         "Sign Up Failed",
@@ -153,11 +157,6 @@ export default function GameDetailsScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleViewBooking = () => {
-    setIsSuccessModalVisible(false);
-    // Stay on the current screen instead of navigating away
   };
 
   const handleExploreMore = () => {
@@ -173,6 +172,7 @@ export default function GameDetailsScreen() {
       }
 
       setIsCancelModalVisible(true);
+      fetchAll();
     } catch (error) {
       Alert.alert("Error", "Failed to cancel registration. Please try again.");
     }
@@ -189,7 +189,7 @@ export default function GameDetailsScreen() {
 
       setIsLoading(true);
       await cancelBooking(bookedGameCancel.game_id, bookedGameCancel.id);
-      await fetchGame(bookedGameCancel.game_id);
+      await fetchAll();
       setIsCancelModalVisible(false);
       Alert.alert("Success", "Your registration has been cancelled.");
       router.back();
@@ -198,23 +198,53 @@ export default function GameDetailsScreen() {
       console.error(error);
     } finally {
       setIsLoading(false);
+      fetchAll();
     }
   };
 
   const handleBookButtonPress = () => {
-    // Check if user has completed their profile
-    console.debug("[GameDetails] Platform:", Platform.OS);
-
+    // If the user has not completed their profile, prompt to complete profile first
     if (!user?.has_completed_profile) {
       console.debug("[GameDetails] Showing profile form modal");
-      // Show profile completion modal directly
       setIsProfileFormVisible(true);
       return;
     }
 
-    console.debug("[GameDetails] Showing booking confirmation modal");
-    // Proceed with booking
-    setIsBookingModalVisible(true);
+    // If the user does not have a membership plan, show the membership selection modal
+    if (!user.membership_tier) {
+      setShowMembershipModal(true);
+      return;
+    }
+
+    // If the user has a drop-in plan, always show the payment modal (pay per game)
+    if (user.membership_tier === "drop-in") {
+      setShowPaymentModal(true);
+      return;
+    }
+
+    // If the user has a monthly subscription, check the validity of the subscription dates
+    if (user.membership_tier === "monthly") {
+      // If either start or end date is missing, show the payment modal
+      if (!user.membership_start_date || !user.membership_end_date) {
+        setShowPaymentModal(true);
+        return;
+      }
+
+      // Parse the start and end dates
+      const today = new Date();
+      const startDate = new Date(user.membership_start_date);
+      const endDate = new Date(user.membership_end_date);
+
+      // If today is within the subscription period, allow booking
+      if (today >= startDate && today <= endDate) {
+        setIsBookingModalVisible(true);
+        return;
+      } else {
+        // If the subscription is not valid, show the payment modal
+        setShowPaymentModal(true);
+        return;
+      }
+    }
   };
 
   const handleProfileComplete = () => {
