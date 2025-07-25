@@ -24,7 +24,7 @@ export function PaymentMethodForm({
   onCancel,
   isFirstTime = false,
 }: PaymentMethodFormProps) {
-  const { updatePaymentMethods, user } = useAuth();
+  const { user } = useAuth();
   const [cardNumber, setCardNumber] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [cvv, setCvv] = useState("");
@@ -66,23 +66,7 @@ export function PaymentMethodForm({
 
     setIsLoading(true);
     try {
-      const last4 = cardNumber.replace(/\s/g, "").slice(-4);
-      const [expiryMonth, expiryYear] = expiryDate.split("/");
-
-      const newPaymentMethod = {
-        id: `pm_${Date.now()}`,
-        last4,
-        brand: getCardBrand(cardNumber),
-        expiryMonth,
-        expiryYear,
-        isDefault: true,
-      };
-
-      // Update with the new payment method
-      await updatePaymentMethods([
-        ...(user?.paymentMethods || []),
-        newPaymentMethod,
-      ]);
+      console.log("Handle Submit");
 
       onComplete();
     } catch (error) {
@@ -128,11 +112,11 @@ export function PaymentMethodForm({
         <View style={styles.content}>
           {isFirstTime && (
             <View style={styles.welcomeSection}>
-              <IconSymbol name='creditcard.fill' size={40} color='#4CAF50' />
-              <ThemedText variant='title' style={styles.welcomeTitle}>
+              <IconSymbol name="creditcard.fill" size={40} color="#4CAF50" />
+              <ThemedText variant="title" style={styles.welcomeTitle}>
                 Add Payment Method
               </ThemedText>
-              <ThemedText variant='body' style={styles.welcomeText}>
+              <ThemedText variant="body" style={styles.welcomeText}>
                 To complete your game booking, please add a payment method. This
                 will be securely saved for future bookings.
               </ThemedText>
@@ -141,11 +125,11 @@ export function PaymentMethodForm({
 
           <View style={styles.form}>
             <TextInput
-              label='Card Number'
+              label="Card Number"
               value={cardNumber}
               onChangeText={(text) => setCardNumber(formatCardNumber(text))}
-              placeholder='1234 5678 9012 3456'
-              keyboardType='numeric'
+              placeholder="1234 5678 9012 3456"
+              keyboardType="numeric"
               maxLength={19}
               error={errors.cardNumber}
               editable={!isLoading}
@@ -154,11 +138,11 @@ export function PaymentMethodForm({
             <View style={styles.row}>
               <View style={styles.halfWidth}>
                 <TextInput
-                  label='Expiry Date'
+                  label="Expiry Date"
                   value={expiryDate}
                   onChangeText={(text) => setExpiryDate(formatExpiryDate(text))}
-                  placeholder='MM/YY'
-                  keyboardType='numeric'
+                  placeholder="MM/YY"
+                  keyboardType="numeric"
                   maxLength={5}
                   error={errors.expiryDate}
                   editable={!isLoading}
@@ -166,11 +150,11 @@ export function PaymentMethodForm({
               </View>
               <View style={styles.halfWidth}>
                 <TextInput
-                  label='CVV'
+                  label="CVV"
                   value={cvv}
                   onChangeText={setCvv}
-                  placeholder='123'
-                  keyboardType='numeric'
+                  placeholder="123"
+                  keyboardType="numeric"
                   maxLength={4}
                   error={errors.cvv}
                   editable={!isLoading}
@@ -179,11 +163,11 @@ export function PaymentMethodForm({
             </View>
 
             <TextInput
-              label='Cardholder Name'
+              label="Cardholder Name"
               value={name}
               onChangeText={setName}
-              placeholder='JOHN DOE'
-              autoCapitalize='characters'
+              placeholder="JOHN DOE"
+              autoCapitalize="characters"
               error={errors.name}
               editable={!isLoading}
             />
@@ -191,7 +175,7 @@ export function PaymentMethodForm({
 
           <View style={styles.footer}>
             <Button
-              variant='secondary'
+              variant="secondary"
               onPress={onCancel}
               disabled={isLoading}
               style={styles.footerButton}
@@ -199,7 +183,7 @@ export function PaymentMethodForm({
               Cancel
             </Button>
             <Button
-              variant='primary'
+              variant="primary"
               onPress={handleSubmit}
               loading={isLoading}
               disabled={isLoading}

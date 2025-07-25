@@ -26,15 +26,6 @@ import {
 } from "@/services/userService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-interface PaymentMethod {
-  id: string;
-  last4: string;
-  brand: string;
-  expiryMonth: string;
-  expiryYear: string;
-  isDefault: boolean;
-}
-
 interface AuthState {
   user: UserProfile | null;
   token: string | null;
@@ -56,8 +47,6 @@ interface AuthContextType extends AuthState {
   updateProfile: (updates: Record<string, any>) => Promise<void>;
   resendConfirmationOfEmail: (email: string) => Promise<void>;
   updateMembership: (plan: MembershipPlan) => Promise<void>;
-  updatePaymentMethods: (methods: PaymentMethod[]) => Promise<void>;
-  updatePaymentMethod?: (hasPaymentMethod: boolean) => Promise<void>;
 
   // Auth state
   isAuthenticated: boolean;
@@ -143,7 +132,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setState({
           session: data.session,
           token: data.session?.access_token || null,
-          user: data.user,
+          user: {
+            ...data.user,
+            id: data.user?.id ?? "", // Ensure id is always a string
+            email: data.user?.email ?? "",
+          },
           isLoading: false,
         });
 
@@ -318,14 +311,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error("No authenticated user");
       }
 
-      // Update user with new membership plan
+      // Determine membership fields based on plan.id
+      let membershipTier: string | null = null;
+      let membershipStartDate: string | null = null;
+      let membershipEndDate: string | null = null;
+
+      if (plan.id === "drop-in") {
+        membershipTier = "drop-in";
+        membershipStartDate = null;
+        membershipEndDate = null;
+      } else if (plan.id === "monthly") {
+        membershipTier = "monthly";
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, "0");
+        const dd = String(today.getDate()).padStart(2, "0");
+        membershipStartDate = `${yyyy}-${mm}-${dd}`;
+
+        // Calculate one month later (same day next month)
+        const nextMonth = new Date(today);
+        nextMonth.setMonth(today.getMonth() + 1);
+        const yyyyEnd = nextMonth.getFullYear();
+        const mmEnd = String(nextMonth.getMonth() + 1).padStart(2, "0");
+        const ddEnd = String(nextMonth.getDate()).padStart(2, "0");
+        membershipEndDate = `${yyyyEnd}-${mmEnd}-${ddEnd}`;
+      } else {
+        throw new Error("Invalid membership plan id");
+      }
+
+      // Update user profile in Supabase
+      const { error } = await updateUserProfile(state.user.id, {
+        membership: plan,
+        has_payment_method: !!plan,
+        membership_tier: membershipTier,
+        membership_start_date: membershipStartDate,
+        membership_end_date: membershipEndDate,
+      });
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Update user with new membership plan and membership fields
       const updatedUser = {
         ...state.user,
         membership: plan,
+        has_payment_method: !!plan,
+        membership_tier: membershipTier,
+        membership_start_date: membershipStartDate,
+        membership_end_date: membershipEndDate,
       };
 
-      // Store the updated user data
-      await storage.setItem("user", JSON.stringify(updatedUser));
+      await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
 
       // Update state
       setState((prev) => ({
@@ -336,76 +373,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Membership updated successfully:", plan);
     } catch (error) {
       console.error("Error updating membership:", error);
-      throw error;
-    }
-  };
-
-  const updatePaymentMethods = async (methods: PaymentMethod[]) => {
-    try {
-      if (!state.user) {
-        throw new Error("No authenticated user");
-      }
-
-      // Update user with new payment methods
-      const updatedUser = {
-        ...state.user,
-        paymentMethods: methods,
-      };
-
-      // Store the updated user data
-      await storage.setItem("user", JSON.stringify(updatedUser));
-
-      // Update state
-      setState((prev) => ({
-        ...prev,
-        user: updatedUser,
-      }));
-
-      console.log("Payment methods updated successfully:", methods);
-    } catch (error) {
-      console.error("Error updating payment methods:", error);
-      throw error;
-    }
-  };
-
-  const updatePaymentMethod = async (hasPaymentMethod: boolean) => {
-    try {
-      if (!state.user) {
-        throw new Error("No authenticated user");
-      }
-
-      // Update user with new payment method
-      const updatedUser = {
-        ...state.user,
-        paymentMethods: hasPaymentMethod
-          ? [
-              {
-                id: "new_payment_method",
-                last4: "XXXX",
-                brand: "New",
-                expiryMonth: "12",
-                expiryYear: "2024",
-                isDefault: true,
-              },
-            ]
-          : [],
-      };
-
-      // Store the updated user data
-      await storage.setItem("user", JSON.stringify(updatedUser));
-
-      // Update state
-      setState((prev) => ({
-        ...prev,
-        user: updatedUser,
-      }));
-
-      console.log(
-        "Payment method updated successfully:",
-        hasPaymentMethod ? "Added" : "Removed"
-      );
-    } catch (error) {
-      console.error("Error updating payment method:", error);
       throw error;
     }
   };
@@ -433,8 +400,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithFacebook,
     updateProfile,
     updateMembership,
-    updatePaymentMethods,
-    updatePaymentMethod,
     resendConfirmationOfEmail,
     isAuthenticated: !!state.token,
   };

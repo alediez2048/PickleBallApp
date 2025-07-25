@@ -18,12 +18,8 @@ add column playing_experience integer,
   -- Membership-specific
 add column membership_tier text check (
     membership_tier in (
-      'free',
       'drop-in',
       'monthly',
-      'basic',
-      'premium',
-      'pro'
     )
   ),
   add column membership_start_date date,

@@ -62,35 +62,6 @@ src/
 
 ## Component Testing Examples
 
-### Basic Component Test Example (PaymentMethodForm)
-
-```tsx
-import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
-import { PaymentMethodForm } from '../PaymentMethodForm';
-import { render } from '@/utils/test-utils';
-
-describe('PaymentMethodForm', () => {
-  // Mock dependencies directly that are used by the component
-  jest.mock('@/contexts/AuthContext', () => ({
-    useAuth: () => ({
-      user: {...},
-      updatePaymentMethods: jest.fn(),
-    }),
-  }));
-
-  it('renders correctly', async () => {
-    const { getByPlaceholderText } = render(<PaymentMethodForm />);
-
-    await waitFor(() => {
-      expect(getByPlaceholderText('1234 5678 9012 3456')).toBeTruthy();
-    });
-  });
-
-  // Additional tests...
-});
-```
-
 ## Mocking Strategies
 
 ### Direct Context Mocking

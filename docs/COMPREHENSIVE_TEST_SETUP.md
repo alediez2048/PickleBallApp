@@ -26,6 +26,7 @@ Testing a React Native application requires a coordinated setup of several compo
 ### What are Transformers?
 
 Transformers are functions that process files before Jest runs them. They can:
+
 - Convert TypeScript to JavaScript
 - Convert JSX to JavaScript
 - Replace imports with mocks
@@ -42,8 +43,10 @@ We created a custom transformer to handle React Native CSS Interop modules. This
 
 // Helper to determine if a file is a CSS interop file
 const isCssInteropFile = (filename) => {
-  return filename.includes('react-native-css-interop') ||
-         filename.includes('@expo/stylesheets');
+  return (
+    filename.includes("react-native-css-interop") ||
+    filename.includes("@expo/stylesheets")
+  );
 };
 
 // Standard mock implementation
@@ -94,48 +97,15 @@ For commonly used components, create standardized mock implementations:
 
 ```javascript
 // In jest.setup.js
-jest.mock('@/components/ThemedText', () => ({
+jest.mock("@/components/ThemedText", () => ({
   ThemedText: ({ children, style, variant, ...props }) => {
     return {
-      type: 'ThemedText',
+      type: "ThemedText",
       props: { children, style, variant, ...props },
-      $$typeof: Symbol.for('react.element'),
+      $$typeof: Symbol.for("react.element"),
     };
-  }
+  },
 }));
-```
-
-### Context Mocking Example
-
-Prefer direct hook mocking over provider wrappers:
-
-```javascript
-// Direct hook mocking with proper types
-interface PaymentMethod {
-  id: string;
-  last4: string;
-  brand: string;
-  expiryMonth: string;
-  expiryYear: string;
-  isDefault: boolean;
-}
-
-jest.mock('@/contexts/AuthContext', () => {
-  const mockPaymentMethods: PaymentMethod[] = [];
-  return {
-    useAuth: () => ({
-      user: {
-        id: '1',
-        email: 'test@example.com',
-        paymentMethods: mockPaymentMethods,
-      },
-      updatePaymentMethods: jest.fn().mockImplementation(async (methods: PaymentMethod[]) => {
-        mockPaymentMethods.push(...methods);
-        return Promise.resolve(true);
-      }),
-    }),
-  };
-});
 ```
 
 ## Jest Configuration
@@ -145,27 +115,29 @@ jest.mock('@/contexts/AuthContext', () => {
 ```javascript
 // jest.config.js
 module.exports = {
-  preset: 'jest-expo',
+  preset: "jest-expo",
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)',
+    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)",
   ],
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   transform: {
     // Use the custom transformer for CSS interop files
-    'node_modules/react-native-css-interop/.*': '<rootDir>/jest/transformers/cssInteropTransformer.js',
-    '.*\\.(js|jsx|ts|tsx)$': 'babel-jest',
+    "node_modules/react-native-css-interop/.*":
+      "<rootDir>/jest/transformers/cssInteropTransformer.js",
+    ".*\\.(js|jsx|ts|tsx)$": "babel-jest",
   },
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+    "^@/(.*)$": "<rootDir>/src/$1",
     // Direct mocks for problematic modules
-    'react-native-css-interop/src/runtime/native/appearance-observables': '<rootDir>/jest/transformers/cssInteropTransformer.js',
+    "react-native-css-interop/src/runtime/native/appearance-observables":
+      "<rootDir>/jest/transformers/cssInteropTransformer.js",
   },
   collectCoverage: true,
   collectCoverageFrom: [
-    'src/**/*.{js,jsx,ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/**/types.ts',
-    '!src/**/index.ts',
+    "src/**/*.{js,jsx,ts,tsx}",
+    "!src/**/*.d.ts",
+    "!src/**/types.ts",
+    "!src/**/index.ts",
   ],
   coverageThreshold: {
     global: {
@@ -191,12 +163,12 @@ module.exports = {
 ### Component Test Example
 
 ```tsx
-import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
-import { PaymentMethodForm } from '../PaymentMethodForm';
-import { render } from '@/utils/test-utils';
+import React from "react";
+import { fireEvent, waitFor } from "@testing-library/react-native";
+import { PaymentMethodForm } from "../PaymentMethodForm";
+import { render } from "@/utils/test-utils";
 
-describe('PaymentMethodForm', () => {
+describe("PaymentMethodForm", () => {
   const mockOnComplete = jest.fn();
   const mockOnCancel = jest.fn();
 
@@ -204,36 +176,30 @@ describe('PaymentMethodForm', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', async () => {
+  it("renders correctly", async () => {
     const { getByPlaceholderText } = render(
-      <PaymentMethodForm 
-        onComplete={mockOnComplete} 
-        onCancel={mockOnCancel} 
-      />
+      <PaymentMethodForm onComplete={mockOnComplete} onCancel={mockOnCancel} />
     );
 
     await waitFor(() => {
-      expect(getByPlaceholderText('1234 5678 9012 3456')).toBeTruthy();
+      expect(getByPlaceholderText("1234 5678 9012 3456")).toBeTruthy();
     });
   });
 
-  it('submits form with valid data', async () => {
+  it("submits form with valid data", async () => {
     const { getByPlaceholderText, getByText } = render(
-      <PaymentMethodForm 
-        onComplete={mockOnComplete} 
-        onCancel={mockOnCancel} 
-      />
+      <PaymentMethodForm onComplete={mockOnComplete} onCancel={mockOnCancel} />
     );
 
     // Fill out the form
     await waitFor(() => {
-      const cardInput = getByPlaceholderText('1234 5678 9012 3456');
-      fireEvent.changeText(cardInput, '4242424242424242');
+      const cardInput = getByPlaceholderText("1234 5678 9012 3456");
+      fireEvent.changeText(cardInput, "4242424242424242");
       // ...fill other fields...
     });
 
     // Submit the form
-    const saveButton = getByText('Save Payment Method');
+    const saveButton = getByText("Save Payment Method");
     fireEvent.press(saveButton);
 
     await waitFor(() => {
@@ -258,6 +224,7 @@ describe('PaymentMethodForm', () => {
 **Problem**: Tests fail with errors related to CSS-in-JS libraries
 
 **Solutions**:
+
 - Use a custom transformer to mock these libraries
 - Check transform patterns in Jest config
 - Verify the mock API provides all necessary functions
@@ -267,6 +234,7 @@ describe('PaymentMethodForm', () => {
 **Problem**: Tests fail with timeout errors or "update was not wrapped in act" warnings
 
 **Solutions**:
+
 - Wrap component interactions in `waitFor`
 - Increase the default timeout
 - Ensure all promises resolve in tests
@@ -276,6 +244,7 @@ describe('PaymentMethodForm', () => {
 **Problem**: Components can't access mocked values or functions
 
 **Solutions**:
+
 - Check mock implementation paths match actual imports
 - Use direct hook mocks instead of context providers
 - Verify mock return values match expected types
@@ -285,6 +254,7 @@ describe('PaymentMethodForm', () => {
 **Problem**: Tests are slow to run
 
 **Solutions**:
+
 - Use more specific test patterns to run fewer tests
 - Move slow setup code to `beforeAll` instead of `beforeEach`
 - Mock heavy components that aren't critical to the test
@@ -298,4 +268,4 @@ By following these patterns and practices, you'll create a test suite that is:
 - **Reliable**: Tests consistently pass or fail based on actual code behavior
 - **Maintainable**: Easy to update as your application evolves
 - **Fast**: Quick feedback during development
-- **Comprehensive**: Good coverage of important application functionality 
+- **Comprehensive**: Good coverage of important application functionality

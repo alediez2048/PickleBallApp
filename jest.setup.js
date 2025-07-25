@@ -268,7 +268,6 @@ jest.mock("@/services/mockApi", () => ({
       },
     }),
     getGameBookings: jest.fn().mockResolvedValue(5),
-    updatePaymentMethod: jest.fn().mockResolvedValue(true),
     bookGame: jest.fn().mockResolvedValue({
       id: "booking-1",
       gameId: "game-1",

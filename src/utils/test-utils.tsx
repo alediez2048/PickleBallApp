@@ -32,8 +32,6 @@ jest.mock("@/contexts/AuthContext", () => {
       signInWithFacebook: jest.fn(),
       updateProfile: jest.fn(),
       updateMembership: jest.fn(),
-      updatePaymentMethods: jest.fn(),
-      updatePaymentMethod: jest.fn(), // Add this missing method
     }),
     AuthProvider: ({ children }: { children: React.ReactNode }) => (
       <>{children}</>

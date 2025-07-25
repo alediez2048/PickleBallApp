@@ -12,44 +12,8 @@ import { Button } from "@/components/common/Button";
 import { ThemedView } from "@/components/common/ThemedView";
 import { ThemedText } from "@/components/common/ThemedText";
 import { useTheme } from "@/contexts/ThemeContext";
-
-interface MembershipPlan {
-  id: string;
-  name: string;
-  price: number;
-  interval?: "month" | "year";
-  benefits: string[];
-  description: string;
-}
-
-const MEMBERSHIP_PLANS: MembershipPlan[] = [
-  {
-    id: "drop-in",
-    name: "Drop-In Pass",
-    price: 10,
-    description: "Perfect for occasional players",
-    benefits: [
-      "Single game access",
-      "No commitment required",
-      "Full access to game features",
-      "Cancel anytime",
-    ],
-  },
-  {
-    id: "monthly",
-    name: "Monthly Membership",
-    price: 50,
-    interval: "month",
-    description: "Best value for regular players",
-    benefits: [
-      "Unlimited game access",
-      "Priority booking",
-      "Member-only events",
-      "Exclusive discounts",
-      "Cancel anytime",
-    ],
-  },
-];
+import { MembershipPlan } from "@/types/membership";
+import { MEMBERSHIP_PLANS } from "@/constants/membership";
 
 interface MembershipPlanModalProps {
   visible: boolean;
@@ -111,20 +75,20 @@ export function MembershipPlanModal({
                 )}
 
                 <ThemedView style={styles.planHeader}>
-                  <ThemedText type="sectionTitle">{plan.name}</ThemedText>
+                  <ThemedText>{plan.name}</ThemedText>
                   <ThemedView style={styles.priceContainer}>
                     <ThemedText type="title" colorType="primary">
                       ${plan.price}
                     </ThemedText>
                     {plan.interval && (
-                      <ThemedText type="default" colorType="label">
-                        /{plan.interval}
+                      <ThemedText colorType="label">
+                        / {plan.interval}
                       </ThemedText>
                     )}
                   </ThemedView>
                 </ThemedView>
 
-                <ThemedText type="paragraph">{plan.description}</ThemedText>
+                <ThemedText>{plan.description}</ThemedText>
 
                 <ThemedView style={styles.benefitsContainer}>
                   {plan.benefits.map((benefit, index) => (

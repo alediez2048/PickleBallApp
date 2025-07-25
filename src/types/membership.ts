@@ -2,9 +2,9 @@ export interface MembershipPlan {
   id: string;
   name: string;
   price: number;
-  interval?: 'month' | 'year';
+  interval?: "month";
   benefits: string[];
   description: string;
 }
 
-export type MembershipTier = 'free' | 'drop-in' | 'monthly';
+export type MembershipTier = "drop-in" | "monthly";

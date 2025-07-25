@@ -37,17 +37,11 @@ export default function ProfileScreen() {
     try {
       setIsLoading(true);
 
-      // Log the current plan before update
-      console.log("Current plan before update:", currentPlan);
-
       // Update the plan in the backend
       await updateMembership(plan);
 
       // Update the local state
       setCurrentPlan(plan);
-
-      // Log the new plan after update
-      console.log("New plan after update:", plan);
 
       // Show success message
       Alert.alert(

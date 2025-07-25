@@ -1,42 +1,11 @@
 import React, { useState } from "react";
 import { StyleSheet, Alert } from "react-native";
-import { IconSymbol } from "@/components/common/IconSymbol";
 import { Button } from "@/components/common/Button";
 import { MembershipPlanModal } from "./MembershipPlanModal";
 import { PaymentMethodModal } from "@/components/payment/PaymentMethodModal";
 import { MembershipPlan } from "@/types/membership";
 import { ThemedText } from "@/components/common/ThemedText";
 import { ThemedView } from "@/components/common/ThemedView";
-import { useAuth } from "@/contexts/AuthContext";
-
-const MEMBERSHIP_PLANS: MembershipPlan[] = [
-  {
-    id: "drop-in",
-    name: "Drop-In Pass",
-    price: 10,
-    description: "Perfect for occasional players",
-    benefits: [
-      "Single game access",
-      "No commitment required",
-      "Full access to game features",
-      "Cancel anytime",
-    ],
-  },
-  {
-    id: "monthly",
-    name: "Monthly Membership",
-    price: 50,
-    interval: "month",
-    description: "Best value for regular players",
-    benefits: [
-      "Unlimited game access",
-      "Priority booking",
-      "Member-only events",
-      "Exclusive discounts",
-      "Cancel anytime",
-    ],
-  },
-];
 
 interface MembershipManagementSectionProps {
   currentPlan?: MembershipPlan;
@@ -47,26 +16,9 @@ export function MembershipManagementSection({
   currentPlan,
   onUpdatePlan,
 }: MembershipManagementSectionProps) {
-  const { user } = useAuth();
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
-
-  // Mock payment method for testing
-  const mockPaymentMethod = {
-    id: "mock-payment-1",
-    last4: "4242",
-    brand: "Visa",
-    expiryMonth: "12",
-    expiryYear: "25",
-    isDefault: true,
-  };
-
-  // Check if user has a payment method
-  const hasPaymentMethod = true; // For testing
-
-  // Get default payment method if available
-  const defaultPaymentMethod = mockPaymentMethod; // For testing
 
   const handlePlanSelect = (plan: MembershipPlan) => {
     setSelectedPlan(plan);
@@ -86,8 +38,7 @@ export function MembershipManagementSection({
       return;
     }
 
-    // If changing between paid plans
-    if (currentPlan) {
+    if (plan.id === "monthly") {
       Alert.alert(
         "Change Plan",
         `Are you sure you want to change to the ${
@@ -105,16 +56,16 @@ export function MembershipManagementSection({
             text: "Change Plan",
             onPress: () => {
               setShowPlanModal(false);
-              onUpdatePlan(plan);
+              setShowPaymentModal(true);
             },
           },
         ]
       );
       return;
+      // If no payment method, show payment modal
     }
 
-    // If no current plan, show payment modal for new plan
-    if (hasPaymentMethod) {
+    if (plan.id == "drop-in") {
       Alert.alert(
         "Confirm Plan Selection",
         `Are you sure you want to select the ${
@@ -134,10 +85,6 @@ export function MembershipManagementSection({
           },
         ]
       );
-    } else {
-      // If no payment method, show payment modal
-      setShowPlanModal(false);
-      setShowPaymentModal(true);
     }
   };
 
@@ -149,7 +96,7 @@ export function MembershipManagementSection({
   };
 
   const formatPrice = (price: number, interval?: string) => {
-    return `$${price}${interval ? `/${interval}` : ""}`;
+    return `$${price}${interval ? ` / ${interval}` : ""}`;
   };
 
   // Determine the primary action based on current plan
@@ -175,6 +122,7 @@ export function MembershipManagementSection({
         >
           Change Plan
         </Button>
+
         <Button
           variant="outline"
           onPress={() => {
@@ -210,41 +158,26 @@ export function MembershipManagementSection({
         <ThemedView style={styles.planCard} type="card">
           <ThemedView style={styles.planHeader} type="none">
             <ThemedView style={styles.planTitleContainer} type="none">
-              <ThemedText style={styles.planName} type="subtitle">
+              <ThemedText size={4} weight={"bold"}>
                 {currentPlan.name}
               </ThemedText>
-              <ThemedText style={styles.planPrice} type="bold">
+              <ThemedText className="mx-2" type="value">
                 {formatPrice(currentPlan.price, currentPlan.interval)}
               </ThemedText>
             </ThemedView>
           </ThemedView>
-          <ThemedText style={styles.planDescription} type="paragraph">
-            {currentPlan.description}
-          </ThemedText>
+          <ThemedText size={3}>{currentPlan.description}</ThemedText>
           <ThemedView style={styles.divider} type="none" />
           <ThemedView style={styles.benefitsContainer} type="none">
             {currentPlan.benefits.map((benefit, idx) => (
               <ThemedView key={idx} style={styles.benefitRow} type="none">
-                <ThemedText style={styles.benefitText} type="default">
+                <ThemedText style={styles.benefitText} weight={"bold"}>
                   {benefit}
                 </ThemedText>
               </ThemedView>
             ))}
           </ThemedView>
           <ThemedView style={styles.divider} type="none" />
-          {defaultPaymentMethod && (
-            <ThemedView style={styles.paymentMethodContainer} type="bordered">
-              <ThemedView style={styles.paymentMethodRow} type="none">
-                <ThemedText style={styles.paymentText} type="label">
-                  {defaultPaymentMethod.brand} ****{defaultPaymentMethod.last4}
-                </ThemedText>
-                <ThemedText style={styles.paymentExpiry} type="caption">
-                  Exp: {defaultPaymentMethod.expiryMonth}/
-                  {defaultPaymentMethod.expiryYear}
-                </ThemedText>
-              </ThemedView>
-            </ThemedView>
-          )}
           <ThemedView style={styles.actionsContainer} type="none">
             {getPrimaryAction()}
           </ThemedView>
@@ -256,7 +189,7 @@ export function MembershipManagementSection({
           borderWidth={2}
         >
           <ThemedText type="value">No Membership Plan Selected</ThemedText>
-          <ThemedText style={styles.emptySubtext} type="emptyStateText">
+          <ThemedText style={styles.emptySubtext} type="label">
             Choose a plan to get started and unlock all features.
           </ThemedText>
           <Button
@@ -314,17 +247,6 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     marginRight: 8,
   },
-  planName: {
-    fontWeight: "600",
-    color: "#666666",
-    fontSize: 18,
-    flexShrink: 1,
-  },
-  planPrice: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#4CAF50",
-  },
   planDescription: {
     color: "#666666",
     marginBottom: 12,
@@ -336,17 +258,15 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   benefitsContainer: {
-    gap: 10,
-    marginBottom: 12,
+    gap: 5,
+    marginBottom: 10,
   },
   benefitRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
   },
   benefitText: {
     fontSize: 14,
-    color: "#333333",
     flex: 1,
   },
   paymentMethodContainer: {
