@@ -33,31 +33,33 @@ export const SkillLevelModal: React.FC<SkillLevelModalProps> = ({
             Update Skill Level
           </ThemedText>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <IconSymbol name="xmark" size={24} color="#666666" />
+            <IconSymbol name="xmark" size={24} />
           </TouchableOpacity>
         </ThemedView>
         <ScrollView style={styles.modalScroll}>
           {SKILL_LEVELS.map((level) => (
             <TouchableOpacity
               key={level.value}
-              style={[
-                styles.skillOption,
-                selectedLevel === level.value && styles.selectedSkill,
-              ]}
               onPress={() => onSelect(level.value)}
               disabled={isLoading}
             >
-              <ThemedView style={styles.skillOptionContent}>
-                <ThemedText style={styles.skillOptionText}>
-                  {level.label}
-                </ThemedText>
-                <ThemedText type="caption" style={styles.skillDescription}>
-                  {level.description}
-                </ThemedText>
+              <ThemedView
+                borderWidth={selectedLevel === level.value ? 3 : 1}
+                borderColorType={
+                  selectedLevel === level.value ? "primary" : "text"
+                }
+                style={[styles.skillOption]}
+              >
+                <ThemedView style={styles.skillOptionContent}>
+                  <ThemedText style={styles.skillOptionText}>
+                    {level.label}
+                  </ThemedText>
+                  <ThemedText type="caption">{level.description}</ThemedText>
+                </ThemedView>
+                {selectedLevel === level.value ? (
+                  <IconSymbol name="checkmark" size={35} color="#4CAF50" />
+                ) : null}
               </ThemedView>
-              {selectedLevel === level.value ? (
-                <IconSymbol name="checkmark" size={20} color="#4CAF50" />
-              ) : null}
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -69,11 +71,10 @@ export const SkillLevelModal: React.FC<SkillLevelModalProps> = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.333)",
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "#fff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: "80%",
@@ -89,7 +90,6 @@ const styles = StyleSheet.create({
   modalTitle: {
     flex: 1,
     textAlign: "center",
-    color: "#666666",
   },
   closeButton: {
     padding: 8,
@@ -103,25 +103,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     borderRadius: 12,
-    backgroundColor: "#f8f9fa",
     marginBottom: 12,
   },
   skillOptionContent: {
     flex: 1,
     paddingRight: 8,
   },
-  selectedSkill: {
-    backgroundColor: "#E8F5E9",
-    borderWidth: 1,
-    borderColor: "#4CAF50",
-  },
   skillOptionText: {
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 4,
-    color: "#666666",
-  },
-  skillDescription: {
-    color: "#666666",
   },
 });

@@ -17,30 +17,22 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   refreshKey,
 }) => {
   const [profileImageSource, setProfileImageSource] = useState<any>(undefined);
-  const [isMounted, setIsMounted] = useState<any>(true);
   const fetchProfileImage = async () => {
     if (!user?.profile_image) {
-      if (isMounted) setProfileImageSource(undefined);
+      setProfileImageSource(undefined);
       return;
     }
     if (typeof user.profile_image === "string") {
       const urlImage = await getSignedUrl(user.profile_image);
-      if (isMounted)
-        setProfileImageSource(urlImage ? { uri: urlImage } : undefined);
+      setProfileImageSource(urlImage ? { uri: urlImage } : undefined);
     } else {
-      if (isMounted) setProfileImageSource(undefined);
+      setProfileImageSource(undefined);
     }
   };
 
   useEffect(() => {
-    let isMounted = true;
     fetchProfileImage();
-    setIsMounted(isMounted);
-    return () => {
-      isMounted = false;
-      setIsMounted(isMounted);
-    };
-  }, []);
+  }, [refreshKey]);
 
   return (
     <ThemedView

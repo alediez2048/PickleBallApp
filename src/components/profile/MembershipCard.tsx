@@ -9,11 +9,15 @@ import { MembershipPlan } from "@/types/membership";
 interface MembershipCardProps {
   currentPlan?: MembershipPlan;
   onUpdatePlan: (plan: MembershipPlan) => void;
+  showPlanModal: boolean;
+  setShowPlanModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const MembershipCard: React.FC<MembershipCardProps> = ({
   currentPlan,
   onUpdatePlan,
+  showPlanModal,
+  setShowPlanModal,
 }) => (
   <ThemedView style={styles.card} borderColorType="primary" borderWidth={3}>
     <ThemedView style={styles.cardHeader}>
@@ -33,6 +37,8 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
       key={currentPlan?.id || "no-plan"}
       currentPlan={currentPlan}
       onUpdatePlan={onUpdatePlan}
+      showPlanModal={showPlanModal}
+      setShowPlanModal={setShowPlanModal}
     />
   </ThemedView>
 );

@@ -39,13 +39,7 @@ export const SkillLevelCard: React.FC<SkillLevelCardProps> = ({
         borderColorType="primary"
         borderWidth={2}
       >
-        <ThemedView
-          style={[
-            styles.skillBadge,
-            skillLevel === "Advanced" && styles.advancedBadge,
-            skillLevel === "Open" && styles.proBadge,
-          ]}
-        >
+        <ThemedView style={[styles.skillBadge]}>
           <ThemedText style={styles.skillLevelText}>
             {skillLevel || "Not set"}
           </ThemedText>
@@ -91,12 +85,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     alignSelf: "flex-start",
     marginBottom: 8,
-  },
-  advancedBadge: {
-    backgroundColor: "#E1F5FE",
-  },
-  proBadge: {
-    backgroundColor: "#FFF3E0",
   },
   skillLevelText: {
     color: "#4CAF50",

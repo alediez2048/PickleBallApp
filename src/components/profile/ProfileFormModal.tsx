@@ -31,12 +31,12 @@ export const ProfileFormModal: React.FC<ProfileFormModalProps> = ({
     <SafeAreaView style={styles.profileFormOverlay}>
       <ThemedView style={styles.profileFormContainer}>
         <ThemedView style={styles.modalHeader}>
-          <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
-            <IconSymbol name="xmark" size={24} color="#666666" />
-          </TouchableOpacity>
           <ThemedText type="title" style={styles.modalTitle}>
             Update Profile
           </ThemedText>
+          <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
+            <IconSymbol name="xmark" size={24} />
+          </TouchableOpacity>
         </ThemedView>
         <ScrollView style={styles.profileFormScroll}>
           <FirstTimeProfileForm onComplete={onComplete} />
@@ -49,11 +49,10 @@ export const ProfileFormModal: React.FC<ProfileFormModalProps> = ({
 const styles = StyleSheet.create({
   profileFormOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
     justifyContent: "flex-end",
   },
   profileFormContainer: {
-    backgroundColor: "#fff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 16,
@@ -70,7 +69,6 @@ const styles = StyleSheet.create({
   modalTitle: {
     flex: 1,
     textAlign: "center",
-    color: "#666666",
   },
   modalCloseButton: {
     padding: 8,

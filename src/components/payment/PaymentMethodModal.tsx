@@ -39,10 +39,10 @@ export function PaymentMethodModal({
         <ThemedView style={styles.content}>
           <ThemedView style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <IconSymbol name="xmark" size={24} color="#666666" />
+              <IconSymbol name="xmark" size={24} />
             </TouchableOpacity>
             <ThemedText style={styles.title}>Payment Method</ThemedText>
-            <ThemedText type="miniSubtitle">
+            <ThemedText size={3}>
               {`Add a payment method for ${selectedPlan.name}`}
             </ThemedText>
           </ThemedView>
@@ -81,7 +81,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#000000",
     marginBottom: 8,
   },
   subtitle: {

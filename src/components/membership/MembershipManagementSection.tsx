@@ -10,13 +10,16 @@ import { ThemedView } from "@/components/common/ThemedView";
 interface MembershipManagementSectionProps {
   currentPlan?: MembershipPlan;
   onUpdatePlan: (plan: MembershipPlan) => void;
+  showPlanModal: boolean;
+  setShowPlanModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function MembershipManagementSection({
   currentPlan,
   onUpdatePlan,
+  showPlanModal,
+  setShowPlanModal,
 }: MembershipManagementSectionProps) {
-  const [showPlanModal, setShowPlanModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
 

@@ -24,6 +24,7 @@ export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
   const [isSkillModalVisible, setIsSkillModalVisible] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<MembershipPlan | undefined>(
     user?.membership || undefined
   );
@@ -98,7 +99,7 @@ export default function ProfileScreen() {
   const handleSkillUpdate = async (newSkillLevel: string) => {
     try {
       setIsLoading(true);
-      await updateProfile({ skillLevel: newSkillLevel });
+      await updateProfile({ skill_level: newSkillLevel });
       setIsSkillModalVisible(false);
     } catch (error) {
       Alert.alert(
@@ -131,7 +132,7 @@ export default function ProfileScreen() {
         <QuickActions
           onEditProfile={() => setIsProfileFormVisible(true)}
           onEditSkill={() => setIsSkillModalVisible(true)}
-          onMembership={() => console.log("Navigate to membership")}
+          onMembership={() => setShowPlanModal(true)}
         />
         <SkillLevelCard
           skillLevel={user.skill_level || ""}
@@ -140,6 +141,8 @@ export default function ProfileScreen() {
         <MembershipCard
           currentPlan={currentPlan}
           onUpdatePlan={handleUpdateMembership}
+          showPlanModal={showPlanModal}
+          setShowPlanModal={setShowPlanModal}
         />
         <ProfileInfoCard
           user={user}
