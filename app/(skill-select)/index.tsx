@@ -15,6 +15,7 @@ import { SkillLevel } from "@/types/games";
 import { SKILL_LEVELS } from "@/constants/skillLevels";
 import { useTheme } from "@/contexts/ThemeContext";
 import { ThemedText } from "@/components/common/ThemedText";
+import { ThemedView } from "@/components/common/ThemedView";
 
 export default function SkillSelectScreen() {
   const [selectedSkill, setSelectedSkill] = useState<SkillLevel | null>(null);
@@ -73,8 +74,8 @@ export default function SkillSelectScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header Section */}
       <View style={styles.header}>
-        <ThemedText type='title'>Select Your Skill Level</ThemedText>
-        <ThemedText type='paragraph'>
+        <ThemedText type="title">Select Your Skill Level</ThemedText>
+        <ThemedText>
           Choose the level that best matches your current abilities. This helps
           us match you with appropriate games.
         </ThemedText>
@@ -92,26 +93,30 @@ export default function SkillSelectScreen() {
                   selectedSkill === skill.value && styles.selectedSkill,
                   { borderColor: skill.color + "40" },
                 ]}
-                onPress={() => handleSkillSelect(skill.value)}
+                onPress={() => handleSkillSelect(skill.value as SkillLevel)}
               >
                 <View style={styles.skillTitleContainer}>
-                  <IconSymbol
-                    name={skill.icon}
-                    size={24}
-                    color={skill.color}
-                    style={styles.skillIcon}
+                  <ThemedView
+                    className={`w-6 h-6 rounded-full mr-3`}
+                    colorType={
+                      skill.color as
+                        | "beginner"
+                        | "intermediate"
+                        | "advanced"
+                        | "open"
+                        | "all"
+                    }
                   />
                   <View style={styles.textContainer}>
-                    <ThemedText type='subtitle' colorType='black'>
+                    <ThemedText type="subtitle" colorType="black">
                       {skill.label}
                     </ThemedText>
                     <ThemedText
-                      type='paragraph'
                       style={styles.skillDescription}
                       numberOfLines={
                         expandedSkill === skill.value ? undefined : 2
                       }
-                      colorType='black'
+                      colorType="black"
                     >
                       {skill.description}
                     </ThemedText>
@@ -119,7 +124,7 @@ export default function SkillSelectScreen() {
                 </View>
                 <TouchableOpacity
                   style={[styles.expandButton]}
-                  onPress={() => toggleExpanded(skill.value)}
+                  onPress={() => toggleExpanded(skill.value as SkillLevel)}
                 >
                   <IconSymbol
                     name={
@@ -140,10 +145,15 @@ export default function SkillSelectScreen() {
               {/* Expanded Rules Section */}
               {expandedSkill === skill.value && (
                 <View style={styles.rulesContainer}>
-                  <ThemedText type='subtitle' colorType='black'>
+                  <ThemedText
+                    className="py-2 my-2"
+                    type="subtitle"
+                    weight={"bold"}
+                    colorType="black"
+                  >
                     Booking Rules:
                   </ThemedText>
-                  {skill.rules.map((rule, index) => (
+                  {SKILL_LEVELS.map((rule, index) => (
                     <View key={index} style={styles.ruleItem}>
                       <View
                         style={[
@@ -151,8 +161,8 @@ export default function SkillSelectScreen() {
                           { backgroundColor: skill.color },
                         ]}
                       />
-                      <ThemedText type='paragraph' colorType='black'>
-                        {rule}
+                      <ThemedText colorType="black">
+                        {rule.description}
                       </ThemedText>
                     </View>
                   ))}
@@ -176,7 +186,7 @@ export default function SkillSelectScreen() {
           {isUpdating ? (
             <ActivityIndicator color={colors.white} />
           ) : (
-            <ThemedText type='bold' style={styles.confirmButtonText}>
+            <ThemedText type="bold" style={styles.confirmButtonText}>
               {selectedSkill ? "Confirm Selection" : "Select a Skill Level"}
             </ThemedText>
           )}

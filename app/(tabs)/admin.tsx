@@ -9,7 +9,7 @@ export default function AdminScreen() {
   const { colors } = useTheme();
   return (
     <ThemedView
-      type='centered'
+      type="centered"
       style={{
         flex: 1,
         justifyContent: "center",
@@ -24,9 +24,9 @@ export default function AdminScreen() {
           marginBottom: 10,
         }}
       >
-        <ThemedText type='title'>PicklePass</ThemedText>
+        <ThemedText type="title">PicklePass</ThemedText>
       </ThemedView>
-      <ThemedText type='title' colorType='primary' style={{ marginBottom: 32 }}>
+      <ThemedText type="title" colorType="primary" style={{ marginBottom: 32 }}>
         Admin Panel
       </ThemedText>
       <ThemedView
@@ -39,7 +39,7 @@ export default function AdminScreen() {
         }}
       >
         <Button
-          title='Go to Locations'
+          title="Go to Locations"
           onPress={() => router.push("/admin/locations")}
           color={colors.primary}
         />
@@ -54,7 +54,7 @@ export default function AdminScreen() {
         }}
       >
         <Button
-          title='Go to Fixed Games'
+          title="Go to Fixed Games"
           onPress={() => router.push("/admin/fixed-games")}
           color={colors.primary}
         />

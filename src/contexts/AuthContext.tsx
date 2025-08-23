@@ -128,7 +128,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const userId = data?.user?.id;
       if (userId) {
-        await createUserProfile(userId, { name, email });
+        // TODO: Remove is_verified true
+        const userData = { name, email, is_verified: true };
+        await createUserProfile(userId, userData);
         setState({
           session: data.session,
           token: data.session?.access_token || null,
