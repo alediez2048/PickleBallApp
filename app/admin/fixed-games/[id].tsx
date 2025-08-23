@@ -115,7 +115,7 @@ export default function FixedGameEdit() {
         <BackButton />
         <ThemedView>
           <ThemedText type="title" style={styles.title}>
-            Edit Fixed Game+
+            Edit Fixed Game
           </ThemedText>
           <ThemedText style={styles.label}>Title*</ThemedText>
           <TextInput
