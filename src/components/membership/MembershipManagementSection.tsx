@@ -125,32 +125,6 @@ export function MembershipManagementSection({
         >
           Change Plan
         </Button>
-
-        <Button
-          variant="outline"
-          onPress={() => {
-            Alert.alert(
-              "Update Payment Method",
-              "Do you want to update your payment method?",
-              [
-                {
-                  text: "Cancel",
-                  style: "cancel",
-                },
-                {
-                  text: "Update",
-                  onPress: () => {
-                    setSelectedPlan(currentPlan);
-                    setShowPaymentModal(true);
-                  },
-                },
-              ]
-            );
-          }}
-          style={[styles.actionButton, styles.actionButtonHalf]}
-        >
-          Update Payment
-        </Button>
       </ThemedView>
     );
   };
