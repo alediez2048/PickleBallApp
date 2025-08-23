@@ -26,7 +26,7 @@ export function SpotsAvailability({
               Spots Available
             </ThemedText>
             <ThemedText type="value" align="center">
-              {registeredCount - maxPlayers} of {maxPlayers}
+              {maxPlayers - registeredCount} of {maxPlayers}
             </ThemedText>
           </>
         ) : (
@@ -35,7 +35,7 @@ export function SpotsAvailability({
               Spots Available
             </ThemedText>
             <ThemedText type="value" className="my-0 py-0">
-              {registeredCount - maxPlayers} of {maxPlayers}
+              {maxPlayers - registeredCount} of {maxPlayers}
             </ThemedText>
           </>
         )}
