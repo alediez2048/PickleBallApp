@@ -1,20 +1,9 @@
 import { Stack } from "expo-router";
-import { useAuth } from "@/contexts/AuthContext";
 import { StyleSheet } from "react-native";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ThemedView } from "@/components/common/ThemedView";
 
 export default function AuthLayout() {
-  const { isLoading } = useAuth();
-
-  // Show loading spinner while authentication state is being determined
-  if (isLoading) {
-    return (
-      <ThemedView style={styles.loading}>
-        <LoadingSpinner />
-      </ThemedView>
-    );
-  }
+  // Do not block auth routes with a global spinner
 
   // ThemedView is used as the main container for consistent theming
   return (
@@ -38,8 +27,6 @@ const styles = StyleSheet.create({
   },
   loading: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
   },
   content: {
     flex: 1,

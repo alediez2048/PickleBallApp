@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +15,6 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { validateRegisterForm } from "@/utils/validation";
 import { ThemedText } from "@/components/common/ThemedText";
 import { ThemedView } from "@/components/common/ThemedView";
-import { useTheme } from "@/contexts/ThemeContext";
 import Logo from "@/components/common/Logo";
 
 export default function RegisterScreen() {
@@ -25,7 +24,16 @@ export default function RegisterScreen() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
-  const { colors } = useTheme();
+
+  // Auto-hide errors after 20 seconds
+  useEffect(() => {
+    const hasErrors = Object.keys(errors).length > 0;
+    if (!hasErrors) return;
+    const timer = setTimeout(() => {
+      setErrors({});
+    }, 20000);
+    return () => clearTimeout(timer);
+  }, [errors]);
 
   const handleRegister = async () => {
     try {
@@ -42,9 +50,31 @@ export default function RegisterScreen() {
 
       setIsLoading(true);
       await signUp(email, password, name);
-    } catch (err) {
-      if (err instanceof Error && err.message === "Email already registered") {
+      setIsLoading(false);
+      Alert.alert(
+        "Account created",
+        "Your account was created successfully. Please check your email to verify your account, then sign in again.",
+        [
+          {
+            text: "OK",
+            onPress: () => router.replace("/(auth)/login"),
+          },
+        ],
+        { cancelable: false }
+      );
+    } catch (err: any) {
+      console.log("Register: Registration error", err);
+      const rawMessage = typeof err === "string" ? err : err?.message;
+      const code = err?.code;
+      const msg = (rawMessage || "").toString().toLowerCase();
+
+      if (code === "EMAIL_EXISTS" || msg.includes("already registered")) {
         setErrors({ email: "Email is already registered" });
+      } else if (
+        code === "THROTTLED" ||
+        msg.includes("for security purposes")
+      ) {
+        setErrors({ form: "Please wait a moment before trying again." });
       } else {
         setErrors({ form: "Registration failed. Please try again." });
       }
@@ -54,7 +84,7 @@ export default function RegisterScreen() {
   };
 
   if (isLoading) {
-    return <LoadingSpinner message='Creating your account...' />;
+    return <LoadingSpinner message="Creating your account..." />;
   }
 
   return (
@@ -89,15 +119,20 @@ export default function RegisterScreen() {
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
-                  placeholder='Full Name'
-                  placeholderTextColor='#6B7280'
+                  placeholder="Full Name"
+                  placeholderTextColor="#6B7280"
                   value={name}
                   onChangeText={setName}
-                  autoCapitalize='words'
+                  autoCapitalize="words"
                   editable={!isLoading}
                 />
                 {errors.name && (
-                  <ThemedText style={styles.errorText}>
+                  <ThemedText
+                    className="mt-2 pt-2 text-center mb-0 pb-0"
+                    colorType="danger"
+                    size={20}
+                    weight={"bold"}
+                  >
                     {errors.name}
                   </ThemedText>
                 )}
@@ -106,16 +141,21 @@ export default function RegisterScreen() {
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
-                  placeholder='Email'
-                  placeholderTextColor='#6B7280'
+                  placeholder="Email"
+                  placeholderTextColor="#6B7280"
                   value={email}
                   onChangeText={setEmail}
-                  autoCapitalize='none'
-                  keyboardType='email-address'
+                  autoCapitalize="none"
+                  keyboardType="email-address"
                   editable={!isLoading}
                 />
                 {errors.email && (
-                  <ThemedText style={styles.errorText}>
+                  <ThemedText
+                    className="mt-2 pt-2 text-center mb-0 pb-0"
+                    colorType="danger"
+                    size={20}
+                    weight={"bold"}
+                  >
                     {errors.email}
                   </ThemedText>
                 )}
@@ -124,30 +164,40 @@ export default function RegisterScreen() {
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
-                  placeholder='Password'
-                  placeholderTextColor='#6B7280'
+                  placeholder="Password"
+                  placeholderTextColor="#6B7280"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
                   editable={!isLoading}
                 />
                 {errors.password && (
-                  <ThemedText style={styles.errorText}>
+                  <ThemedText
+                    className="mt-2 pt-2 text-center mb-0 pb-0"
+                    colorType="danger"
+                    size={20}
+                    weight={"bold"}
+                  >
                     {errors.password}
                   </ThemedText>
                 )}
               </View>
 
               {errors.form && (
-                <ThemedText style={[styles.errorText, styles.formError]}>
+                <ThemedText
+                  className="mt-2 pt-2 text-center mb-0 pb-0"
+                  colorType="danger"
+                  size={20}
+                  weight={"bold"}
+                >
                   {errors.form}
                 </ThemedText>
               )}
 
               <Button
                 onPress={handleRegister}
-                size='large'
-                variant='primary'
+                size="large"
+                variant="primary"
                 fullWidth
                 disabled={isLoading}
               >
@@ -155,10 +205,10 @@ export default function RegisterScreen() {
               </Button>
 
               <View style={styles.signInContainer}>
-                <ThemedText type='caption' style={styles.signInText}>
+                <ThemedText type="caption" style={styles.signInText}>
                   Already have an account?{" "}
                   <ThemedText
-                    type='caption'
+                    type="caption"
                     style={styles.signInLink}
                     onPress={() => router.push("/(auth)/login")}
                   >
@@ -209,6 +259,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   subtitle: {
+    marginBottom: 3,
     color: "#6B7280",
   },
   form: {
@@ -226,12 +277,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     fontSize: 16,
     color: "#000",
-  },
-  errorText: {
-    color: "#EF4444",
-    fontSize: 14,
-    marginTop: 4,
-    marginLeft: 4,
   },
   formError: {
     textAlign: "center",

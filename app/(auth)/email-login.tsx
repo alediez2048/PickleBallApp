@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   TextInput,
@@ -42,13 +42,32 @@ export default function EmailLoginScreen() {
       setIsLoading(true);
       await signIn(email, password);
       // Navigation will be handled by the root layout
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      const rawMessage = typeof err === "string" ? err : err?.message;
+      const msg = (rawMessage || "").toString();
+
+      // Specific handling for unconfirmed email (by code or message)
+      if (
+        err?.code === "EMAIL_NOT_CONFIRMED" ||
+        /email\s*not\s*confirmed/i.test(msg)
+      ) {
+        router.replace({ pathname: "/(auth)/verify-email", params: { email } });
+        return;
+      }
+
       setErrors({ form: "Invalid email or password" });
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Auto-hide errors after 20 seconds
+  useEffect(() => {
+    const hasErrors = Object.keys(errors).length > 0;
+    if (!hasErrors) return;
+    const timer = setTimeout(() => setErrors({}), 20000);
+    return () => clearTimeout(timer);
+  }, [errors]);
 
   if (isLoading) {
     return <LoadingSpinner message="Signing in..." />;

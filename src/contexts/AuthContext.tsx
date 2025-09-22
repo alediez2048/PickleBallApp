@@ -23,6 +23,7 @@ import {
   createUserProfile,
   updateUserProfile,
   getUserProfile,
+  getUserProfileByEmail,
 } from "@/services/userService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -67,12 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadStoredAuth();
   }, []);
 
-  useEffect(() => {
-    // Only navigate when auth state changes, not on every loading state change
-    if (!state.isLoading && state.token === null) {
-      router.replace("/login");
-    }
-  }, [state.token]);
+  // Navigation for auth state is handled in RootLayoutNav; avoid redirecting here
 
   const loadStoredAuth = async () => {
     try {
@@ -113,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setState({ token: null, session: null, user: null, isLoading: false });
       }
     } catch (error) {
-      console.error("Error loading auth data:", error);
+      console.log("Error loading auth data:", error);
       setState({ token: null, session: null, user: null, isLoading: false });
     }
   };
@@ -121,39 +117,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, name: string) => {
     try {
       console.log("[Auth] Starting registration process", { email, name });
-      setState((prev) => ({ ...prev, isLoading: true }));
+
+      // Optional pre-check in users table by email
+      try {
+        const { data: existingByEmail } = await getUserProfileByEmail(email);
+        if (existingByEmail) {
+          throw { code: "EMAIL_EXISTS", message: "Email already registered" };
+        }
+      } catch (preCheckErr) {
+        console.log("Pre-check error:", preCheckErr);
+        throw preCheckErr;
+      }
 
       const { data, error } = await signUpWithEmail(email, password);
-      if (error) throw new Error(error.message);
+      if (error) {
+        const msg = error.message?.toLowerCase?.() || "";
+        if (msg.includes("already registered") || msg.includes("duplicate")) {
+          throw { code: "EMAIL_EXISTS", message: "Email already registered" };
+        }
+        if (msg.includes("for security purposes")) {
+          throw { code: "THROTTLED", message: error.message };
+        }
+        throw { code: "SIGNUP_FAILED", message: error.message };
+      }
 
       const userId = data?.user?.id;
       if (userId) {
         // TODO: Remove is_verified true
-        const userData = { name, email, is_verified: true };
-        await createUserProfile(userId, userData);
-        setState({
-          session: data.session,
-          token: data.session?.access_token || null,
-          user: {
-            ...data.user,
-            id: data.user?.id ?? "", // Ensure id is always a string
-            email: data.user?.email ?? "",
-          },
-          isLoading: false,
-        });
+        const userData = { name, email, is_verified: false };
+        try {
+          await createUserProfile(userId, userData);
+        } catch (profileErr) {
+          console.warn("[Auth] createUserProfile warning:", profileErr);
+        }
 
-        // Store the auth data
-        await Promise.all([
-          data.session?.access_token
-            ? storage.setItem("auth_token", data.session.access_token)
-            : Promise.resolve(),
-          storage.setItem("user", JSON.stringify(data.user)),
-        ]);
-        console.log("[Auth] User data stored in local storage");
+        // Do not auto-authenticate after signup; require email verification
+        console.log("[Auth] User created Successfully", { userId });
       }
     } catch (error) {
-      console.error("[Auth] Registration failed:", error);
-      setState((prev) => ({ ...prev, isLoading: false }));
+      console.log("[Auth] Registration failed:", error);
       throw error;
     }
   };
@@ -161,12 +163,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       console.log("Signing in...", { email });
-      setState((prev) => ({ ...prev, isLoading: true }));
 
       const { data, error } = await signInWithEmail(email, password);
 
       if (error || !data.session) {
-        throw new Error(error?.message || "No session returned");
+        const msg = error?.message || "No session returned";
+        if (/email\s*not\s*confirmed/i.test(msg)) {
+          throw { code: "EMAIL_NOT_CONFIRMED", message: "Email not confirmed" };
+        }
+        throw { code: "SIGNIN_FAILED", message: msg };
       }
 
       const token = data.session.access_token;
@@ -180,7 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
 
       if (profileError) {
-        console.error("Error fetching user profile:", profileError);
+        console.log("Error fetching user profile:", profileError);
       }
 
       const fullUserProfile = {
@@ -195,15 +200,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log("Auth data stored successfully");
 
-      setState({
-        token,
-        session,
-        user: fullUserProfile,
-        isLoading: false,
-      });
+      setState((prev) => ({ ...prev, token, session, user: fullUserProfile }));
     } catch (error: any) {
-      console.error("Sign in error:", error.message);
-      setState((prev) => ({ ...prev, isLoading: false }));
+      const msg = typeof error === "string" ? error : error?.message;
+      console.log("Sign in error:", msg);
       throw error;
     }
   };
@@ -211,7 +211,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       console.log("Signing out...");
-      setState((prev) => ({ ...prev, isLoading: true }));
 
       await Promise.all([
         storage.removeItem("auth_token"),
@@ -220,10 +219,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ]);
       console.log("Auth data removed");
 
-      setState({ token: null, user: null, session: null, isLoading: false });
+      setState((prev) => ({ ...prev, token: null, user: null, session: null }));
     } catch (error) {
-      console.error("Sign out error:", error);
-      setState((prev) => ({ ...prev, isLoading: false }));
+      console.log("Sign out error:", error);
       throw error;
     }
   };
@@ -248,61 +246,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: false,
       });
     } catch (error) {
-      console.error(`${provider} auth error:`, error);
+      console.log(`${provider} auth error:`, error);
       Alert.alert("Error", `Failed to authenticate with ${provider}`);
     }
   };
 
   const signInWithGoogle = async () => {
     try {
-      setState((prev) => ({ ...prev, isLoading: true }));
       const result = await socialAuth.signInWithGoogle();
 
       if (result.type === "success" && result.token && result.user) {
         await handleSocialAuthSuccess("google", result.token, result.user);
       } else {
-        throw new Error(result.message || "Google sign in failed");
+        throw {
+          code: "GOOGLE_SIGNIN_FAILED",
+          message: result.message || "Google sign in failed",
+        };
       }
     } catch (error) {
-      console.error("Google sign in error:", error);
+      console.log("Google sign in error:", error);
       Alert.alert("Error", "Failed to sign in with Google");
-      setState((prev) => ({ ...prev, isLoading: false }));
     }
   };
 
   const signInWithFacebook = async () => {
     try {
-      setState((prev) => ({ ...prev, isLoading: true }));
       const result = await socialAuth.signInWithFacebook();
 
       if (result.type === "success" && result.token && result.user) {
         await handleSocialAuthSuccess("facebook", result.token, result.user);
       } else {
-        throw new Error(result.message || "Facebook sign in failed");
+        throw {
+          code: "FACEBOOK_SIGNIN_FAILED",
+          message: result.message || "Facebook sign in failed",
+        };
       }
     } catch (error) {
-      console.error("Facebook sign in error:", error);
+      console.log("Facebook sign in error:", error);
       Alert.alert("Error", "Failed to sign in with Facebook");
-      setState((prev) => ({ ...prev, isLoading: false }));
     }
   };
 
   const updateProfile = async (updates: Record<string, any>) => {
     try {
       if (!state.user?.id) {
-        throw new Error("No authenticated user");
+        throw { code: "NO_AUTH_USER", message: "No authenticated user" };
       }
 
       const { error } = await updateUserProfile(state.user.id, updates);
       if (error) {
-        throw new Error(error.message);
+        throw { code: "PROFILE_UPDATE_FAILED", message: error.message };
       }
 
       const updatedUser = { ...state.user, ...updates };
       await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
       setState((prev) => ({ ...prev, user: updatedUser }));
     } catch (error) {
-      console.error("Update profile error:", error);
+      console.log("Update profile error:", error);
       throw error;
     }
   };
@@ -310,7 +310,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateMembership = async (plan: MembershipPlan) => {
     try {
       if (!state.user) {
-        throw new Error("No authenticated user");
+        throw { code: "NO_AUTH_USER", message: "No authenticated user" };
       }
 
       // Determine membership fields based on plan.id
@@ -339,7 +339,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const ddEnd = String(nextMonth.getDate()).padStart(2, "0");
         membershipEndDate = `${yyyyEnd}-${mmEnd}-${ddEnd}`;
       } else {
-        throw new Error("Invalid membership plan id");
+        throw {
+          code: "INVALID_PLAN_ID",
+          message: "Invalid membership plan id",
+        };
       }
 
       // Update user profile in Supabase
@@ -351,7 +354,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         membership_end_date: membershipEndDate,
       });
       if (error) {
-        throw new Error(error.message);
+        throw { code: "MEMBERSHIP_UPDATE_FAILED", message: error.message };
       }
 
       // Update user with new membership plan and membership fields
@@ -374,7 +377,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log("Membership updated successfully:", plan);
     } catch (error) {
-      console.error("Error updating membership:", error);
+      console.log("Error updating membership:", error);
       throw error;
     }
   };
@@ -382,13 +385,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resendConfirmationOfEmail = async (email: string) => {
     try {
       if (!email) {
-        throw new Error("Email is required");
+        throw { code: "EMAIL_REQUIRED", message: "Email is required" };
       }
 
-      await resendConfirmationEmail(email);
+      const stateEmail = state.user?.email || null;
+      console.log("[Auth] Resend confirmation requested", {
+        requestedEmail: email,
+        stateEmail,
+        matchesUser: stateEmail ? stateEmail === email : null,
+      });
+
+      console.log("[Auth] Calling resendConfirmationEmail service...");
+      const ok = await resendConfirmationEmail(email);
+      console.log("[Auth] resendConfirmationEmail response:", ok);
       console.log("Confirmation email resent successfully");
     } catch (error) {
-      console.error("Error resending confirmation email:", error);
+      console.log("Error resending confirmation email:", error);
       throw error;
     }
   };
@@ -412,7 +424,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw {
+      code: "USE_AUTH_OUTSIDE_PROVIDER",
+      message: "useAuth must be used within an AuthProvider",
+    };
   }
   return context;
 }

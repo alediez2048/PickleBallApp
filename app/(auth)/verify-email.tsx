@@ -1,32 +1,54 @@
-import React, { useState } from "react";
-import { View, SafeAreaView, StyleSheet } from "react-native";
-import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { StyleSheet } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
 import { Button } from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
 import { VerifyEmailIcon } from "@/components/common/icons/VerifyEmailIcon";
 import { ThemedText } from "@/components/common/ThemedText";
+import { ThemedView } from "@/components/common/ThemedView";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function VerifyEmailScreen() {
   const { user, resendConfirmationOfEmail, signOut } = useAuth();
+  const params = useLocalSearchParams<{ email?: string }>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const { colors } = useTheme();
+  const emailParam =
+    typeof params.email === "string" ? params.email : undefined;
+  const targetEmail = emailParam || user?.email || "";
+
+  // Auto-hide messages after 20 seconds
+  useEffect(() => {
+    if (!error && !success) return;
+    const t = setTimeout(() => {
+      setError(null);
+      setSuccess(null);
+    }, 20000);
+    return () => clearTimeout(t);
+  }, [error, success]);
 
   const handleResendVerification = async () => {
-    if (!user?.email) return;
+    if (!targetEmail) return;
 
     try {
       setIsLoading(true);
       setError(null);
       setSuccess(null);
 
-      await resendConfirmationOfEmail(user.email);
+      console.log("[VerifyEmail] Resend pressed for:", { email: targetEmail });
+      await resendConfirmationOfEmail(targetEmail);
+      console.log("[VerifyEmail] Resend request completed for:", {
+        email: targetEmail,
+      });
 
       setSuccess(
         "Verification email has been resent. Please check your inbox."
       );
     } catch (err) {
+      console.log("[VerifyEmail] Resend request failed:", err);
       if (err instanceof Error && err.message === "Email already verified") {
         router.replace("/(tabs)");
       } else {
@@ -38,61 +60,65 @@ export default function VerifyEmailScreen() {
   };
 
   const handleBackToSignIn = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       await signOut();
-      // Navigation will be handled by the root layout
     } catch (err) {
       setError("Failed to sign out. Please try again.");
+    } finally {
+      // Ensure we explicitly navigate to the login screen
+      router.replace("/(auth)/login");
       setIsLoading(false);
     }
   };
 
-  if (isLoading) {
-    return <LoadingSpinner message='Please wait...' />;
-  }
+  if (isLoading) return <LoadingSpinner message="Please wait..." />;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.iconContainer}>
+    <ThemedView type="default" style={styles.container}>
+      <ThemedView style={styles.content}>
+        <ThemedView style={styles.sectionMd}>
           <VerifyEmailIcon size={80} />
-        </View>
+        </ThemedView>
 
-        <ThemedText type='title' style={styles.title}>
+        <ThemedText type="title" style={styles.title}>
           Verify your email
         </ThemedText>
-        <ThemedText type='subtitleCenter' style={styles.subtitle}>
+        <ThemedText type="subtitle" style={styles.subtitle}>
           We've sent a verification email to{"\n"}
-          <ThemedText type='subtitle' style={styles.email}>
-            {user?.email}
+          <ThemedText type="subtitle" style={styles.email}>
+            {targetEmail}
           </ThemedText>
         </ThemedText>
 
-        <View style={styles.messageContainer}>
+        <ThemedView style={[styles.sectionMd, styles.messageContainer]}>
           {error && (
-            <ThemedText type='caption' style={styles.errorText}>
+            <ThemedText
+              type="caption"
+              style={styles.centerText}
+              colorType="danger"
+            >
               {error}
             </ThemedText>
           )}
           {success && (
             <ThemedText
-              type='caption'
-              colorType='primary'
-              style={styles.successText}
+              type="caption"
+              style={styles.centerText}
+              colorType="primary"
             >
               {success}
             </ThemedText>
           )}
-        </View>
+        </ThemedView>
 
-        <View style={styles.buttonContainer}>
-          <ThemedText type='caption' style={styles.resendText}>
+        <ThemedView style={styles.buttonContainer}>
+          <ThemedText type="caption" style={styles.centerText}>
             Didn't receive the email?
           </ThemedText>
           <Button
-            variant='primary'
-            size='large'
+            variant="primary"
+            size="large"
             fullWidth
             onPress={handleResendVerification}
             disabled={isLoading}
@@ -100,23 +126,25 @@ export default function VerifyEmailScreen() {
             Resend Verification Email
           </Button>
 
-          <View style={styles.divider} />
+          <ThemedView
+            style={[styles.divider, { backgroundColor: colors.border }]}
+          />
 
-          <ThemedText type='caption' style={styles.signInText}>
+          <ThemedText type="caption" style={styles.centerText}>
             Want to use a different account?
           </ThemedText>
           <Button
-            variant='outline'
-            size='large'
+            variant="outline"
+            size="large"
             fullWidth
             onPress={handleBackToSignIn}
             disabled={isLoading}
           >
             Back to Sign In
           </Button>
-        </View>
-      </View>
-    </SafeAreaView>
+        </ThemedView>
+      </ThemedView>
+    </ThemedView>
   );
 }
 
@@ -130,7 +158,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 24,
   },
-  iconContainer: {
+  sectionMd: {
     marginBottom: 24,
     alignItems: "center",
   },
@@ -142,36 +170,19 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 24,
   },
-  email: {
-    fontWeight: "600",
-  },
+  email: { fontWeight: "600" },
   messageContainer: {
-    marginBottom: 24,
     minHeight: 40,
   },
-  errorText: {
-    fontSize: 14,
-    textAlign: "center",
-  },
-  successText: {
-    fontSize: 14,
-    textAlign: "center",
-  },
+  centerText: { textAlign: "center" },
   buttonContainer: {
     width: "100%",
     gap: 16,
     alignItems: "center",
   },
-  resendText: {
-    textAlign: "center",
-  },
   divider: {
     height: 1,
-    backgroundColor: "#E5E7EB",
     width: "100%",
     marginVertical: 8,
-  },
-  signInText: {
-    textAlign: "center",
   },
 });

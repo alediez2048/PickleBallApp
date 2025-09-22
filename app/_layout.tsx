@@ -14,14 +14,12 @@ import { useEffect, useRef } from "react";
 import { StyleSheet, useColorScheme } from "react-native";
 
 function RootLayoutNav() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const lastNavigationRef = useRef("");
 
   useEffect(() => {
-    if (isLoading) return;
-
     const inAuthGroup = segments[0] === "(auth)";
     const inSkillGroup = segments[0] === "(skill-select)";
     const inProfileSetup = segments[0] === "(profile-setup)";
@@ -29,6 +27,7 @@ function RootLayoutNav() {
 
     let targetRoute = null;
     if (!isAuthenticated) {
+      // Stay in auth group if already there; only redirect when outside
       if (!inAuthGroup) {
         targetRoute = "/(auth)/login";
       }
@@ -47,7 +46,7 @@ function RootLayoutNav() {
         !inMainApp &&
         (inAuthGroup || inProfileSetup || inSkillGroup)
       ) {
-        targetRoute = "/(tabs)";
+        targetRoute = "/(tabs)/index";
       }
     }
     if (targetRoute && targetRoute !== lastNavigationRef.current) {
@@ -57,7 +56,6 @@ function RootLayoutNav() {
   }, [
     isAuthenticated,
     segments,
-    isLoading,
     user?.skill_level,
     user?.has_completed_profile,
   ]);

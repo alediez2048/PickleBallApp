@@ -17,7 +17,7 @@ export default function SkillSelectLayout() {
     if (!isLoading) {
       if (!isAuthenticated) {
         // Redirect to login if the user is not authenticated
-        router.replace("/login");
+        router.replace("/(auth)/login");
         return;
       }
       if (user?.skill_level) {
@@ -31,7 +31,7 @@ export default function SkillSelectLayout() {
   if (isLoading) {
     return (
       <ThemedView style={styles.centeredContainer}>
-        <LoadingSpinner message='Loading...' />
+        <LoadingSpinner message="Loading..." />
       </ThemedView>
     );
   }
