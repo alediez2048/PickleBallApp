@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   Text,
   type TextProps,
@@ -52,6 +53,7 @@ export type ThemedTextProps = TextProps & {
   weight?: number | "normal" | "bold";
   size?: number; // 1-15, see below
   className?: string; // Tailwind or global classes
+  children?: ReactNode;
 };
 
 const fontSizeMap: Record<number, number> = {

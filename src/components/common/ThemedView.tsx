@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   View,
   type ViewProps,
@@ -79,6 +80,7 @@ export type ThemedViewProps = ViewProps & {
     | "all"
     | "none";
   borderWidth?: number | "thin" | "normal" | "bold";
+  children?: ReactNode;
 };
 
 // ThemedView always uses themed styles, no raw View

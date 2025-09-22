@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { Link, router } from "expo-router";
 import { Button } from "@/components/common/Button";
-import { AntDesign } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { GoogleIcon } from "@/components/common/icons/GoogleIcon";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -105,7 +105,7 @@ export default function LoginScreen() {
             >
               <View style={styles.socialButtonContent}>
                 <View style={styles.socialIconContainer}>
-                  <AntDesign name="facebook-square" size={20} color="#1877F2" />
+                  <Ionicons name="logo-facebook" size={24} color="#1877F2" />
                 </View>
                 <ThemedText style={styles.socialButtonText}>
                   Continue with Facebook
