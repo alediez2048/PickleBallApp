@@ -3,8 +3,8 @@
   "compilerOptions": {
     "strict": true,
     "jsx": "react-native",
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
+    // Use Expo defaults (Bundler) for module resolution
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "baseUrl": ".",
