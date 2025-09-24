@@ -41,7 +41,9 @@ export default function EmailLoginScreen() {
 
       setIsLoading(true);
       await signIn(email, password);
-      // Navigation will be handled by the root layout
+      // Redirect to main tabs after successful login
+      console.log("Login successful, redirecting to main tabs...");
+      router.replace("/(tabs)");
     } catch (err: any) {
       const rawMessage = typeof err === "string" ? err : err?.message;
       const msg = (rawMessage || "").toString();

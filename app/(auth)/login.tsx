@@ -25,6 +25,7 @@ export default function LoginScreen() {
           await signInWithFacebook();
           break;
       }
+      router.replace("/(tabs)");
     } finally {
       setIsLoading(false);
     }
