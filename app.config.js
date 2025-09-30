@@ -13,6 +13,13 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.pickleballapp",
+      buildNumber: "1.0.0",
+      infoPlist: {
+        NSCameraUsageDescription:
+          "We use the camera so you can upload a profile image and photos.",
+        NSPhotoLibraryUsageDescription:
+          "We access your photo library so you can upload a profile image.",
+      },
       config: {
         usesNonExemptEncryption: false,
       },
