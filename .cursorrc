@@ -1,0 +1,182 @@
+{
+  "expertise": {
+    "domains": ["TypeScript", "React Native", "Expo", "Mobile UI"],
+    "level": "expert"
+  },
+
+  "codeStyle": {
+    "general": {
+      "paradigm": "functional",
+      "pattern": "declarative",
+      "avoidClasses": true,
+      "preferIteration": true,
+      "variableNaming": "descriptive with auxiliary verbs"
+    },
+    "fileStructure": [
+      "exported component",
+      "subcomponents",
+      "helpers",
+      "static content",
+      "types"
+    ]
+  },
+
+  "namingConventions": {
+    "directories": "lowercase-with-dashes",
+    "exports": "named exports preferred"
+  },
+
+  "typescript": {
+    "preferences": {
+      "interfaces": "preferred over types",
+      "enums": "avoid, use maps instead",
+      "components": "functional with interfaces",
+      "mode": "strict"
+    }
+  },
+
+  "syntax": {
+    "functions": "use function keyword for pure functions",
+    "conditionals": "avoid unnecessary curly braces",
+    "jsx": "declarative",
+    "formatting": "prettier"
+  },
+
+  "ui": {
+    "components": "use Expo built-ins",
+    "responsiveness": {
+      "layout": "Flexbox",
+      "dimensions": "useWindowDimensions"
+    },
+    "styling": ["styled-components", "Tailwind CSS"],
+    "themes": "support dark mode with useColorScheme",
+    "accessibility": {
+      "standards": "high",
+      "requirements": ["ARIA roles", "native accessibility props"]
+    },
+    "animations": {
+      "libraries": [
+        "react-native-reanimated",
+        "react-native-gesture-handler"
+      ]
+    }
+  },
+
+  "safeArea": {
+    "provider": "react-native-safe-area-context",
+    "components": {
+      "wrapper": "SafeAreaView",
+      "scroll": "SafeAreaScrollView"
+    },
+    "rules": [
+      "manage safe areas globally",
+      "avoid hardcoded padding/margins",
+      "respect safe area boundaries"
+    ]
+  },
+
+  "performance": {
+    "stateManagement": {
+      "prefer": ["context", "reducers"],
+      "minimize": ["useState", "useEffect"]
+    },
+    "startup": {
+      "use": ["AppLoading", "SplashScreen"]
+    },
+    "images": {
+      "format": "WebP where supported",
+      "loading": "lazy with expo-image"
+    },
+    "optimization": {
+      "codeSplitting": true,
+      "lazyLoading": true,
+      "memoization": {
+        "components": true,
+        "hooks": ["useMemo", "useCallback"]
+      }
+    }
+  },
+
+  "navigation": {
+    "library": "react-navigation",
+    "features": [
+      "deep linking",
+      "universal links",
+      "dynamic routes with expo-router"
+    ]
+  },
+
+  "stateManagement": {
+    "global": {
+      "primary": ["React Context", "useReducer"],
+      "complex": ["Zustand", "Redux Toolkit"]
+    },
+    "data": {
+      "fetching": "react-query",
+      "urlParams": "expo-linking"
+    }
+  },
+
+  "errorHandling": {
+    "validation": "Zod",
+    "logging": {
+      "development": "console with descriptive messages",
+      "production": ["Sentry", "expo-error-reporter"]
+    },
+    "patterns": [
+      "handle errors at start",
+      "early returns",
+      "avoid else",
+      "use if-return",
+      "implement error boundaries"
+    ]
+  },
+
+  "testing": {
+    "unit": {
+      "framework": "Jest",
+      "library": "React Native Testing Library"
+    },
+    "integration": "Detox",
+    "ui": "snapshot testing"
+  },
+
+  "security": {
+    "input": "sanitize for XSS",
+    "storage": "react-native-encrypted-storage",
+    "communication": ["HTTPS", "proper authentication"],
+    "guidelines": "follow Expo security docs"
+  },
+
+  "i18n": {
+    "libraries": [
+      "react-native-i18n",
+      "expo-localization"
+    ],
+    "support": [
+      "multiple languages",
+      "RTL layouts",
+      "text scaling",
+      "font adjustments"
+    ]
+  },
+
+  "keyConventions": [
+    "use Expo managed workflow",
+    "prioritize Mobile Web Vitals",
+    "use expo-constants for env vars",
+    "handle permissions with expo-permissions",
+    "implement OTA updates with expo-updates",
+    "follow Expo deployment practices",
+    "ensure iOS/Android compatibility"
+  ],
+
+  "documentation": {
+    "primary": "https://docs.expo.dev/",
+    "sections": [
+      "Views",
+      "Blueprints",
+      "Extensions"
+    ]
+  }
+} 

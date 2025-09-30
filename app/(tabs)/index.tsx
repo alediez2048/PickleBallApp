@@ -1,74 +1,302 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useState, useEffect } from "react";
+import {
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Platform,
+  Alert,
+} from "react-native";
+import { Button } from "@/components/common/Button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "expo-router";
+import { useBookedGames } from "@/contexts/BookedGamesContext";
+import { IconSymbol } from "@/components/common/IconSymbol";
+import { ThemedView } from "@/components/common/ThemedView";
+import { ThemedText } from "@/components/common/ThemedText";
+import { BookedGame } from "@/types/bookedGames";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+export default function TabHomeScreen() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [upcomingGames, setUpcomingGames] = useState<BookedGame[]>([]);
+  const { listBookedGamesForUser } = useBookedGames();
 
-export default function HomeScreen() {
+  // Fetch upcoming booked games for the user
+  useEffect(() => {
+    // Reset the upcomingGames to empty before fetching
+    setUpcomingGames([]);
+    fetchBookedGames();
+  }, []);
+
+  const fetchBookedGames = async () => {
+    try {
+      const games = await listBookedGamesForUser();
+      setUpcomingGames(games);
+    } catch (error) {
+      console.error("Error fetching upcoming games:", error);
+      Alert.alert("Error", "Failed to fetch upcoming games. Please try again.");
+    }
+  };
+
+  const handleGamePress = (gameId: string) => {
+    // Find the booked game to get its original game ID
+    const bookedGame = upcomingGames.find((game) => game.id === gameId);
+    if (bookedGame) {
+      router.push({
+        pathname: "/game/[id]",
+        params: { id: bookedGame.game_id },
+      });
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
+    <ThemedView style={styles.container}>
+      <ThemedView colorType="text" style={styles.banner}>
+        <ThemedText type="title" weight="bold" colorType="background">
+          Hi {user?.name || "User"}
         </ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+
+      <ScrollView style={styles.contentContainer}>
+        <ThemedView style={styles.content}>
+          <ThemedText type="title" weight="bold" colorType="primary">
+            Welcome to PicklePass
+          </ThemedText>
+          <ThemedText type="miniSubtitle" style={styles.subtitle}>
+            Find and join Pickleball games near you
+          </ThemedText>
+
+          <ThemedView style={styles.buttonContainer}>
+            <Button
+              onPress={() => router.push("/(tabs)/explore")}
+              size="large"
+              variant="primary"
+              fullWidth
+              style={styles.button}
+            >
+              Find Games
+            </Button>
+
+            <ThemedView style={styles.upcomingGamesContainer}>
+              <ThemedView style={styles.upcomingGamesHeader}>
+                <ThemedText type="subtitle" weight={"bold"}>
+                  Upcoming Games
+                </ThemedText>
+              </ThemedView>
+              {upcomingGames.length > 0 ? (
+                <ThemedView
+                  style={styles.gamesList}
+                  borderColorType="text"
+                  borderWidth={2}
+                >
+                  {upcomingGames.map((game) => (
+                    <TouchableOpacity
+                      key={`upcoming-game-${game.id}-${Date.now()}`}
+                      onPress={() => handleGamePress(game.id)}
+                    >
+                      <ThemedView style={styles.gameCardContent}>
+                        <ThemedView>
+                          <ThemedView style={styles.timeContainer}>
+                            <IconSymbol
+                              name="calendar"
+                              size={16}
+                              color="#4CAF50"
+                              style={styles.timeIcon}
+                            />
+                            <ThemedText style={styles.gameTime}>
+                              {" "}
+                              {game.game?.start_time
+                                ? new Date(
+                                    game.game.start_time
+                                  ).toLocaleDateString("en-US")
+                                : ""}
+                            </ThemedText>
+                          </ThemedView>
+                          <ThemedView style={styles.timeContainer}>
+                            <IconSymbol name="time" size={16} />
+                            <ThemedText>
+                              {game.game?.start_time
+                                ? new Date(
+                                    game.game.start_time
+                                  ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })
+                                : ""}
+                            </ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+                        <ThemedView style={styles.locationContainer}>
+                          <ThemedView>
+                            <ThemedText>
+                              <IconSymbol
+                                name="location.fill"
+                                size={16}
+                                style={styles.locationIcon}
+                              />
+                              {game.court_name}
+                            </ThemedText>
+                          </ThemedView>
+                          <ThemedView>
+                            <ThemedText numberOfLines={1}>
+                              {game.location?.address}
+                            </ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+                      </ThemedView>
+                    </TouchableOpacity>
+                  ))}
+                </ThemedView>
+              ) : (
+                <ThemedView
+                  className="items-center p-8 rounded-xl mt-0 py-5"
+                  colorType="soft"
+                >
+                  <IconSymbol
+                    name="gamecontroller.fill"
+                    size={40}
+                    color="#666666"
+                    style={styles.emptyStateIcon}
+                  />
+                  <ThemedText className="mt-1 p-0" size={5} weight={"bold"}>
+                    No Upcoming Games
+                  </ThemedText>
+
+                  <ThemedText className="mb-3" align="center" size={2}>
+                    Find and join games to see them here!
+                  </ThemedText>
+                </ThemedView>
+              )}
+            </ThemedView>
+          </ThemedView>
+        </ThemedView>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
   },
-  stepContainer: {
-    gap: 8,
+  banner: {
+    padding: 20,
+    paddingTop: 40,
+  },
+  welcomeText: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  content: {
+    alignItems: "center",
+    width: "100%",
+    maxWidth: 400,
+    alignSelf: "center",
+    padding: 16,
+  },
+  subtitle: {
+    marginVertical: 20,
+  },
+  buttonContainer: {
+    width: "100%",
+    gap: 16,
+    alignItems: "center",
+  },
+  button: {
+    width: "100%",
+    marginBottom: 12,
+  },
+  upcomingGamesContainer: {
+    borderRadius: 16,
+    width: "100%",
+    marginVertical: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  upcomingGamesHeader: {
+    padding: 20,
+    borderBottomWidth: 1,
+  },
+  gamesList: {
+    padding: 6,
+    gap: 12,
+    borderRadius: 12,
+  },
+  gameCard: {
+    borderRadius: 12,
+    overflow: "hidden",
+    borderWidth: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  gameCardContent: {
+    padding: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  timeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  timeIcon: {
+    opacity: 0.8,
+  },
+  gameTime: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#4CAF50",
+  },
+  locationContainer: {
+    flexDirection: "column",
+    alignItems: "flex-end",
+  },
+  locationIcon: {
+    margin: 4,
+    paddingRight: 4,
+  },
+  emptyStateIcon: {
+    marginBottom: 16,
+    opacity: 0.5,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#000000",
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  emptyStateText: {
+    fontSize: 14,
+    color: "#666666",
+    textAlign: "center",
   },
 });
