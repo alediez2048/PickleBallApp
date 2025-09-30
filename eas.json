@@ -4,18 +4,25 @@
     "appVersionSource": "remote"
   },
   "build": {
-    "development": {
+    "dev": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": { "resourceClass": "m-medium" }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "autoIncrement": true,
+      "ios": { "resourceClass": "m-medium" }
     },
     "production": {
-      "autoIncrement": true
+      "distribution": "store",
+      "autoIncrement": true,
+      "ios": { "resourceClass": "m-medium" }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {}
+    }
   }
 }
